@@ -1,0 +1,34 @@
+{[_init]=function(Control)
+	local e,nan="Number '%s' isn't a valid number!",-(0/0)
+	local fin_num=function(nd,c)
+		--Control.log("CSSC Number format located. System: '%s'", c=='b' and 'binary' or 'octal')
+		nd=concat(nd)
+		local f,s,ex=match(nd,"..(%d*)%.?(%d*)(.*)")
+		c=c=="b" and 2 or 8 --bin/oct
+		--Control.log("Num src: F'%s' f'%s' exp'%s'",f,s,ex)
+		f=tonumber(#f>0 and f or 0,c)--base
+		if #s>0 then s=(tonumber(s,c)or nan)/c/#s else s=0 end--float
+		ex=tonumber(#ex>0 and sub(ex,2) or 0,c)--exp
+		--Control.log("Num out: F'%s' f'%s' exp'%s'",f,s,ex)
+		nd =(f and s==s and ex)and ""..(f+s)*(2^ex)or Control.error(e,nd)or nd
+		--insert(Control.Result,""..(f+s)*(2^ex))
+		insert(Control.Result,nd)
+		Control.Core(__NUMBER__,nd)
+	end
+	
+	insert(Control.Struct,2,function()--this stuff must run before lua_struct and after space_handler parts.
+		local c =#Control.operator<1 and match(Control.word,"^0([ob])%d")
+		if c then
+			local num_data,f = {},{0 ..c.."%d","Pp"}
+			if Control.get_num_prt(num_data,f)then fin_num(num_data,c)return true end
+			Control.Iterator()
+			if Control.operator=="."then
+				num_data[#num_data+1]="."
+				f[1]="%d"
+				Control.get_num_prt(num_data,f)
+			end
+			fin_num(num_data,c)
+			return true
+		end
+	end)
+end}

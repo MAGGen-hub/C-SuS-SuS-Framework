@@ -1,0 +1,11 @@
+Name,Value,Desc
+__MAIN_CYCLE__,1,Tells iterator that it was called from main cycle.
+__SYMBOL__,1,Undefined punctuation
+__OPERATOR__,2,Defined punctuation
+__WORD__,3,Anything that starts with [A-Za-z]
+__KEYWORD__,4,Located keyword
+__STRING__,5,Located string
+__VALUE__,6,Located var_args/number/nil/boolean
+__OPEN_BREAKET__,7,Any open breaket
+__CLOSE_BREAKET__,8,Any close breaket
+__COMMENT__,9,Comment that means nothing to compiller
