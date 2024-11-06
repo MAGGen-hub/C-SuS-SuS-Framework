@@ -1,0 +1,225 @@
+{
+  "main": {
+    "id": "21a46ae7ab466a28",
+    "type": "split",
+    "children": [
+      {
+        "id": "773ce86663ac105c",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "bde2d2f0ef944d6c",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Lua-MC/src/features/text/dual_queue/base.lua.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "base.lua"
+            }
+          },
+          {
+            "id": "36bdcc606989382d",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Lua-MC/src/features/text/dual_queue/make_react.lua.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "make_react.lua"
+            }
+          },
+          {
+            "id": "8c59c818c5162c30",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Граф"
+            }
+          }
+        ],
+        "currentTab": 2
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "792e155edd0ba83b",
+    "type": "split",
+    "children": [
+      {
+        "id": "b79a5f9436351a56",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "cc7faad4299eaa3e",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Файловый менеджер"
+            }
+          },
+          {
+            "id": "a728265fe9457515",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Поиск"
+            }
+          },
+          {
+            "id": "979432b22dd556ac",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Закладки"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "9a2cb7c3d9e641f2",
+    "type": "split",
+    "children": [
+      {
+        "id": "e0a3d8c150a9da51",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "95aa38a5f3de15e6",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Обратные ссылки"
+            }
+          },
+          {
+            "id": "d20d29c4f8e614d1",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Исходящие ссылки"
+            }
+          },
+          {
+            "id": "975d4224ca4386f0",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              },
+              "icon": "lucide-tags",
+              "title": "Теги"
+            }
+          },
+          {
+            "id": "34c6327347f1f1cd",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {},
+              "icon": "lucide-list",
+              "title": "Структура"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Меню быстрого перехода": false,
+      "graph:Граф": false,
+      "canvas:Создать новый холст": false,
+      "daily-notes:Сегодняшняя заметка": false,
+      "templates:Вставить шаблон": false,
+      "command-palette:Открыть палитру команд": false
+    }
+  },
+  "active": "8c59c818c5162c30",
+  "lastOpenFiles": [
+    "__obsidian/Lua-MC.md",
+    "Lua-MC/src/base.lua.md",
+    "__obsidian/modules/cssc.md",
+    "Lua-MC/src/modules/cssc/LF.lua.md",
+    "Lua-MC/src/modules/cssc/NF.lua.md",
+    "__obsidian/modules.md",
+    "__obsidian/modules",
+    "Lua-MC/src/modules/cssc",
+    "__obsidian/features/dual_queue.md",
+    "Lua-MC/src/features/text/dual_queue/space_handler.lua.md",
+    "Lua-MC/src/features/text/dual_queue/iterator.lua.md",
+    "Lua-MC/src/features/text/dual_queue/parcer.lua.md",
+    "Lua-MC/src/features/code/syntax_loader.lua.md",
+    "Lua-MC/src/features/common/event.lua.md",
+    "Lua-MC/src/features/common/level.lua.md",
+    "__obsidian/features/Без названия.md",
+    "__obsidian/features/lua.md",
+    "Lua-MC/src/features/code/lua/struct.lua.md",
+    "__obsidian/features",
+    "__obsidian/features/text.md",
+    "Lua-MC/src/features/Без названия 1.md",
+    "__obsidian/features.md",
+    "__obsidian/features/code.md",
+    "__obsidian/features/common.md",
+    "__obsidian/features/code.md",
+    "__obsidian",
+    "Добро пожаловать.md",
+    "Lua-MC/src/features/code/lua/base.lua.md",
+    "Lua-MC/src/features/code/lua",
+    "Lua-MC/src/features/text/dual_queue/make_react.lua.md",
+    "Lua-MC/src/features/text/dual_queue/base.lua.md",
+    "Lua-MC/src/features/text/dual_queue",
+    "Lua-MC/src/features/text",
+    "Lua-MC/src/features/code",
+    "Lua-MC/src/features/common",
+    "Lua-MC/src/features"
+  ]
+}

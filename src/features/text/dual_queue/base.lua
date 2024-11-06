@@ -1,4 +1,4 @@
-function(Control)
+function(Control)--base API for text/code related data
 	Control.Operators={}
 	Control.operator=""
 	Control.word=""

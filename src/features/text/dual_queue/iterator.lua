@@ -1,4 +1,4 @@
-function(Control,seq)
+function(Control,seq)-- default text system interator
 	insert(Control.PreRun,function()
 		local s=gmatch(Control.src,seq or"()([%s!-/:-@[-^{-~`]*)([%P_]*)")--default text iterator
 		Control.Iterator=function(m)

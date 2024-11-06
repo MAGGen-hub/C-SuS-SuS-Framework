@@ -1,0 +1,5 @@
+[[Lua-MC/src/features/text/dual_queue/base.lua]]
+[[make_react.lua]]
+[[iterator.lua]]
+[[parcer.lua]]
+[[space_handler.lua]]

@@ -1,4 +1,4 @@
-function(Control)
+function(Control)--function that created sefault reactions to different tokens
 	return __RESULTABLE__, function(s,i,t,j) -- s -> replacer string, i - type of reaction, t - type of sequnece, j - local length
 		t=t or match(s,"%w")and"word"or"operator"
 		j=j or#s
