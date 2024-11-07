@@ -6,15 +6,16 @@ function(Control,level_hash)--LEVELING SYSTEM
 	l={{type="main",index=1,ends=a},
 	data=level_hash,
 	fin=function()
-		if#l<2 then l.close("main",a)
+		if#l<2 then l.close("main",nil,a)
 		else Control.error("Can't close 'main' level! Found (%d) unfinished levels!",#l-1)end
 	end,
-	close=function(obj,f)
+	close=function(obj,nc,f)
 		f=f==a and a or{}
 		local lvl,e,r=remove(l)
 		if f~=a and#l<1 then Control.error("Attempt to close 'main'(%d) level with '%s'!",#l,obj)return end
 		e=lvl.ends or f--setup level ends/fins
-		if e[obj]then Control.Event.run("lvl_close",lvl,obj)return end --Level end found! Invoke close event and return!
+		if e[obj]then Control.Event.run("lvl_close",lvl,obj)return --Level end found! Invoke close event and return!
+		elseif nc then return end -- level is standalone [like "do" kwrd] and can be opened without closeing prewious
 		--Unexpected end! Push error
 		r="'"for k in pairs(e)do r=r..k.."' or '"end r=sub(r,1,-6)
 		Control.error(#r>0 and"Expected %s to close '%s' but got '%s'!"or"Attempt to close level with no ends!",r,lvl.type,obj)
@@ -27,7 +28,7 @@ function(Control,level_hash)--LEVELING SYSTEM
 	end,
 	ctrl=function(obj)
 		local t=l.data[obj]
-		t=t and(t[2]and l.close(obj)or t[1]and l.open(obj,t[1]))
+		t=t and(t[2]and l.close(obj,t[3])or t[1]and l.open(obj,t[1]))
 	end}
 	Control.Level=l
 	clr()
