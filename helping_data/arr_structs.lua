@@ -14,3 +14,14 @@ kwrd_hash:
 {
     [keyword]=true, -- this keyword is exist in language
 }
+c_data:
+    operator:
+        {c_type,priority,is_unary}
+    keyword:
+    breaket:
+        {c_type,open_level_index} --index where level is opened, can be null
+    word:
+    value:
+    struct:
+        {c_type,meta_data} -- additional data that can be 
+    
