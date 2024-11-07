@@ -170,7 +170,34 @@ end
 do
 --__PREPARE_FEATURES__
 
-Features={code={lua={base=function(Control,O,W)-- O - Control.Operators or other table; W - Control.Words or other table (depends on current text parceing system)
+Features={code={cdata=function(Control,opts_hash,level_hash,affect_func)--API to save code data to specific table
+    local c,clr,skip
+    c={opts=opts_hash,lvl=level_hash,affect=affect_func,
+    run=function(obj,tp)--to call from core
+        local lh,rez=lvl[obj]
+        if lh and lh[2] then --object with lvl props
+            rez=Control.Level[#Control.Level]
+            rez ={tp,rez.ends[lh[2]] and rez.index}
+        elseif tp==2 then
+            local pd,lt,un = c.opts[obj],c[#c][1]--priority_data,last_type,is_unary
+            un = pd[2] and (not pd[1] or not (lt==2 or  lt==4 or lt==9))--unary or binary
+            rez={tp,not un and pd[1],un and pd[2]}--inser operator data handle
+        else
+            rez={tp}
+        end
+        c[#c+1]=rez --TODO: insert val
+    end,
+    reg=function(tp,id,...)--reg custom value in specific field
+        local rez = args and {tp,...} or {tp}
+        insert(c,id or #c+1,rez)
+    end,
+    del=function(id)--del specific value from index
+        return remove(c,id or #c+1)
+    end, {9}
+    }
+    Control.Cdata=c
+end,
+lua={base=function(Control,O,W)-- O - Control.Operators or other table; W - Control.Words or other table (depends on current text parceing system)
 --BASE LUA SYNTAX STRING (keywords/operators/breakets/values)
 local make_react,lvl,kw,kwrd,opt,t,p,lua51=Control:load_lib"text.dual_queue.make_react",{},{},{},{},{},1,
 [[K
@@ -236,11 +263,11 @@ Control:load_lib"code.syntax_loader"(lua51,{
     B=function(o,c)--breaket parce
         lvl[o]={{[c]=1}}--open with exepected end == c
         lvl[c]={nil,1}--closing
-        O[o]=make_react(o,8)
-        O[c]=make_react(c,9)
+        O[o]=make_react(o,9)
+        O[c]=make_react(c,10)
     end,
     V=function(v)--value parce
-        (match(v,"%w")and W or O)[v]=make_react(v,7)
+        (match(v,"%w")and W or O)[v]=make_react(v,8)
     end,
     O=function(...)--opt parce
         for k,v in pairs{...}do if""~=v then
@@ -251,22 +278,12 @@ Control:load_lib"code.syntax_loader"(lua51,{
         p=p+1--increade priority
     end
 })
+lvl["do"][3]=1 --do can be standalone level and init block on it's own
+opt["not"]={nil,opt["not"][1]}--unary opts fix
+opt["#"]={nil,opt["#"][1]}
+--TODO:coorect 'not'; '#' unary
 return 1,lvl,opt,kwrd--(leveling_hash,operator_hash<with_priority>,keywrod_hash)
 end,
-priority_affect=function(Control)
-	local l = Control.Level
-            return 2, function(p,obj,tp)
-            	--require"cc.pretty".pretty_print(l[#l].pr_seq)
-                local pt,pi=unpack(l[#l].pr_seq.prew) --TODO! INJECT CALLS AND INDEXES!!!
-                if pt~=2 and(tp==7 or tp==3)or(pt==7 or pt==5)and(tp==8 or tp==6)then
-                    p.reg(1,1,1) --mark end of statement
-                    Control.Event.run("stat_end",obj,tp,pt,pi)
-                end
-                if(pt==3 or pt==6 or pt==8)and(tp==6 or tp==8) then
-                	p.reg(Control.Priority.data["."],1)
-                end
-            end
-        end,
 struct=function(Control)--comment/string/number detector
 	local get_number_part=function(nd,f) --function that collect number parts into num_data. 
 		local ex                            --Returns 1 if end of number found or nil if floating point posible
@@ -324,7 +341,7 @@ struct=function(Control)--comment/string/number detector
 			if lvl then --LONG BUILDER
 				lvl="%]"..lvl.."()%]"
 				repeat
-					if split_seq(rez,match(Control.operator,lvl))then mode=com and 10 or 6 break end --structure finished
+					if split_seq(rez,match(Control.operator,lvl))then mode=com and 11 or 7 break end --structure finished
 					insert(rez,Control.word)
 				until Control.Iterator()
 			elseif str then --STRING BUILDER
@@ -337,7 +354,7 @@ struct=function(Control)--comment/string/number detector
 						lvl = lvl or mode --line counter
 						-- "ddd \
 						-- abc" --still correct string because there is an "\" before "\n"
-						if #com%2>0 then mode=not mode and 6 break end --end of string or \n found
+						if #com%2>0 then mode=not mode and 7 break end --end of string or \n found
 					else -- operator may look like that : [[ \" \" \\"  ]] -- and algorithm will detect ALL three segms, that why this "else" is here
 						if split_seq(rez,match(Control.word,"()\n"),1)then break end --unfinished string "word" mode split seq
 						Control.Iterator()
@@ -347,14 +364,14 @@ struct=function(Control)--comment/string/number detector
 				repeat
 					if split_seq(rez,match(Control.operator,"()\n"))or split_seq(rez,match(Control.word,"()\n"),1)then Control.line=Control.line+1 break end --comment end found
 				until Control.Iterator()
-				mode=10
+				mode=11
 			else --DOT-ABLE NUMBER (posible number like this: " *code* .124E-1 *code* ")
 				rez=get_number()
-				mode=rez and 5 --5
+				mode=rez and 6 --6
 			end
 		elseif#Control.word>0 then --NUMBER BUILDER
 			rez=get_number()
-			mode=rez and 5 --5
+			mode=rez and 6 --6
 		end
 		if rez then
 			rez=concat(rez)
@@ -363,7 +380,7 @@ struct=function(Control)--comment/string/number detector
 				Control.line=Control.line+com --line counter for long structures
 			end
 			Control.Result[#Control.Result+1]=rez
-			Control.Core(mode or 11,rez)-- mode==nul or false -> unfinished structure PUSH_ERROR required
+			Control.Core(mode or 12,rez)-- mode==nul or false -> unfinished structure PUSH_ERROR required
 			return true --inform base that structure is found and structure_module_restart required before future processing
 		end
 	end)
@@ -372,28 +389,6 @@ struct=function(Control)--comment/string/number detector
 end
 ,
 },--Close lua
-priority=function(Control,opts_hash,affect)--PRIORITY SYSTEM,priority value structure {priority, index in result table}
-        --Control:load_lib("common.level",level_hash or{})
-        local l,p=Control.Level
-        Control.Event.reg("lvl_open",function(lvl)lvl.pr_seq={{1,lvl.index,1},prew={2,1}}end,nil,1)--add field to lvl constructor
-        p={data=opts_hash,lang_affect=affect,
-        reg=function(prior,is_unary,off)insert(l[#l].pr_seq,{prior,#Control.Result-(off or 0),is_unary})end,--register new priority entity
-        unary=function(op)return op[2]and(0>op[2]and op[1]or(l[#l].pr_seq.prew==2 or l[#l].pr_seq.prew==8)and op[2])end,--check curent operator type and return unary priority if exist
-        run=function(obj,tp)
-            if not p:lang_affect(obj,tp)then--affect priority sequecne using language statement rules
-                if tp==2 then
-                    local op,u=p.data[obj]
-                    u=p.unary(op)
-                    p.reg(u or op[1],u)
-                end
-            end
-            --TODO:set prew val (prewious) l[#l].pr_seq.prew
-            l[#l].pr_seq.prew=tp~=10 and {tp,#Control.Result} or l[#l].pr_seq.prew
-        end}
-        Control.Priority=p
-        Control.Level[1].pr_seq={{1,1,1},prew={2,1}}
-        insert(Control.Clear,function()Control.Level[1].pr_seq={{1,1,1},prew={2,1}}end)
-    end,
 syntax_loader=function()--simple function to load syntax data
 	return 2,function(str,f)
 		local mode,t=placeholder_func,{}
@@ -439,15 +434,16 @@ level=function(Control,level_hash)--LEVELING SYSTEM
 	l={{type="main",index=1,ends=a},
 	data=level_hash,
 	fin=function()
-		if#l<2 then l.close("main",a)
+		if#l<2 then l.close("main",nil,a)
 		else Control.error("Can't close 'main' level! Found (%d) unfinished levels!",#l-1)end
 	end,
-	close=function(obj,f)
+	close=function(obj,nc,f)
 		f=f==a and a or{}
 		local lvl,e,r=remove(l)
 		if f~=a and#l<1 then Control.error("Attempt to close 'main'(%d) level with '%s'!",#l,obj)return end
 		e=lvl.ends or f--setup level ends/fins
-		if e[obj]then Control.Event.run("lvl_close",lvl,obj)return end --Level end found! Invoke close event and return!
+		if e[obj]then Control.Event.run("lvl_close",lvl,obj)return --Level end found! Invoke close event and return!
+		elseif nc then return end -- level is standalone [like "do" kwrd] and can be opened without closeing prewious
 		--Unexpected end! Push error
 		r="'"for k in pairs(e)do r=r..k.."' or '"end r=sub(r,1,-6)
 		Control.error(#r>0 and"Expected %s to close '%s' but got '%s'!"or"Attempt to close level with no ends!",r,lvl.type,obj)
@@ -460,7 +456,7 @@ level=function(Control,level_hash)--LEVELING SYSTEM
 	end,
 	ctrl=function(obj)
 		local t=l.data[obj]
-		t=t and(t[2]and l.close(obj)or t[1]and l.open(obj,t[1]))
+		t=t and(t[2]and l.close(obj,t[3])or t[1]and l.open(obj,t[1]))
 	end}
 	Control.Level=l
 	clr()
@@ -468,7 +464,7 @@ level=function(Control,level_hash)--LEVELING SYSTEM
 end
 ,
 },--Close common
-text={dual_queue={base=function(Control)
+text={dual_queue={base=function(Control)--base API for text/code related data
 	Control.Operators={}
 	Control.operator=""
 	Control.word=""
@@ -490,7 +486,7 @@ init=function(Control)--default initer placer (has no Control)
 		end
 	end
 end,
-iterator=function(Control,seq)
+iterator=function(Control,seq)-- default text system interator
 	insert(Control.PreRun,function()
 		local s=gmatch(Control.src,seq or"()([%s!-/:-@[-^{-~`]*)([%P_]*)")--default text iterator
 		Control.Iterator=function(m)
@@ -500,7 +496,7 @@ iterator=function(Control,seq)
 		end
 	end)
 end,
-make_react=function(Control)
+make_react=function(Control)--function that created sefault reactions to different tokens
 	return 2, function(s,i,t,j) -- s -> replacer string, i - type of reaction, t - type of sequnece, j - local length
 		t=t or match(s,"%w")and"word"or"operator"
 		j=j or#s
@@ -572,7 +568,7 @@ Modules={cssc={[_init]=function(Control)
 	Control:load_lib("code.priority",opt,Control:load_lib"code.lua.priority_affect")
 	
 	--core setup
-	local t={3,4,5,6,7}
+	local t={3,4,6,7,8}
 	t=swap(t)
 	Control.Core=function(tp,obj)--type_of_text_object,object_it_self
 		
@@ -588,7 +584,7 @@ end
 [_modules]={LF={[_init]=function(Control)
 	local pl --posible lambda
 	Control.Event.reg("lvl_close",function(lvl)pl=lvl.type=="(" and lvl.index end,"LF",1)
-	Control.Event.reg("all",function(o,tp)pl=tp==10 and pl end,"LF",1)
+	Control.Event.reg("all",function(o,tp)pl=tp==11 and pl end,"LF",1)
 	Control.Operators["->"]=function(Control)
 		if pl then insert(Control.Result,pl,"function")-- "(*code*)" located before "->"
 		else--default lambda mode
@@ -619,7 +615,7 @@ NF={[_init]=function(Control)
 		nd =(f and s==s and ex)and ""..(f+s)*(2^ex)or Control.error(e,nd)or nd
 		--insert(Control.Result,""..(f+s)*(2^ex))
 		insert(Control.Result,nd)
-		Control.Core(5,nd)
+		Control.Core(6,nd)
 	end
 	
 	insert(Control.Struct,2,function()--this stuff must run before lua_struct and after space_handler parts.
@@ -651,13 +647,13 @@ dq_dbg={[_init]=function(Control)
 	[4]={colors.toBlit(colors.yellow)," "},
 	[2]={colors.toBlit(colors.lightBlue)," "},
 	[1]={colors.toBlit(colors.lightBlue)," "},
-	[10]={colors.toBlit(colors.green)," "},
-	[7]={colors.toBlit(colors.cyan)," "},
-	[8]={colors.toBlit(colors.white)," "},
+	[11]={colors.toBlit(colors.green)," "},
+	[8]={colors.toBlit(colors.cyan)," "},
 	[9]={colors.toBlit(colors.white)," "},
-	[5]={colors.toBlit(colors.lime)," "},
-	[6]={colors.toBlit(colors.red)," "},
-	[11]={colors.toBlit(colors.pink)," "},
+	[10]={colors.toBlit(colors.white)," "},
+	[6]={colors.toBlit(colors.lime)," "},
+	[7]={colors.toBlit(colors.red)," "},
+	[12]={colors.toBlit(colors.pink)," "},
 	}
 	Control.BlitBack={}
 	Control.BlitFront={}
@@ -711,13 +707,13 @@ dq_dbg2={[_init]=function(Control)
 	[4]={colors.toBlit(colors.yellow)," "},
 	[2]={colors.toBlit(colors.lightBlue)," "},
 	[1]={colors.toBlit(colors.lightBlue)," "},
-	[10]={colors.toBlit(colors.green)," "},
-	[7]={colors.toBlit(colors.cyan)," "},
-	[8]={colors.toBlit(colors.white)," "},
+	[11]={colors.toBlit(colors.green)," "},
+	[8]={colors.toBlit(colors.cyan)," "},
 	[9]={colors.toBlit(colors.white)," "},
-	[5]={colors.toBlit(colors.lime)," "},
-	[6]={colors.toBlit(colors.red)," "},
-	[11]={colors.toBlit(colors.pink)," "},
+	[10]={colors.toBlit(colors.white)," "},
+	[6]={colors.toBlit(colors.lime)," "},
+	[7]={colors.toBlit(colors.red)," "},
+	[12]={colors.toBlit(colors.pink)," "},
 	}
 	Control.BlitBack={}
 	Control.BlitFront={}

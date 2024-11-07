@@ -16,7 +16,7 @@ kwrd_hash:
 }
 c_data:
     operator:
-        {c_type,priority,is_unary}
+        {c_type,binary_priority,unary_priority} -- TODO: add postfix
     keyword:
     breaket:
         {c_type,open_level_index} --index where level is opened, can be null
