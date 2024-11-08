@@ -13,7 +13,7 @@ function(Control,opts_hash,level_hash,affect_func)--API to save code data to spe
         else
             rez={tp}
         end
-        c[#c+1]=rez --TODO: insert val
+        c[#c+1]=rez --TODO: AFFECT/IGNORE
     end,
     reg=function(tp,id,...)--reg custom value in specific field
         local rez = args and {tp,...} or {tp}
@@ -21,6 +21,23 @@ function(Control,opts_hash,level_hash,affect_func)--API to save code data to spe
     end,
     del=function(id)--del specific value from index
         return remove(c,id or #c+1)
+    end,
+    tb_until_p=function(prior,sign)
+        local i,v=#c
+        repeat i=i-1 v=c[i]
+        until i<1 or v[1]==__OPERATOR__
+    end
+    tb_until=function(type_tab)--thaceback_until:
+        local i,v=#c
+        repeat i=i-1 v=c[i]
+        until i<1 or type_tab[v[1]]
+        return i,v
+    end
+    tb_while=function(type_tab)--thaceback_while:
+        local i,v=#c,c[#c]
+        while i>0 and type_tab[v[1]]
+        do i=i-1 v=c[i] end
+        return i,v
     end, {__OPEN_BREAKET__}
     }
     Control.Cdata=c

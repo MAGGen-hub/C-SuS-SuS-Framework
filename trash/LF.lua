@@ -1,7 +1,7 @@
 {[_init]=function(Control)
 	local pl --posible lambda
-	--Control.Event.reg("lvl_close",function(lvl)pl=lvl.type=="(" and lvl.index end,"LF",1)
-	--Control.Event.reg("all",function(o,tp)pl=tp==__COMMENT__ and pl end,"LF",1)
+	Control.Event.reg("lvl_close",function(lvl)pl=lvl.type=="(" and lvl.index end,"LF",1)
+	Control.Event.reg("all",function(o,tp)pl=tp==__COMMENT__ and pl end,"LF",1)
 	Control.Operators["->"]=function(Control)
 		if pl then insert(Control.Result,pl,"function")-- "(*code*)" located before "->"
 		else--default lambda mode
