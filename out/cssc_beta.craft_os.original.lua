@@ -48,7 +48,7 @@ local placeholder_func = function()end
 
 -- BASE VARIABLES LAYER END
 --ARG CHECK FUNC
-local arg_check,copy,swap,Modules,Features=function(Control)if(getmetatable(Control)or{}).__type~="cssc_unit"then error(format("Bad argument #1 (expected cssc_unit, got %s)",type(Control)),3)end end,function(s,o,f) for k,v in pairs(s)do o[k]=f and o[k]or v end end,function(t,o)o=o or {}for k,v in pairs(t)do o[v]=k end return o end
+local arg_check,t_copy,t_swap,Modules,Features=function(Control)if(getmetatable(Control)or{}).__type~="cssc_unit"then error(format("Bad argument #1 (expected cssc_unit, got %s)",type(Control)),3)end end,function(s,o,f) for k,v in pairs(s)do o[k]=f and o[k]or v end end,function(t,o)o=o or {}for k,v in pairs(t)do o[v]=k end return o end
 --LOCALS
 local Configs,_init,_modules,_arg,load_lib,run,clear,make,clear_run,read_control_string,load_control_string={cssc="lua.cssc=M.KS.IS.N.CA.DA.NF.LF"},setmetatable({},{__tostring=native_load"return'init'"}),setmetatable({},{__tostring=native_load"return'modules'"}),{'arg'},
 function(Control,path,...)arg_check(Control)--load_lib
@@ -170,14 +170,19 @@ end
 do
 --__PREPARE_FEATURES__
 
-Features={code={cdata=function(Control,opts_hash,level_hash,affect_func)--API to save code data to specific table
-    local c,clr,skip
-    c={opts=opts_hash,lvl=level_hash,affect=affect_func,
+Features={code={cdata=function(Control,opts_hash,level_hash)--API to save code data to specific table
+    local c,clr
+    clr=function()
+        c={opts=c.opts,lvl=c.lvl,run=c.run,reg=c.reg,del=c.del,tb_until=c.tb_until,tb_while=c.tb_while, {11}}
+        Control.Cdata=c
+    end
+    c={opts=opts_hash,lvl=level_hash,
     run=function(obj,tp)--to call from core
-        local lh,rez=lvl[obj]
+        local lh,rez=c.lvl[obj]
+        if obj=="(" then print(lh,rez) end
         if lh and lh[2] then --object with lvl props
             rez=Control.Level[#Control.Level]
-            rez ={tp,rez.ends[lh[2]] and rez.index}
+            rez ={tp,rez.ends[obj] and rez.index}
         elseif tp==2 then
             local pd,lt,un = c.opts[obj],c[#c][1]--priority_data,last_type,is_unary
             un = pd[2] and (not pd[1] or not (lt==2 or  lt==4 or lt==9))--unary or binary
@@ -185,7 +190,7 @@ Features={code={cdata=function(Control,opts_hash,level_hash,affect_func)--API to
         else
             rez={tp}
         end
-        c[#c+1]=rez --TODO: insert val
+        c[#c+1]=rez --TODO: AFFECT/IGNORE
     end,
     reg=function(tp,id,...)--reg custom value in specific field
         local rez = args and {tp,...} or {tp}
@@ -193,9 +198,20 @@ Features={code={cdata=function(Control,opts_hash,level_hash,affect_func)--API to
     end,
     del=function(id)--del specific value from index
         return remove(c,id or #c+1)
-    end, {9}
+    end,
+    tb_until=function(type_tab,i)--thaceback_until:
+        i=i or#c+1
+        repeat i=i-1 until i<1 or type_tab[c[i][1]]
+        return i,c[i]
+    end,
+    tb_while=function(type_tab,i)--thaceback_while:
+        i=i or#c
+        while i>0 and type_tab[c[i][1]]do i=i-1 end
+        return i,c[i]
+    end, {11}
     }
     Control.Cdata=c
+    insert(Control.Clear,clr)
 end,
 lua={base=function(Control,O,W)-- O - Control.Operators or other table; W - Control.Words or other table (depends on current text parceing system)
 --BASE LUA SYNTAX STRING (keywords/operators/breakets/values)
@@ -448,9 +464,9 @@ level=function(Control,level_hash)--LEVELING SYSTEM
 		r="'"for k in pairs(e)do r=r..k.."' or '"end r=sub(r,1,-6)
 		Control.error(#r>0 and"Expected %s to close '%s' but got '%s'!"or"Attempt to close level with no ends!",r,lvl.type,obj)
 	end,
-	open=function(obj,ends)
+	open=function(obj,ends,i)
 		if#l<1 then Control.error("Attempt to open new level '%s' after closing 'main'!",obj)return end
-		local lvl={type=obj,index=#Control.Result,ends=ends or(l.data[obj]or{})[1]}
+		local lvl={type=obj,index=i or #Control.Result,ends=ends or(l.data[obj]or{})[1]}
 		Control.Event.run("lvl_open",lvl)
 		insert(l,lvl)
 	end,
@@ -563,42 +579,58 @@ Modules={cssc={[_init]=function(Control)
 	Control.get_num_prt,Control.split_seq=Control:load_lib"code.lua.struct"
 	
 	--load analisys systems
-	Control:load_lib"common.event"
-	Control:load_lib("common.level",lvl) --auto-loaded with "code.priority"
-	Control:load_lib("code.priority",opt,Control:load_lib"code.lua.priority_affect")
-	
+
+	Control:load_lib("code.cdata",opt,lvl,placeholder_func)
+	Control:load_lib("common.event")
+	Control:load_lib("common.level",lvl)
+	--Control:load_lib("code.priority",opt,Control:load_lib"code.lua.priority_affect")
+	Control.inject = function(obj,type,id,...)
+		if id then insert(Control.Result,id,obj) else insert(Control.Result,obj)end
+		Control.Cdata.reg(type,id,...)
+	end
 	--core setup
 	local t={3,4,6,7,8}
-	t=swap(t)
+	t=t_swap(t)
 	Control.Core=function(tp,obj)--type_of_text_object,object_it_self
 		
+		Control.Cdata.run(obj,tp)
 		Control.Event.run(tp,obj,tp)--single event for single struct
 		if t[tp]then Control.Event.run("text",obj,tp)end --for any text code values
 		Control.Event.run("all",obj,tp)-- event for all structs
 		
-		Control.Priority.run(obj,tp)--priority ctrl
+		--Control.Priority.run(obj,tp)--priority ctrl
 		Control.Level.ctrl(obj)--level ctrl
 	end
 end
 ,
 [_modules]={LF={[_init]=function(Control)
-	local pl --posible lambda
-	Control.Event.reg("lvl_close",function(lvl)pl=lvl.type=="(" and lvl.index end,"LF",1)
-	Control.Event.reg("all",function(o,tp)pl=tp==11 and pl end,"LF",1)
+	local ct,fk = t_swap{11},"function"--mk hash table
 	Control.Operators["->"]=function(Control)
-		if pl then insert(Control.Result,pl,"function")-- "(*code*)" located before "->"
-		else--default lambda mode
-			local pr,ac_pr,i=Control.Level[#Control.Level].pr_seq,Control.Priority.data[","][1]
-			i=#pr while pr[i][1]==ac_pr do i,pr[i]=i-1 end
-			insert(Control.Result,pr[i][2]+1,"function(")
-			insert(Control.Result,")")
-		end --TODO: debug "a[dfs],a ->"
-		Control.Level.ctrl("function")--open new level as function
-		if"-"==sub(Control.operator,1,1)then insert(Control.Result,"return ") Control.Priority.reg(1,1)end
-		Control.split_seq(nil,2)
+		local s,ei,ed,cor,br=3,Control.Cdata.tb_while(ct)--get last esenshual_index,esenshual_data
+		if match(Control.Result[ei],"^%)")then--breaket located
+			ei=ed[2]
+			Control.log("EI:%d - %s;%s;%s;",ei,Control.Result[ei],match(Control.Result[ei],"^[=%(,]"), ei and match(Control.Result[ei],"^[=%(,]"))
+			cor = ei and match(Control.Result[ei-1]or"","^[=%(,]")--coma is acceptable here
+			Control.log("COR:%s",cor)
+		else--default args
+			while ei>0 and(ed[1]==11 or ed[1]==s or s~=3 and match(Control.Result[ei],"^%,"))do
+				ei,s=ei-1,s*(ed[1]~=11 and-1 or 1)--com skip/swap state 3/2(coma)
+				ed=Control.Cdata[ei]
+			end
+			ei,br,cor=ei+1,1,ei>0 and s~=3 and match(Control.Result[ei],"^[=%(]")
+		end
+		if not cor then Control.error("Corrupted lambda arguments at line %d !",Control.line)Control.split_seq(nil,2) return end
+		
+		Control.inject(fk,4,ei)--inject function kwrd
+		if br then --place breakets
+			Control.inject("(",9,ei+1)--inject open breaket
+			Control.inject(")",10,nil,ei+1)--inject closeing breaket
+		end
+		if"-"==sub(Control.operator,1,1)then Control.inject("return ",4) end--inject return kwrd
+		Control.Level.open(fk,nil,ei)--open new function level (auto end set)
+		Control.split_seq(nil,2)-- remove ->/=> from Control.operator
 	end
 	Control.Operators["=>"]=Control.Operators["->"]
-	
 end},
 NF={[_init]=function(Control)
 	local e,nan="Number '%s' isn't a valid number!",-(0/0)

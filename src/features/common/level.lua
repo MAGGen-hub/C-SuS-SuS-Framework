@@ -20,9 +20,9 @@ function(Control,level_hash)--LEVELING SYSTEM
 		r="'"for k in pairs(e)do r=r..k.."' or '"end r=sub(r,1,-6)
 		Control.error(#r>0 and"Expected %s to close '%s' but got '%s'!"or"Attempt to close level with no ends!",r,lvl.type,obj)
 	end,
-	open=function(obj,ends)
+	open=function(obj,ends,i)
 		if#l<1 then Control.error("Attempt to open new level '%s' after closing 'main'!",obj)return end
-		local lvl={type=obj,index=#Control.Result,ends=ends or(l.data[obj]or{})[1]}
+		local lvl={type=obj,index=i or #Control.Result,ends=ends or(l.data[obj]or{})[1]}
 		Control.Event.run("lvl_open",lvl)
 		insert(l,lvl)
 	end,
