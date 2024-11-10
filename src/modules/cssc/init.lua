@@ -14,10 +14,12 @@ function(Control)
 	Control:load_lib("code.cdata",opt,lvl,placeholder_func)
 	Control:load_lib("common.event")
 	Control:load_lib("common.level",lvl)
-	--Control:load_lib("code.priority",opt,Control:load_lib"code.lua.priority_affect")
-	Control.inject = function(obj,type,id,...)
+	Control.inject = function(id,obj,type,...)
 		if id then insert(Control.Result,id,obj) else insert(Control.Result,obj)end
 		Control.Cdata.reg(type,id,...)
+	end
+	Control.eject = function(id)
+		return {remove(Control.Result,id),unpack(remove(Control.Cdata,id))}
 	end
 	--core setup
 	local t={__WORD__,__KEYWORD__,__NUMBER__,__STRING__,__VALUE__}

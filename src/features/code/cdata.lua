@@ -7,7 +7,7 @@ function(Control,opts_hash,level_hash)--API to save code data to specific table
     c={opts=opts_hash,lvl=level_hash,
     run=function(obj,tp)--to call from core
         local lh,rez=c.lvl[obj]
-        if obj=="(" then print(lh,rez) end
+        --if obj=="(" then print(lh,rez) end
         if lh and lh[2] then --object with lvl props
             rez=Control.Level[#Control.Level]
             rez ={tp,rez.ends[obj] and rez.index}
@@ -18,7 +18,7 @@ function(Control,opts_hash,level_hash)--API to save code data to specific table
         else
             rez={tp}
         end
-        c[#c+1]=rez --TODO: AFFECT/IGNORE
+        c[#c+1]=rez
     end,
     reg=function(tp,id,...)--reg custom value in specific field
         local rez = args and {tp,...} or {tp}

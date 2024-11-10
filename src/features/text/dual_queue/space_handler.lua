@@ -1,4 +1,4 @@
-function(Control)
+function(Control)-- function to proccess spaces
 	insert(Control.Struct,function()--SPACE HANDLER
 		local temp,space = #Control.operator>0 and"operator"or"word"
 		space,Control[temp]=match(Control[temp],"^(%s*)(.*)")

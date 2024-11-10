@@ -9,7 +9,7 @@ function(Control,level_hash)--LEVELING SYSTEM
 		if#l<2 then l.close("main",nil,a)
 		else Control.error("Can't close 'main' level! Found (%d) unfinished levels!",#l-1)end
 	end,
-	close=function(obj,nc,f)
+	close=function(obj,nc,f0)
 		f=f==a and a or{}
 		local lvl,e,r=remove(l)
 		if f~=a and#l<1 then Control.error("Attempt to close 'main'(%d) level with '%s'!",#l,obj)return end
@@ -29,6 +29,7 @@ function(Control,level_hash)--LEVELING SYSTEM
 	ctrl=function(obj)
 		local t=l.data[obj]
 		t=t and(t[2]and l.close(obj,t[3])or t[1]and l.open(obj,t[1]))
+		if not t and l[#l].ends[obj]then l.close(obj)end --custom ends
 	end}
 	Control.Level=l
 	clr()

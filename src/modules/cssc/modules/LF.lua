@@ -16,12 +16,12 @@
 		end
 		if not cor then Control.error("Corrupted lambda arguments at line %d !",Control.line)Control.split_seq(nil,2) return end
 		
-		Control.inject(fk,__KEYWORD__,ei)--inject function kwrd
+		Control.inject(ei,fk,__KEYWORD__)--inject function kwrd
 		if br then --place breakets
-			Control.inject("(",__OPEN_BREAKET__,ei+1)--inject open breaket
-			Control.inject(")",__CLOSE_BREAKET__,nil,ei+1)--inject closeing breaket
+			Control.inject(ei+1,"(",__OPEN_BREAKET__)--inject open breaket
+			Control.inject(nil,")",__CLOSE_BREAKET__,ei+1)--inject closeing breaket
 		end
-		if"-"==sub(Control.operator,1,1)then Control.inject("return ",__KEYWORD__) end--inject return kwrd
+		if"-"==sub(Control.operator,1,1)then Control.inject(nil,"return ",__KEYWORD__) end--inject return kwrd
 		Control.Level.open(fk,nil,ei)--open new function level (auto end set)
 		Control.split_seq(nil,2)-- remove ->/=> from Control.operator
 	end

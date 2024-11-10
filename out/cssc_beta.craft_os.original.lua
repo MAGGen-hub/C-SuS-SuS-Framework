@@ -179,7 +179,7 @@ Features={code={cdata=function(Control,opts_hash,level_hash)--API to save code d
     c={opts=opts_hash,lvl=level_hash,
     run=function(obj,tp)--to call from core
         local lh,rez=c.lvl[obj]
-        if obj=="(" then print(lh,rez) end
+        --if obj=="(" then print(lh,rez) end
         if lh and lh[2] then --object with lvl props
             rez=Control.Level[#Control.Level]
             rez ={tp,rez.ends[obj] and rez.index}
@@ -190,7 +190,7 @@ Features={code={cdata=function(Control,opts_hash,level_hash)--API to save code d
         else
             rez={tp}
         end
-        c[#c+1]=rez --TODO: AFFECT/IGNORE
+        c[#c+1]=rez
     end,
     reg=function(tp,id,...)--reg custom value in specific field
         local rez = args and {tp,...} or {tp}
@@ -453,7 +453,7 @@ level=function(Control,level_hash)--LEVELING SYSTEM
 		if#l<2 then l.close("main",nil,a)
 		else Control.error("Can't close 'main' level! Found (%d) unfinished levels!",#l-1)end
 	end,
-	close=function(obj,nc,f)
+	close=function(obj,nc,f0)
 		f=f==a and a or{}
 		local lvl,e,r=remove(l)
 		if f~=a and#l<1 then Control.error("Attempt to close 'main'(%d) level with '%s'!",#l,obj)return end
@@ -473,6 +473,7 @@ level=function(Control,level_hash)--LEVELING SYSTEM
 	ctrl=function(obj)
 		local t=l.data[obj]
 		t=t and(t[2]and l.close(obj,t[3])or t[1]and l.open(obj,t[1]))
+		if not t and l[#l].ends[obj]then l.close(obj)end --custom ends
 	end}
 	Control.Level=l
 	clr()
@@ -550,7 +551,7 @@ parcer=function(Control)
 		end
 	end
 end,
-space_handler=function(Control)
+space_handler=function(Control)-- function to proccess spaces
 	insert(Control.Struct,function()--SPACE HANDLER
 		local temp,space = #Control.operator>0 and"operator"or"word"
 		space,Control[temp]=match(Control[temp],"^(%s*)(.*)")
@@ -583,10 +584,12 @@ Modules={cssc={[_init]=function(Control)
 	Control:load_lib("code.cdata",opt,lvl,placeholder_func)
 	Control:load_lib("common.event")
 	Control:load_lib("common.level",lvl)
-	--Control:load_lib("code.priority",opt,Control:load_lib"code.lua.priority_affect")
-	Control.inject = function(obj,type,id,...)
+	Control.inject = function(id,obj,type,...)
 		if id then insert(Control.Result,id,obj) else insert(Control.Result,obj)end
 		Control.Cdata.reg(type,id,...)
+	end
+	Control.eject = function(id)
+		return {remove(Control.Result,id),unpack(remove(Control.Cdata,id))}
 	end
 	--core setup
 	local t={3,4,6,7,8}
@@ -603,7 +606,88 @@ Modules={cssc={[_init]=function(Control)
 	end
 end
 ,
-[_modules]={LF={[_init]=function(Control)
+[_modules]={DA={[_init]=function(Control)
+    local l,pht,ct = Control.Level,{},t_swap{11}
+
+    Control.Event.reg("lvl_open",function(lvl)-- def_arg initer
+        if lvl.type=="function" then lvl.DA_np=1 end --set Def_Args_next_posible true
+        if lvl.type=="(" and l[#l].DA_np then lvl.DA_d={c_a=1} end--init Def_Args_data for "()" level
+        l[#l].DA_np=nil--set Def_Args_next_posible false
+    end,"DA_lo",1)
+
+    Control.Event.reg(2,function(obj)
+        local da,i,err=l[#l].DA_d
+        if da then i=da.c_a --DA data found
+            if obj==":"then
+                --Control.log("nm :'%s'",Control.Result[Control.Cdata.tb_while(ct,#Control.Cdata-1)])
+                da[i]=da[i]or{[4]=Control.Result[Control.Cdata.tb_while(ct,#Control.Cdata-1)]}
+                if not da[i][2]then --block if inside def_arg
+                    err,da[i][1]=da[i][1],#Control.Cdata--this arg has strict typing!
+                end
+            elseif obj=="="then da[i]=da[i]or{[4]=Control.Result[Control.Cdata.tb_while(ct,#Control.Cdata-1)]} err,da[i][2]=da[i][2],#Control.Cdata--def arg start
+            elseif obj==","then da.c_a=da.c_a+1 (da[i]or pht)[3]=#Control.Cdata-1--next possible arg; arg state end
+            else err=1 end
+            if err then
+                Control.error("Unexpected '%s' operator in function arguments defenition.",obj)
+                l[#l].DA_d=nil--delete defective DA
+            end
+        end
+    end,"DA_op",1)
+    
+    local err_text = "Unexpected '%s' in function argument type definition! Function argument type must be set using single name or string!"
+    Control.Event.reg("lvl_close",function(lvl)-- def_arg injector
+        if lvl.DA_d then --level had default_args
+            local da,arr,name,pr,val,obj,tej,ac=lvl.DA_d,{},{},Control.Cdata.opts[","][1]
+            for i=da.c_a,1,-1 do --parce args
+                if da[i]then val=da[i] ac,tej=0,nil --def_arg exist
+                    insert(name,{val[4],3})insert(name,{",",2,pr})
+                    if not val[2] then insert(arr,{"nil",8}) insert(arr,{",",2,pr}) end --no def_arg -> insert nil -> type only
+                    val[3]=val[3]or#Control.Result-1
+                    --if val[3]-(val[2]or val[1])<1 then Control.error("Expected default argument after '%s'",Control.Result[val[2]or val[1]])end
+                    
+                    for j=val[3]or#Control.Result-1,val[1]or val[2],-1 do --to minimum value
+                        obj=Control.eject(j)
+                        if j==val[2] or j==val[1] then 
+                            insert(arr,{",",2,pr}) --comma replace
+                        elseif val[2]and j>val[2] then--def_arg
+                            insert(arr,obj)
+                            ac=11~=obj[2] and ac+1 or ac
+                        elseif 11~=obj[2] then--strict_type (val[1] - 100% exist) val[2]--already parced
+                            if obj[2]~=3 and obj[2]~=7 then 
+                                Control.error(err_text,obj[1])
+                            elseif tej then 
+                                Control.error(err_text,obj[1])
+                            else
+                                if obj[2]==3 then obj={"'"..match(obj[1],"%S+").."'",7} end
+                                insert(arr,obj)
+                                tej=1
+                            end
+                        end
+                    end
+                    if ac<1 then Control.error("Expected default argument after '%s'",val[2]and"="or":")end
+                    ac=not tej and val[1]
+                    if ac or not val[1] then remove(ac and arr or pht) insert(arr,{ac and"1"or "nil",8}) insert(arr,{",",2,pr}) end --no strict type inset nil
+                    insert(arr,{tostring(i),8}) insert(arr,{",",2,pr})--insert index
+                end
+            end
+            if not obj then return end --obj works as marker that something was found
+            remove(name)
+            for i=#name,1,-1 do Control.inject(nil, unpack(name[i]))end
+            Control.inject(nil,"=",2,Control.Cdata.opts["="][1])
+            Control.inject(nil,"def_arg",3)--TODO: replace with api function
+            Control.inject(nil,"(",9)
+            val=#Control.Result
+            remove(arr)--remove last comma
+            for i=#arr,1,-1 do --inject args ([1]="," - is coma, so not needed)
+                Control.inject(nil, unpack(remove(arr)))--TODO: mark internal contents as CSSC-data for other funcs to ignore
+            end
+            Control.inject(nil,")",10,val)
+            Control.inject(nil,"",2,0)--zero priority -> statement_end
+            Control.arr=name
+        end
+    end,"DA_lc",1)
+end},
+LF={[_init]=function(Control)
 	local ct,fk = t_swap{11},"function"--mk hash table
 	Control.Operators["->"]=function(Control)
 		local s,ei,ed,cor,br=3,Control.Cdata.tb_while(ct)--get last esenshual_index,esenshual_data
@@ -621,12 +705,12 @@ end
 		end
 		if not cor then Control.error("Corrupted lambda arguments at line %d !",Control.line)Control.split_seq(nil,2) return end
 		
-		Control.inject(fk,4,ei)--inject function kwrd
+		Control.inject(ei,fk,4)--inject function kwrd
 		if br then --place breakets
-			Control.inject("(",9,ei+1)--inject open breaket
-			Control.inject(")",10,nil,ei+1)--inject closeing breaket
+			Control.inject(ei+1,"(",9)--inject open breaket
+			Control.inject(nil,")",10,ei+1)--inject closeing breaket
 		end
-		if"-"==sub(Control.operator,1,1)then Control.inject("return ",4) end--inject return kwrd
+		if"-"==sub(Control.operator,1,1)then Control.inject(nil,"return ",4) end--inject return kwrd
 		Control.Level.open(fk,nil,ei)--open new function level (auto end set)
 		Control.split_seq(nil,2)-- remove ->/=> from Control.operator
 	end
