@@ -17,3 +17,5 @@ __OPEN_BREAKET__,9,Any open breaket
 __CLOSE_BREAKET__,10,Any close breaket
 __COMMENT__,11,Comment that means nothing to compiller
 __UNFINISHED__,12,Unfinished comment/string/structure/anything
+
+__TRUE__,1,boolean "avoider"

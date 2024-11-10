@@ -12,7 +12,7 @@
 				ei,s=ei-1,s*(ed[1]~=__COMMENT__ and-1 or 1)--com skip/swap state __WORD__/__OPERATOR__(coma)
 				ed=Control.Cdata[ei]
 			end
-			ei,br,cor=ei+1,1,ei>0 and s~=__WORD__ and match(Control.Result[ei],"^[=%(]")
+			ei,br,cor=ei+1,__TRUE__,ei>0 and s~=__WORD__ and match(Control.Result[ei],"^[=%(]")
 		end
 		if not cor then Control.error("Corrupted lambda arguments at line %d !",Control.line)Control.split_seq(nil,2) return end
 		
