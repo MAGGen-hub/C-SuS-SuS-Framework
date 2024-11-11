@@ -609,6 +609,26 @@ end
 [_modules]={DA={[_init]=function(Control)
     local l,pht,ct = Control.Level,{},t_swap{11}
 
+    local mt=setmetatable({},{__index=function(s,i)return i end})
+    local def_arg_runtime_func = function(...)
+        local data,res,val,tp,def,ch={...},{}
+        for i=1,#data,4 do
+            val=data[i+1]
+            def=data[i+3]
+            if val==nil and def then insert(res,def)--arg not inited, replace with default
+            else
+                ch =data[i+2]
+                if ch then --type check
+                    tp=type(val)
+                    ch=ch==1 and {[type(def)]=1} or t_swap{(native_load("return "..ch,nil,nil,mt)or placeholder_func)()}--> dynamic type! must be equal to def_arg type
+                    ch=not ch[tp] and error(format("bad argument #%d (%s expected, got %s)",data[i],data[i+2],tp),2)
+                end
+                insert(res,val)
+            end
+        end
+        return unpack(res)
+    end
+    Control.defa=def_arg_runtime_func
     Control.Event.reg("lvl_open",function(lvl)-- def_arg initer
         if lvl.type=="function" then lvl.DA_np=1 end --set Def_Args_next_posible true
         if lvl.type=="(" and l[#l].DA_np then lvl.DA_d={c_a=1} end--init Def_Args_data for "()" level
@@ -653,7 +673,7 @@ end
                             insert(arr,obj)
                             ac=11~=obj[2] and ac+1 or ac
                         elseif 11~=obj[2] then--strict_type (val[1] - 100% exist) val[2]--already parced
-                            if obj[2]~=3 and obj[2]~=7 then 
+                            if not(obj[2]==3 or obj[2]==7 or match(obj[1],"^nil"))then 
                                 Control.error(err_text,obj[1])
                             elseif tej then 
                                 Control.error(err_text,obj[1])
@@ -667,23 +687,23 @@ end
                     if ac<1 then Control.error("Expected default argument after '%s'",val[2]and"="or":")end
                     ac=not tej and val[1]
                     if ac or not val[1] then remove(ac and arr or pht) insert(arr,{ac and"1"or "nil",8}) insert(arr,{",",2,pr}) end --no strict type inset nil
+                    insert(arr,{val[4],3}) insert(arr,{",",2,pr})
                     insert(arr,{tostring(i),8}) insert(arr,{",",2,pr})--insert index
                 end
             end
             if not obj then return end --obj works as marker that something was found
             remove(name)
-            for i=#name,1,-1 do Control.inject(nil, unpack(name[i]))end
+            for i=#name,1,-1 do Control.inject(nil, unpack(remove(name)))end
             Control.inject(nil,"=",2,Control.Cdata.opts["="][1])
             Control.inject(nil,"def_arg",3)--TODO: replace with api function
-            Control.inject(nil,"(",9)
+            Control.inject(nil,"{",9)
             val=#Control.Result
             remove(arr)--remove last comma
             for i=#arr,1,-1 do --inject args ([1]="," - is coma, so not needed)
                 Control.inject(nil, unpack(remove(arr)))--TODO: mark internal contents as CSSC-data for other funcs to ignore
             end
-            Control.inject(nil,")",10,val)
+            Control.inject(nil,"}",10,val)
             Control.inject(nil,"",2,0)--zero priority -> statement_end
-            Control.arr=name
         end
     end,"DA_lc",1)
 end},
