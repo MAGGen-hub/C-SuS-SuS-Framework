@@ -28,6 +28,7 @@ local tostring     = A(tostring,E)
 local getmetatable = A(getmetatable,E)
 local setmetatable = A(setmetatable,E)
 local pcall        = A(pcall,E)
+local _ --WASTE (dev null)
 __BIT32_LIBRUARY_VERSION_MACRO__
 
 __NATIVE_LOAD_VERSION_MACRO__

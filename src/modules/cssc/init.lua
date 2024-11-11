@@ -14,6 +14,7 @@ function(Control)
 	Control:load_lib("code.cdata",opt,lvl,placeholder_func)
 	Control:load_lib("common.event")
 	Control:load_lib("common.level",lvl)
+
 	Control.inject = function(id,obj,type,...)
 		if id then insert(Control.Result,id,obj) else insert(Control.Result,obj)end
 		Control.Cdata.reg(type,id,...)
@@ -28,10 +29,12 @@ function(Control)
 		
 		Control.Cdata.run(obj,tp)
 		Control.Event.run(tp,obj,tp)--single event for single struct
-		if t[tp]then Control.Event.run("text",obj,tp)end --for any text code values
+		--if t[tp]then Control.Event.run("text",obj,tp)end --for any text code values
 		Control.Event.run("all",obj,tp)-- event for all structs
 		
 		--Control.Priority.run(obj,tp)--priority ctrl
 		Control.Level.ctrl(obj)--level ctrl
 	end
+
+	--TODO:RUNTIME DATA PUSH API (inject cssc functions at the start of file to work with them)
 end

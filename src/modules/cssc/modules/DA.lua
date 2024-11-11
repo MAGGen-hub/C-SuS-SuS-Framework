@@ -20,7 +20,8 @@
         end
         return unpack(res)
     end
-    Control.defa=def_arg_runtime_func
+    @@DEBUG Control.defa=def_arg_runtime_func
+
     Control.Event.reg("lvl_open",function(lvl)-- def_arg initer
         if lvl.type=="function" then lvl.DA_np=__TRUE__ end --set Def_Args_next_posible true
         if lvl.type=="(" and l[#l].DA_np then lvl.DA_d={c_a=1} end--init Def_Args_data for "()" level
@@ -37,8 +38,8 @@
                     err,da[i][1]=da[i][1],#Control.Cdata--this arg has strict typing!
                 end
             elseif obj=="="then da[i]=da[i]or{[4]=Control.Result[Control.Cdata.tb_while(ct,#Control.Cdata-1)]} err,da[i][2]=da[i][2],#Control.Cdata--def arg start
-            elseif obj==","then da.c_a=da.c_a+1 (da[i]or pht)[3]=#Control.Cdata-1--next possible arg; arg state end
-            else err=__TRUE__ end
+            elseif obj==","then da.c_a=da.c_a+1 (da[i]or pht)[3]=#Control.Cdata-1 --next possible arg; arg state end
+            elseif not da[i] or not da[i][2] then err=__TRUE__ end
             if err then
                 Control.error("Unexpected '%s' operator in function arguments defenition.",obj)
                 l[#l].DA_d=nil--delete defective DA

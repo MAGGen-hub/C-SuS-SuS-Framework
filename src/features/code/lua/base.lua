@@ -82,6 +82,6 @@ Control:load_lib"code.syntax_loader"(lua51,{
 lvl["do"][3]=1 --do can be standalone level and init block on it's own
 opt["not"]={nil,opt["not"][1]}--unary opts fix
 opt["#"]={nil,opt["#"][1]}
---TODO:coorect 'not'; '#' unary
+--TODO: inject cdata api -> stat_ends/calls
 return __RECALLABLE__,lvl,opt,kwrd--(leveling_hash,operator_hash<with_priority>,keywrod_hash)
 end

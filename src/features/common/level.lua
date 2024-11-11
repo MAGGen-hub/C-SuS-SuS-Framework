@@ -28,7 +28,7 @@ function(Control,level_hash)--LEVELING SYSTEM
 	end,
 	ctrl=function(obj)
 		local t=l.data[obj]
-		t=t and(t[2]and l.close(obj,t[3])or t[1]and l.open(obj,t[1]))
+		_=t and(t[2]and l.close(obj,t[3])or t[1]and l.open(obj,t[1]))
 		if not t and l[#l].ends[obj]then l.close(obj)end --custom ends
 	end}
 	Control.Level=l

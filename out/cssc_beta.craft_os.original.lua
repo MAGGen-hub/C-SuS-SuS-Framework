@@ -28,6 +28,7 @@ local tostring     = A(tostring,E)
 local getmetatable = A(getmetatable,E)
 local setmetatable = A(setmetatable,E)
 local pcall        = A(pcall,E)
+local _ --WASTE (dev null)
 --Bit32 libruary prepare section
 local bit32        = bit32 or print"Warning! Bit32 libruary not found! Bitwize operators module disabled!"and nil
 if bit32 then
@@ -472,7 +473,7 @@ level=function(Control,level_hash)--LEVELING SYSTEM
 	end,
 	ctrl=function(obj)
 		local t=l.data[obj]
-		t=t and(t[2]and l.close(obj,t[3])or t[1]and l.open(obj,t[1]))
+		_=t and(t[2]and l.close(obj,t[3])or t[1]and l.open(obj,t[1]))
 		if not t and l[#l].ends[obj]then l.close(obj)end --custom ends
 	end}
 	Control.Level=l
@@ -584,6 +585,7 @@ Modules={cssc={[_init]=function(Control)
 	Control:load_lib("code.cdata",opt,lvl,placeholder_func)
 	Control:load_lib("common.event")
 	Control:load_lib("common.level",lvl)
+
 	Control.inject = function(id,obj,type,...)
 		if id then insert(Control.Result,id,obj) else insert(Control.Result,obj)end
 		Control.Cdata.reg(type,id,...)
@@ -604,9 +606,17 @@ Modules={cssc={[_init]=function(Control)
 		--Control.Priority.run(obj,tp)--priority ctrl
 		Control.Level.ctrl(obj)--level ctrl
 	end
+
+	--TODO:RUNTIME DATA PUSH API (inject cssc functions at the start of file to work with them)
 end
 ,
-[_modules]={DA={[_init]=function(Control)
+[_modules]={BO={[_init]=function(Control)--bitwize operators (lua53 - backport feature)
+end},
+CA={[_init]=function(Control)--C/C++ additional asignment operators
+    
+
+end},
+DA={[_init]=function(Control)
     local l,pht,ct = Control.Level,{},t_swap{11}
 
     local mt=setmetatable({},{__index=function(s,i)return i end})
@@ -628,7 +638,8 @@ end
         end
         return unpack(res)
     end
-    Control.defa=def_arg_runtime_func
+     Control.defa=def_arg_runtime_func
+
     Control.Event.reg("lvl_open",function(lvl)-- def_arg initer
         if lvl.type=="function" then lvl.DA_np=1 end --set Def_Args_next_posible true
         if lvl.type=="(" and l[#l].DA_np then lvl.DA_d={c_a=1} end--init Def_Args_data for "()" level
@@ -645,8 +656,8 @@ end
                     err,da[i][1]=da[i][1],#Control.Cdata--this arg has strict typing!
                 end
             elseif obj=="="then da[i]=da[i]or{[4]=Control.Result[Control.Cdata.tb_while(ct,#Control.Cdata-1)]} err,da[i][2]=da[i][2],#Control.Cdata--def arg start
-            elseif obj==","then da.c_a=da.c_a+1 (da[i]or pht)[3]=#Control.Cdata-1--next possible arg; arg state end
-            else err=1 end
+            elseif obj==","then da.c_a=da.c_a+1 (da[i]or pht)[3]=#Control.Cdata-1 --next possible arg; arg state end
+            elseif not da[i] or not da[i][2] then err=1 end
             if err then
                 Control.error("Unexpected '%s' operator in function arguments defenition.",obj)
                 l[#l].DA_d=nil--delete defective DA
@@ -707,6 +718,10 @@ end
         end
     end,"DA_lc",1)
 end},
+IS=function()end,
+KS={[_init]=function(Control)--keyword shorcuts
+
+end},
 LF={[_init]=function(Control)
 	local ct,fk = t_swap{11},"function"--mk hash table
 	Control.Operators["->"]=function(Control)
@@ -714,7 +729,7 @@ LF={[_init]=function(Control)
 		if match(Control.Result[ei],"^%)")then--breaket located
 			ei=ed[2]
 			Control.log("EI:%d - %s;%s;%s;",ei,Control.Result[ei],match(Control.Result[ei],"^[=%(,]"), ei and match(Control.Result[ei],"^[=%(,]"))
-			cor = ei and match(Control.Result[ei-1]or"","^[=%(,]")--coma is acceptable here
+			cor = ei and match(Control.Result[Control.Cdata.tb_while(ct,ei-1)]or"","^[=%(,]")--coma is acceptable here 
 			Control.log("COR:%s",cor)
 		else--default args
 			while ei>0 and(ed[1]==11 or ed[1]==s or s~=3 and match(Control.Result[ei],"^%,"))do
@@ -731,10 +746,17 @@ LF={[_init]=function(Control)
 			Control.inject(nil,")",10,ei+1)--inject closeing breaket
 		end
 		if"-"==sub(Control.operator,1,1)then Control.inject(nil,"return ",4) end--inject return kwrd
+
+		Control.Event.run(2,"->",2,1)--Iinform core about insertet operators (1 means cssc_generated)
+		Control.Event.run("all","->",tp,1)
+
 		Control.Level.open(fk,nil,ei)--open new function level (auto end set)
 		Control.split_seq(nil,2)-- remove ->/=> from Control.operator
 	end
 	Control.Operators["=>"]=Control.Operators["->"]
+end},
+NC={[_init]=function(Control)--nit check (nil forgiving operator feature)
+
 end},
 NF={[_init]=function(Control)
 	local e,nan="Number '%s' isn't a valid number!",-(0/0)
