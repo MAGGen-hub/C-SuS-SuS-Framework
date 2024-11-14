@@ -172,22 +172,23 @@ do
 --__PREPARE_FEATURES__
 
 Features={code={cdata=function(Control,opts_hash,level_hash)--API to save code data to specific table
-    local c,clr
+    local check,c,clr=t_swap{2,4,9}
     clr=function()
-        c={opts=c.opts,lvl=c.lvl,run=c.run,reg=c.reg,del=c.del,tb_until=c.tb_until,tb_while=c.tb_while, {11}}
-        Control.Cdata=c
+        for i=1,#c do c[i]=nil end c[1]={2,0}
+        --c={opts=c.opts,lvl=c.lvl,run=c.run,reg=c.reg,del=c.del,tb_until=c.tb_until,tb_while=c.tb_while, {11}}
+        --Control.Cdata=c
     end
     c={opts=opts_hash,lvl=level_hash,
     run=function(obj,tp)--to call from core
         local lh,rez=c.lvl[obj]
         --if obj=="(" then print(lh,rez) end
         if lh and lh[2] then --object with lvl props
-            rez=Control.Level[#Control.Level]
+            rez=Control.Level[#Control.Level] --TODO: temporal solution! REWORK!!!
             rez ={tp,rez.ends[obj] and rez.index}
         elseif tp==2 then
             local pd,lt,un = c.opts[obj],c[#c][1]--priority_data,last_type,is_unary
-            un = pd[2] and (not pd[1] or not (lt==2 or  lt==4 or lt==9))--unary or binary
-            rez={tp,not un and pd[1],un and pd[2]}--inser operator data handle
+            un = pd[2] and (not pd[1] or not check[lt])--unary or binary
+            rez={tp,not un and pd[1],un and pd[2]}--insert operator data handle
         else
             rez={tp}
         end
@@ -209,11 +210,67 @@ Features={code={cdata=function(Control,opts_hash,level_hash)--API to save code d
         i=i or#c
         while i>0 and type_tab[c[i][1]]do i=i-1 end
         return i,c[i]
-    end, {11}
+    end, {2,0}
     }
     Control.Cdata=c
     insert(Control.Clear,clr)
 end,
+cssc={data_push=function(Control,path)--api to inject locals form Control table right into code
+    
+end,
+op_stack=function(Control) --cssc feature to process and stack unfinished operators (turned into function calls) in current level data field. (op_st - field name) 
+    --Control.OStack
+    --OP_stack feature: {OP_index,OP_priority,OP_start,OP_breaket}
+    local L,CD,pht = Control.Level,Control.CData,{}
+
+    --fin all unfinished operators
+    Control.Event.reg("lvl_close",function(lvl)
+        if lvl.OP_st then
+            local i = #CD
+            for k=#lvl.OP_st,1 do
+                Control.inject(i,")",10,lvl.OP_st[k][4])--fin all unfinished
+            end
+        end
+    end,"OP_st_f",1)
+
+    --priority check
+    Control.Event.reg(2,function(obj,tp)
+        local lvl,cdt,st = L[#L],CD[#CD]
+        if lvl.OP_st and cdt[2] then --level has OP_stack and current op is binary (unary opts has no affection on opts before them)
+            if cdt[2] <= lvl.OP_st[#lvl.OP_st][2] then--priority of CSSC operator is highter or equal -> inject closing breaket
+                st=remove(lvl.OP_st)--del last
+                Control.inject(#CD,")",10,st[4])--insert breaket before current operator
+            end
+        end
+    end,"OP_st_d",1)
+
+    Control.inject_operator = function(pre_tab,priority, is_unary)--function to inject common operators fast
+        --init locals
+        local lvl,i,cdt,b,st,sp =L[#L],#CD --level; index; breaket; curent_cdata,stack_tab,start_pos
+        cdt,st,pre_tab=CD[i],lvl.OP_st or{},pre_tab or{}
+        sp=#st>0 and st[#st][4] or lvl.index --find start_position for while cycle
+
+        --trace back cycle
+        if not is_unary then
+            while i>sp and not(cdt[1]==2 and cdt[2]<priority)do
+                i=(L.data[Control.Result[i]]or pht)[2] and cdt[2] or i-1
+                --if cdt[1]==2 and cdt[2]==0 then end --TODO: EMIT ERROR!!! statement_end detected!!!!
+                cdt=CD[i]
+            end --after that cycle i will contain index where we need to place the start of our operator
+        end
+        if i<sp then Control.error("OP_STACK Unexpected error!")end
+        i=i+1 --increment i (index correction)
+        --iject data before
+        Control.inject(i,"(",9)--insert open breaket
+        for k=#pre_tab,1 do --insert caller function/construct if exist
+            Control.inject(i,unpack(pre_tab[k]))
+        end
+
+        insert(lvl.OP_st,{#CD,priority,i,i+#pre_tab})--new element in stack to finalize
+        lvl.OP_st=st--save table (if unsaved)
+    end
+end,
+},--Close cssc
 lua={base=function(Control,O,W)-- O - Control.Operators or other table; W - Control.Words or other table (depends on current text parceing system)
 --BASE LUA SYNTAX STRING (keywords/operators/breakets/values)
 local make_react,lvl,kw,kwrd,opt,t,p,lua51=Control:load_lib"text.dual_queue.make_react",{},{},{},{},{},1,
@@ -298,8 +355,27 @@ Control:load_lib"code.syntax_loader"(lua51,{
 lvl["do"][3]=1 --do can be standalone level and init block on it's own
 opt["not"]={nil,opt["not"][1]}--unary opts fix
 opt["#"]={nil,opt["#"][1]}
---TODO:coorect 'not'; '#' unary
+--TODO: inject cdata api -> stat_ends/calls
 return 1,lvl,opt,kwrd--(leveling_hash,operator_hash<with_priority>,keywrod_hash)
+end,
+meta_opt=function(Control,place_mark) 
+    -- call marker:    local a = print *call_mark* ("Hello World")
+    local call_prew = t_swap{7,10,3}
+    local call_nxt = t_swap{7,9}
+
+    -- calculation statement marker: function() *stat_end* local *stat_end* a = v + a.b:c("s") + function()end+1 *stat_end* return *stat_end* a *stat_end* end
+    local stat_end_prew=t_swap{3,10,9,7,8,6}
+    local stat_end_nxt=t_swap{3,4,8,6}
+
+    --function to detect statements separation and function calls
+    return 2,function(prew,nxt,spifc)--cpf -> call_prew_is_function_kwrd spf -> stat_prew_is_function_construction
+        if call_prew[prew] and call_nxt[nxt] then --CALL DETECTED (or function constructor start)
+            place_mark(1)
+        elseif stat_end_prew[prew] and stat_end_nxt[nxt] or prew==4 and not spifc then --STAT END DETECTED
+            --:local a = b + function()end + 1 --valid statment!!!
+            place_mark(-1)
+        end
+    end
 end,
 struct=function(Control)--comment/string/number detector
 	local get_number_part=function(nd,f) --function that collect number parts into num_data. 
@@ -527,9 +603,9 @@ make_react=function(Control)--function that created sefault reactions to differe
 	end
 end,
 parcer=function(Control)
-	local func=function(react_obj,t,j,i)
+	local func=function(react_obj,t,j,i,po)
 		if"string"==type(react_obj)then Control.Result[#Control.Result+1]=react_obj
-		else react_obj=react_obj(Control) end --MAIN ACTION
+		else react_obj=react_obj(Control,po) end --MAIN ACTION
 		
 		if react_obj then -- default reaction to string (functions can have default reactions if they return anything(expected string!))
 			Control[t]=sub(Control[t],j+1)
@@ -543,12 +619,12 @@ parcer=function(Control)
 			for j=Control.max_op_len,1,-1 do --split the operator_seq
 				posible_obj=sub(Control.operator,1,j)
 				react_obj=Control.Operators[posible_obj]
-				if react_obj or j<2 then func(react_obj or posible_obj,"operator",j,react_obj and 2 or 1)break end
+				if react_obj or j<2 then func(react_obj or posible_obj,"operator",j,react_obj and 2 or 1,posible_obj)break end
 			end
 		elseif#Control.word>0 then--WORD PROCESSOR
 			posible_obj=match(Control.word,"^%S+") --split the word_seq temp=#posible_object
 			react_obj=Control.Words[posible_obj]or posible_obj
-			func(react_obj,"word",#posible_obj,3)
+			func(react_obj,"word",#posible_obj,3,posible_obj)
 		end
 	end
 end,
@@ -581,11 +657,11 @@ Modules={cssc={[_init]=function(Control)
 	Control.get_num_prt,Control.split_seq=Control:load_lib"code.lua.struct"
 	
 	--load analisys systems
-
 	Control:load_lib("code.cdata",opt,lvl,placeholder_func)
 	Control:load_lib("common.event")
 	Control:load_lib("common.level",lvl)
 
+	--code editing basic api
 	Control.inject = function(id,obj,type,...)
 		if id then insert(Control.Result,id,obj) else insert(Control.Result,obj)end
 		Control.Cdata.reg(type,id,...)
@@ -593,17 +669,37 @@ Modules={cssc={[_init]=function(Control)
 	Control.eject = function(id)
 		return {remove(Control.Result,id),unpack(remove(Control.Cdata,id))}
 	end
+
+	--important lua code markers
+	local meta_reg = Control:load_lib("code.lua.meta_opt",
+		function(mark)
+			--temporaly remove last text element
+			local temp = remove(Control.Result)
+			--insert markers
+			Control.inject(nil,"",2,mark>0 and opt[":"][1] or 0)
+
+			--init events
+			Control.Event.run(2,"",2)
+			Control.Event.run("all","",2)
+
+			--return prewious text element back
+			insert(Control.Result,temp)
+		end)
+	
 	--core setup
-	local t={3,4,6,7,8}
+	--DEPRECATED: local t={3,4,6,7,8}
+	local tb=t_swap{11}
 	t=t_swap(t)
 	Control.Core=function(tp,obj)--type_of_text_object,object_it_self
-		
-		Control.Cdata.run(obj,tp)
+		local id_prew,c_prew,spifc=Control.Cdata.tb_while(tb)
+		spifc = c_prew[1]==4 and match(Control.Result[id_prew],"^end") and match(Control.Result[c_prew[2]],"^function")
+		meta_reg(Control.Cdata.tb_while(tb,#Control.Cdata-1)[1],tp,spifc)--reg *call*/*stat_end* operator markers (injects before last registered CData)
+		Control.Cdata.run(obj,tp)--reg previous result CData
+
 		Control.Event.run(tp,obj,tp)--single event for single struct
-		if t[tp]then Control.Event.run("text",obj,tp)end --for any text code values
+		--DEPRECATED: if t[tp]then Control.Event.run("text",obj,tp)end --for any text code values
 		Control.Event.run("all",obj,tp)-- event for all structs
 		
-		--Control.Priority.run(obj,tp)--priority ctrl
 		Control.Level.ctrl(obj)--level ctrl
 	end
 
@@ -611,6 +707,46 @@ Modules={cssc={[_init]=function(Control)
 end
 ,
 [_modules]={BO={[_init]=function(Control)--bitwize operators (lua53 - backport feature)
+    Control:load_lib"code.cssc.data_push"
+    Control:load_lib"code.cssc.op_stack"
+    local opts= Control.Cdata.opts
+    --local lvl = Control.Level
+    local stx=[[O
+|
+~
+&
+<< >> ~]]--last one 'bitwize not'
+    local pht ={}
+    local p = opts["<"][1]+1 --priority base
+    local p_un = opts["#"][2] --unary priority
+    local bt=t_swap{shl='<<',shr='>>',bxor='~',bor='|',band='&',idiv='//'}--bitw funcs
+    --local pr=t_swap{'|','~','&','<<'} pr[">>"]=4--make priority table
+    --for i=1,#pr do pr[i]=pr[i]+pr_base end 
+
+
+    Control.Event.reg()--reg lvl_close to inject closeing breaket
+    Control.Event.reg()--reg 2 event to check it's priority and close is it lower or equal
+    local tb=t_swap{11}
+    Control:load_lib"code.syntax_loader"(stx,{O=function(...)
+        for k,v,tab in pairs{...}do k=v=="//" and opts["*"][1] or k+p --calc actual priority
+            tab={{"bitw_opt",3},{".",2,Control.Cdata.opts["."][1]},{bt[v],3}}
+            opts[v]=opts[v]and{opts[v][1],p_un}or{k}
+            
+            Control.Operators[v]=function()--operator detected!
+                --TODO: error check!
+                local id,prew = Control.Cdata.tb_while(tb)
+                Control.inject(nil,",",2,k)--inject found operator
+                Control.split_seq(nil,#v)--remove bitwize from queue
+
+                Control.Event.run(2,v,2)--send events to fin opts in OP_st
+                Control.Event.run("all",v,2)
+                --reg operator data
+                Control.inject_operator(tab,k,v=="~" and prew[1]==2) --including stat_end
+
+            end
+            --TODO: opts
+        end
+    end})
 end},
 CA={[_init]=function(Control)--C/C++ additional asignment operators
     
@@ -748,7 +884,7 @@ LF={[_init]=function(Control)
 		if"-"==sub(Control.operator,1,1)then Control.inject(nil,"return ",4) end--inject return kwrd
 
 		Control.Event.run(2,"->",2,1)--Iinform core about insertet operators (1 means cssc_generated)
-		Control.Event.run("all","->",tp,1)
+		Control.Event.run("all",sub(Control.operator,1,1)..">",tp,1)
 
 		Control.Level.open(fk,nil,ei)--open new function level (auto end set)
 		Control.split_seq(nil,2)-- remove ->/=> from Control.operator

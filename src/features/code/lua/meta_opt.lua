@@ -4,7 +4,7 @@ function(Control,place_mark)
     local call_nxt = t_swap{__STRING__,__OPEN_BREAKET__}
 
     -- calculation statement marker: function() *stat_end* local *stat_end* a = v + a.b:c("s") + function()end+1 *stat_end* return *stat_end* a *stat_end* end
-    local stat_end_prew=t_swap{__WORD__,__CLOSE_BREAKET__,__STRING__,__VALUE__,__NUMBER__}
+    local stat_end_prew=t_swap{__WORD__,__CLOSE_BREAKET__,__OPEN_BREAKET__,__STRING__,__VALUE__,__NUMBER__}
     local stat_end_nxt=t_swap{__WORD__,__KEYWORD__,__VALUE__,__NUMBER__}
 
     --function to detect statements separation and function calls

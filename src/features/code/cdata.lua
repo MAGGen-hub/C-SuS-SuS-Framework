@@ -1,7 +1,7 @@
 function(Control,opts_hash,level_hash)--API to save code data to specific table
     local check,c,clr=t_swap{__OPERATOR__,__KEYWORD__,__OPEN_BREAKET__}
     clr=function()
-        for i=1,#c do c[i]=nil end c[1]={__COMMENT__}
+        for i=1,#c do c[i]=nil end c[1]={__OPERATOR__,0}
         --c={opts=c.opts,lvl=c.lvl,run=c.run,reg=c.reg,del=c.del,tb_until=c.tb_until,tb_while=c.tb_while, {__COMMENT__}}
         --Control.Cdata=c
     end
@@ -37,7 +37,7 @@ function(Control,opts_hash,level_hash)--API to save code data to specific table
         i=i or#c
         while i>0 and type_tab[c[i][1]]do i=i-1 end
         return i,c[i]
-    end, {__COMMENT__}
+    end, {__OPERATOR__,0}
     }
     Control.Cdata=c
     insert(Control.Clear,clr)
