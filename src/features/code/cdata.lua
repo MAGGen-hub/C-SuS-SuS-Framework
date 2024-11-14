@@ -1,20 +1,21 @@
 function(Control,opts_hash,level_hash)--API to save code data to specific table
-    local c,clr
+    local check,c,clr=t_swap{__OPERATOR__,__KEYWORD__,__OPEN_BREAKET__}
     clr=function()
-        c={opts=c.opts,lvl=c.lvl,run=c.run,reg=c.reg,del=c.del,tb_until=c.tb_until,tb_while=c.tb_while, {__COMMENT__}}
-        Control.Cdata=c
+        for i=1,#c do c[i]=nil end c[1]={__COMMENT__}
+        --c={opts=c.opts,lvl=c.lvl,run=c.run,reg=c.reg,del=c.del,tb_until=c.tb_until,tb_while=c.tb_while, {__COMMENT__}}
+        --Control.Cdata=c
     end
     c={opts=opts_hash,lvl=level_hash,
     run=function(obj,tp)--to call from core
         local lh,rez=c.lvl[obj]
         --if obj=="(" then print(lh,rez) end
         if lh and lh[2] then --object with lvl props
-            rez=Control.Level[#Control.Level]
+            rez=Control.Level[#Control.Level] --TODO: temporal solution! REWORK!!!
             rez ={tp,rez.ends[obj] and rez.index}
         elseif tp==__OPERATOR__ then
             local pd,lt,un = c.opts[obj],c[#c][1]--priority_data,last_type,is_unary
-            un = pd[2] and (not pd[1] or not (lt==__OPERATOR__ or  lt==__KEYWORD__ or lt==__OPEN_BREAKET__))--unary or binary
-            rez={tp,not un and pd[1],un and pd[2]}--inser operator data handle
+            un = pd[2] and (not pd[1] or not check[lt])--unary or binary
+            rez={tp,not un and pd[1],un and pd[2]}--insert operator data handle
         else
             rez={tp}
         end

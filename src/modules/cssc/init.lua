@@ -10,11 +10,11 @@ function(Control)
 	Control.get_num_prt,Control.split_seq=Control:load_lib"code.lua.struct"
 	
 	--load analisys systems
-
 	Control:load_lib("code.cdata",opt,lvl,placeholder_func)
 	Control:load_lib("common.event")
 	Control:load_lib("common.level",lvl)
 
+	--code editing basic api
 	Control.inject = function(id,obj,type,...)
 		if id then insert(Control.Result,id,obj) else insert(Control.Result,obj)end
 		Control.Cdata.reg(type,id,...)
@@ -22,17 +22,37 @@ function(Control)
 	Control.eject = function(id)
 		return {remove(Control.Result,id),unpack(remove(Control.Cdata,id))}
 	end
+
+	--important lua code markers
+	local meta_reg = Control:load_lib("code.lua.meta_opt",
+		function(mark)
+			--temporaly remove last text element
+			local temp = remove(Control.Result)
+			--insert markers
+			Control.inject(nil,"",__OPERATOR__,mark>0 and opt[":"][1] or 0)
+
+			--init events
+			Control.Event.run(__OPERATOR__,"",__OPERATOR__)
+			Control.Event.run("all","",__OPERATOR__)
+
+			--return prewious text element back
+			insert(Control.Result,temp)
+		end)
+	
 	--core setup
-	local t={__WORD__,__KEYWORD__,__NUMBER__,__STRING__,__VALUE__}
+	--DEPRECATED: local t={__WORD__,__KEYWORD__,__NUMBER__,__STRING__,__VALUE__}
+	local tb=t_swap{__COMMENT__}
 	t=t_swap(t)
 	Control.Core=function(tp,obj)--type_of_text_object,object_it_self
-		
-		Control.Cdata.run(obj,tp)
+		local id_prew,c_prew,spifc=Control.Cdata.tb_while(tb)
+		spifc = c_prew[1]==__KEYWORD__ and match(Control.Result[id_prew],"^end") and match(Control.Result[c_prew[2]],"^function")
+		meta_reg(Control.Cdata.tb_while(tb,#Control.Cdata-1)[1],tp,spifc)--reg *call*/*stat_end* operator markers (injects before last registered CData)
+		Control.Cdata.run(obj,tp)--reg previous result CData
+
 		Control.Event.run(tp,obj,tp)--single event for single struct
-		--if t[tp]then Control.Event.run("text",obj,tp)end --for any text code values
+		--DEPRECATED: if t[tp]then Control.Event.run("text",obj,tp)end --for any text code values
 		Control.Event.run("all",obj,tp)-- event for all structs
 		
-		--Control.Priority.run(obj,tp)--priority ctrl
 		Control.Level.ctrl(obj)--level ctrl
 	end
 
