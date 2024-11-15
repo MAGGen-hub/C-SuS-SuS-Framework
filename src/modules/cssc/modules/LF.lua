@@ -8,7 +8,7 @@
 			cor = ei and match(Control.Result[Control.Cdata.tb_while(ct,ei-1)]or"","^[=%(,]")--coma is acceptable here 
 			Control.log("COR:%s",cor)
 		else--default args
-			while ei>0 and(ed[1]==__COMMENT__ or ed[1]==s or s~=__WORD__ and match(Control.Result[ei],"^%,"))do
+			while ei>0 and(ed[1]==__COMMENT__ or ed[1]==s or s~=__WORD__ and ((ed[2]or-1)==Control.Cdata.opts[","][1] and match(Control.Result[ei],"^%,")))do
 				ei,s=ei-1,s*(ed[1]~=__COMMENT__ and-1 or 1)--com skip/swap state __WORD__/__OPERATOR__(coma)
 				ed=Control.Cdata[ei]
 			end
@@ -16,6 +16,8 @@
 		end
 		if not cor then Control.error("Corrupted lambda arguments at line %d !",Control.line)Control.split_seq(nil,2) return end
 		
+		--Control.inject(ei,"" @@DEBUG .."--[[cl mrk]]"
+		--,__OPERATOR__,Control.Cdata.opts[":"][1])--call mark
 		Control.inject(ei,fk,__KEYWORD__)--inject function kwrd
 		if br then --place breakets
 			Control.inject(ei+1,"(",__OPEN_BREAKET__)--inject open breaket

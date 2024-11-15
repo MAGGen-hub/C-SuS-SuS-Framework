@@ -29,7 +29,8 @@ function(Control)
 			--temporaly remove last text element
 			local temp = remove(Control.Result)
 			--insert markers
-			Control.inject(nil,"",__OPERATOR__,mark>0 and opt[":"][1] or 0)
+			Control.inject(nil,"" @@DEBUG .."--[["..(mark>0 and"cl"or"st").." mrk]]"
+			,__OPERATOR__,mark>0 and opt[":"][1] or 0)
 
 			--init events
 			Control.Event.run(__OPERATOR__,"",__OPERATOR__)
@@ -42,11 +43,11 @@ function(Control)
 	--core setup
 	--DEPRECATED: local t={__WORD__,__KEYWORD__,__NUMBER__,__STRING__,__VALUE__}
 	local tb=t_swap{__COMMENT__}
-	t=t_swap(t)
+	--t=t_swap(t)
 	Control.Core=function(tp,obj)--type_of_text_object,object_it_self
 		local id_prew,c_prew,spifc=Control.Cdata.tb_while(tb)
 		spifc = c_prew[1]==__KEYWORD__ and match(Control.Result[id_prew],"^end") and match(Control.Result[c_prew[2]],"^function")
-		meta_reg(Control.Cdata.tb_while(tb,#Control.Cdata-1)[1],tp,spifc)--reg *call*/*stat_end* operator markers (injects before last registered CData)
+		meta_reg(c_prew[1],tp,spifc)--reg *call*/*stat_end* operator markers (injects before last registered CData)
 		Control.Cdata.run(obj,tp)--reg previous result CData
 
 		Control.Event.run(tp,obj,tp)--single event for single struct

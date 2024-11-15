@@ -22,7 +22,7 @@ function(Control,opts_hash,level_hash)--API to save code data to specific table
         c[#c+1]=rez
     end,
     reg=function(tp,id,...)--reg custom value in specific field
-        local rez = args and {tp,...} or {tp}
+        local rez = {tp,...}--args and {tp,...} or {tp}
         insert(c,id or #c+1,rez)
     end,
     del=function(id)--del specific value from index
