@@ -224,7 +224,7 @@ cssc={op_stack=function(Control) --cssc feature to process and stack unfinished 
     Control.Event.reg("lvl_close",function(lvl)
         if lvl.OP_st then
             local i = #CD
-            for k=#lvl.OP_st,1 do
+            for k=#lvl.OP_st,1,-1 do
                 Control.inject(i,")",10,lvl.OP_st[k][4])--fin all unfinished
             end
         end
@@ -244,7 +244,7 @@ cssc={op_stack=function(Control) --cssc feature to process and stack unfinished 
         end
     end,"OP_st_d",1)
 
-    Control.inject_operator = function(pre_tab,priority, is_unary,now_end)--function to inject common operators fast
+    Control.inject_operator = function(pre_tab,priority, is_unary,skip_fb,now_end)--function to inject common operators fast
         --init locals
         local lvl,i,cdt,b,st,sp,last =L[#L],#CD --level; index; breaket; curent_cdata,stack_tab,start_pos
         cdt,st,pre_tab=CD[i],lvl.OP_st or{},pre_tab or{}
@@ -258,30 +258,70 @@ cssc={op_stack=function(Control) --cssc feature to process and stack unfinished 
                 --if cdt[1]==2 and cdt[2]==0 then end --TODO: EMIT ERROR!!! statement_end detected!!!!
                 cdt=CD[i]
             end --after that cycle i will contain index where we need to place the start of our operator
-            _,last=cdt
+            print("cdt:",cdt)
+            last=cdt
         else
             _,last=Control.Cdata.tb_while({[11]=1},i-1)
         end
         if i<sp then Control.error("OP_STACK Unexpected error!")end
         i=i+1 --increment i (index correction)
         --iject data before
-        Control.inject(i,"(",9)--insert open breaket
-        Control.inject(i,"" -- .."--[[cl mrk]]"
-		,2,Control.Cdata.opts[":"][1])--call mark
-        for k=#pre_tab,1,-1 do --insert caller function/construct if exist
-            Control.inject(i,unpack(pre_tab[k]))
+        if not skip_fb then
+            Control.inject(i,"(",9)--insert open breaket
+            if #pre_tab>0 then
+                Control.inject(i,"" -- .."--[[cl mrk]]"
+		        ,2,Control.Cdata.opts[":"][1])--call mark
+            end
+            for k=#pre_tab,1,-1 do --insert caller function/construct if exist
+                Control.inject(i,unpack(pre_tab[k]))
+            end
         end
         if now_end then--inject fin breaket imidiatly
             Control.inject(nil,")",10)
-            return last
+            return i-1,last
         end
         insert(st,{#CD,priority,i,i+#pre_tab})--new element in stack to finalize
         lvl.OP_st=st--save table (if unsaved)
-        return last
+        return i-1,last
     end
 end,
-pdata=function(Control,path)--api to inject locals form Control table right into code
-    
+pdata=function(Control,path,dt)--api to inject locals form Control table right into code
+    local p,clr
+    p={path=path or "cssc_betaruntime", locals={}, modules={}, 
+        data=dt or setmetatable({},{__call=function(self,...)
+            local t={}
+            for _,v in pairs{...}do
+                insert(t,self[v] or error(format("Unable to load '%s' run-time module!",v)))
+            end
+            return unpack(t)
+        end}),
+        reg = function(l_name,m_name) --local name/module name
+            insert(p.locals,l_name)
+            insert(p.modules,"'"..m_name.."'")
+        end,
+        build=function(m_name,func)--TODO: REWORK!
+            if (not p.data[m_name] or Control.error("Attempt to rewrite runtime module '%s'! Choose other name or delete module first!",m_name)) then p.data[m_name]=func end
+        end,
+        is_done=false,
+        mk_env=function(tb)
+            tb=tb or {}
+            if #p.locals>0 then  tb[p.path]=p.data end
+            return tb
+        end
+    }
+    insert(Control.PostRun,function()
+        if not p.is_done and #p.locals>0 then
+            insert(Control.Result,1,"local "..concat(p.locals,",").."="..p.path.."("..concat(p.modules,",")..");")
+        end
+        p.is_done=true
+    end)
+    clr = function()
+        p.locals={}
+        p.modules={}
+        p.is_done=false
+    end
+    Control.Runtime=p
+    insert(Control.Clear,clr)
 end,
 },--Close cssc
 lua={base=function(Control,O,W)-- O - Control.Operators or other table; W - Control.Words or other table (depends on current text parceing system)
@@ -543,10 +583,10 @@ level=function(Control,level_hash)--LEVELING SYSTEM
 		if#l<2 then l.close("main",nil,a)
 		else Control.error("Can't close 'main' level! Found (%d) unfinished levels!",#l-1)end
 	end,
-	close=function(obj,nc,f0)
+	close=function(obj,nc,f)
 		f=f==a and a or{}
 		local lvl,e,r=remove(l)
-		if f~=a and#l<1 then Control.error("Attempt to close 'main'(%d) level with '%s'!",#l,obj)return end
+		if f~=a and#l<1 then Control.error("Attempt to close 'main'(%d) level with '%s'!",#l+1,obj)return end
 		e=lvl.ends or f--setup level ends/fins
 		if e[obj]then Control.Event.run("lvl_close",lvl,obj)return --Level end found! Invoke close event and return!
 		elseif nc then return end -- level is standalone [like "do" kwrd] and can be opened without closeing prewious
@@ -567,6 +607,7 @@ level=function(Control,level_hash)--LEVELING SYSTEM
 	end}
 	Control.Level=l
 	clr()
+	
 	insert(Control.Clear,clr)
 end
 ,
@@ -717,14 +758,27 @@ Modules={cssc={[_init]=function(Control)
 		Control.Level.ctrl(obj)--level ctrl
 	end
 
+	insert(Control.PostRun,function()
+		Control.inject(nil,"",2,0)
+		Control.Event.run(2,"",2)
+		Control.Event.run("all","",2)
+		Control.Level.fin()
+	end)--fin level
+
+	Control.cssc_load=function(x,name,mode,env)
+		x=x==Control and Control.Return()or x
+		env=Control.Runtime and Control.Runtime.mk_env(env) or env --Runtime Env support
+		return native_load(x,name,mode,env)
+	end
+
 	--TODO:RUNTIME DATA PUSH API (inject cssc functions at the start of file to work with them)
 end
 ,
-[_modules]={BO={[_init]=function(Control)--bitwize operators (lua53 - backport feature)
+[_modules]={BO={[_init]=function(Control,direct)--bitwize operators (lua53 - backport feature)
+    direct=false--TODO:temporal solution rework
     Control:load_lib"code.cssc.pdata"
     Control:load_lib"code.cssc.op_stack"
     local opts= Control.Cdata.opts
-    --local lvl = Control.Level
     local stx=[[O
 |
 ~
@@ -736,36 +790,118 @@ end
     local p = opts["<"][1]+1 --priority base
     local p_un = opts["#"][2] --unary priority
     local bt=t_swap{shl='<<',shr='>>',bxor='~',bor='|',band='&',idiv='//'}--bitw funcs
-    --local pr=t_swap{'|','~','&','<<'} pr[">>"]=4--make priority table
-    --for i=1,#pr do pr[i]=pr[i]+pr_base end
     local tb=t_swap{11}
-    Control:load_lib"code.syntax_loader"(stx,{O=function(...)
+    local loc_base = "__cssc__bit_"
+    local used_opts= {}
+
+    Control:load_lib"code.syntax_loader"(stx,{O=function(...)--reg syntax
         for k,v,tab,has_un in pairs{...}do
             has_un=v=="~"
             k= v=="//" and opts["*"][1] or p --calc actual priority
             opts[v]=has_un and{k,p_un}or{k}
-            tab={{"bit",3},{".",2,Control.Cdata.opts["."][1]},{bt[v],3}}
-            has_un=has_un and {{"bit",3},{".",2,Control.Cdata.opts["."][1]},{"bnot",3}}
+            tab={{loc_base..bt[v],3}}
+            
+            has_un=has_un and {{loc_base.."bnot",3}}
+            local bit_name,bit_func
+            --try get metatables from a and b and select function to run (probably it's better to check their type before, but the smaller the function the faster it will be)    
+            if not direct then
+                local func = native_load(format([[local p,g,f={},... return function(a,b)return((g(a)or p).%s or(g(b)or p).%s or f)(a,b)end]],"__"..bt[v],"__"..bt[v])
+                ,loc_base..bt[v],nil,nil)(getmetatable,bit32[bt[v]])--this function creates ultra fast & short pice of runtime working code
+                --prewious code is equivalent of: function(a,b)
+                --    return((getmetatable(a)or pht)[bit_name] or (getmetatable(b)or pht)[bit_name] or bit_func)(a,b)
+                --end
+                Control.Runtime.build("bit."..bt[v],func,1)
+            else Control.Runtime.build("bitD."..bt[v],func,1) end
+            
             Control.Operators[v]=function()--operator detected!
-                
                 local id,prew,is_un = Control.Cdata.tb_while(tb)
+
                 is_un = has_un and prew[1]==2 or prew[1]==9
+                if not used_opts[is_un and "bnot"or v] then Control.Runtime.reg(is_un and loc_base.."bnot" or loc_base..bt[v],is_un and "bit.bnot" or "bit."..bt[v])end
                 Control.inject(nil,is_un and ""or",",2,not is_un and k or nil, is_un and p_un or nil)--inject found operator Control.Cdata.opts[","][1]
                 Control.split_seq(nil,#v)--remove bitwize from queue
                 Control.Event.run(2,v,2,1)--send events to fin opts in OP_st
                 Control.Event.run("all",v,2,1)
                 --reg operator data
                 Control.inject_operator(is_un and has_un or tab,is_un and p_un or k,is_un) --including stat_end
-
             end
             --TODO: opts
         end
         p=p+1
     end})
+    if not direct then
+        local func = native_load([[local p,g,f={},... return function(a)return((g(a)or p).__bnot or f)(a)end]],"__cssc_bit_bnot",nil,nil)(getmetatable,bit32.bnot)
+        Control.Runtime.build("bit.bnot",func,1)
+    else
+        Control.Runtime.build("bitD.bnot",bit32.bnot,1)
+    end
+    insert(Control.Clear,function()used_opts={}end)
 end},
 CA={[_init]=function(Control)--C/C++ additional asignment operators
-    
+    Control:load_lib"code.cssc.op_stack"
+    local prohibited_area = t_swap{"(","{","[","for","while","if","elseif","until"}
+    local cond ={["&&"]="and",["||"]="or"}
+    local bitw
 
+    local b_func={}
+    local s=1
+    local stx=[[O
++ - * / % .. ^
+&& ||
+]]--TODO: add support 
+    if Control.Operators["~"] then stx=stx.."| & >> <<\n" 
+        bitw={["|"]="__cssc__bit_bor",["&"]="__cssc__bit_band",[">>"]="__cssc__bit_shr",["<<"]="__cssc__bit_shl"}
+    end--TODO: temporal solution! rework!
+
+    Control:load_lib"code.syntax_loader"(stx,{O=function(...)
+        for k, v, t,p in pairs{...}do
+            t=s==2 and cond[v] or v
+            p=s==3 and bitw[v]
+            Control.Operators[v.."="]=function()
+                local lvl=Control.Level[#Control.Level]
+                if prohibited_area[lvl.type] or #(lvl.OP_st or"")>0 then
+                    Control.error("Attempt to use additional asignment in prohibited area!")
+                end
+                local i,last=Control.inject_operator(nil,Control.Cdata.opts[","][1],false,1)--add ")" to fin on, or stat end
+                
+                if last[1]==2 and last[2]==Control.Cdata.opts[","][1] then --TODO: Temporal solution! Rework!
+                    Control.error("Additional asignment do not support multiple additions is this version of cssc_beta!")
+                end
+                if last[1]==2 and last[2]==0 and i-1>0 and Control.Cdata[i-1][1]==4 and match(Control.Result[i-1],"^local")then
+                    Control.error("Attempt to perform additional asignment to local variable constructor!")
+                end
+                --action
+                local cur_i,cur_d = #Control.Cdata
+                Control.inject(nil,"=",2,Control.Cdata.opts["="][1])--insert assignment
+                if p then
+                    Control.inject(nil,p,3)--bitw func call
+                    Control.inject(nil,"(",9)--open breaket
+                    cur_d = #Control.Cdata 
+                end
+
+                for k=i+1,cur_i do --insert local var copy
+                    Control.inject(nil,Control.Result[k],unpack(Control.Cdata[k]))
+                end
+
+                if not p then --insert operator/coma
+                    Control.inject(nil,t,2,Control.Cdata.opts[t][1])
+                    Control.inject(nil,"(",9)
+                    cur_d = #Control.Cdata 
+                else
+                    Control.inject(nil,",",2,Control.Cdata.opts["or"][1])--comma with ultra high priority
+                end
+
+                lvl.OP_st[#lvl.OP_st][3]= cur_d--correct operator start/breaket values
+                lvl.OP_st[#lvl.OP_st][4]= cur_d
+
+                Control.split_seq(nil,#v+1)--clear queue
+
+                Control.Event.run(2,v.."=",2,1)--send events to fin opts in OP_st
+                Control.Event.run("all",v.."=",2,1)
+            end
+        end
+        s=s+1
+    end})
 end},
 DA={[_init]=function(Control)
     local l,pht,ct = Control.Level,{},t_swap{11}

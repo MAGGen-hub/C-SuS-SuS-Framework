@@ -57,5 +57,18 @@ function(Control)
 		Control.Level.ctrl(obj)--level ctrl
 	end
 
+	insert(Control.PostRun,function()
+		Control.inject(nil,"",__OPERATOR__,0)
+		Control.Event.run(__OPERATOR__,"",__OPERATOR__)
+		Control.Event.run("all","",__OPERATOR__)
+		Control.Level.fin()
+	end)--fin level
+
+	Control.cssc_load=function(x,name,mode,env)
+		x=x==Control and Control.Return()or x
+		env=Control.Runtime and Control.Runtime.mk_env(env) or env --Runtime Env support
+		return native_load(x,name,mode,env)
+	end
+
 	--TODO:RUNTIME DATA PUSH API (inject cssc functions at the start of file to work with them)
 end
