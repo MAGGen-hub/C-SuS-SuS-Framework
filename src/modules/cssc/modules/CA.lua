@@ -7,24 +7,27 @@
     local b_func={}
     local s=1
     local stx=[[O
-+ - * / % .. ^
++ - * / % .. ^ ?
 && ||
 ]]--TODO: add support 
     if Control.Operators["~"] then stx=stx.."| & >> <<\n" 
-        bitw={["|"]="__cssc__bit_bor",["&"]="__cssc__bit_band",[">>"]="__cssc__bit_shr",["<<"]="__cssc__bit_shl"}
+        bitw={["|"]="__cssc__bit_bor",["&"]="__cssc__bit_band",[">>"]="__cssc__bit_shr",["<<"]="__cssc__bit_shl"} --last one:questionable_addition
     end--TODO: temporal solution! rework!
+
+
 
     Control:load_lib"code.syntax_loader"(stx,{O=function(...)
         for k, v, t,p in pairs{...}do
             t=s==2 and cond[v] or v
-            p=s==3 and bitw[v]
+            p=s==3 and bitw[v] or v=="?" and "__cssc__op_qad"
             Control.Operators[v.."="]=function()
                 local lvl=Control.Level[#Control.Level]
                 if prohibited_area[lvl.type] or #(lvl.OP_st or"")>0 then
                     Control.error("Attempt to use additional asignment in prohibited area!")
                 end
-                local i,last=Control.inject_operator(nil,Control.Cdata.opts[","][1],false,__TRUE__)--add ")" to fin on, or stat end
+                local i,last=Control.inject_operator(nil,Control.Cdata.opts[","][1]+1,false,__TRUE__)--add ")" to fin on, or stat end
                 
+                --print(i,last[1],last[1]==__OPERATOR__,last[2], last[2]==Control.Cdata.opts[","][1])
                 if last[1]==__OPERATOR__ and last[2]==Control.Cdata.opts[","][1] then --TODO: Temporal solution! Rework!
                     Control.error("Additional asignment do not support multiple additions is this version of __PROJECT_NAME__!")
                 end
@@ -45,6 +48,7 @@
                 end
 
                 if not p then --insert operator/coma
+                    if match(t,"^[ao]")then Control.Result[#Control.Result]=Control.Result[#Control.Result].." "end --add spaceing
                     Control.inject(nil,t,__OPERATOR__,Control.Cdata.opts[t][1])
                     Control.inject(nil,"(",__OPEN_BREAKET__)
                     cur_d = #Control.Cdata 
@@ -59,6 +63,11 @@
 
                 Control.Event.run(__OPERATOR__,v.."=",__OPERATOR__,__TRUE__)--send events to fin opts in OP_st
                 Control.Event.run("all",v.."=",__OPERATOR__,__TRUE__)
+
+                Control.Event.reg("all",function(obj,tp)--error check after
+                    if tp==__KEYWORD__ and not match(Control.Result[#Control.Result],"^function") or  tp==__CLOSE_BREAKET__ or tp==__OPERATOR__ and not Control.Cdata[#Control.Cdata][3] then Control.error("Unexpected '%s' after '%s'!",obj,v.."=") end
+                    return tp~=__COMMENT__ and __TRUE__ 
+                end)
             end
         end
         s=s+1

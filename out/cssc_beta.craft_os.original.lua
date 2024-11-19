@@ -258,7 +258,7 @@ cssc={op_stack=function(Control) --cssc feature to process and stack unfinished 
                 --if cdt[1]==2 and cdt[2]==0 then end --TODO: EMIT ERROR!!! statement_end detected!!!!
                 cdt=CD[i]
             end --after that cycle i will contain index where we need to place the start of our operator
-            print("cdt:",cdt)
+            --print("cdt:",cdt)
             last=cdt
         else
             _,last=Control.Cdata.tb_while({[11]=1},i-1)
@@ -287,7 +287,7 @@ cssc={op_stack=function(Control) --cssc feature to process and stack unfinished 
 end,
 pdata=function(Control,path,dt)--api to inject locals form Control table right into code
     local p,clr
-    p={path=path or "cssc_betaruntime", locals={}, modules={}, 
+    p={path=path or "__cssc_beta__runtime", locals={}, modules={}, 
         data=dt or setmetatable({},{__call=function(self,...)
             local t={}
             for _,v in pairs{...}do
@@ -305,7 +305,10 @@ pdata=function(Control,path,dt)--api to inject locals form Control table right i
         is_done=false,
         mk_env=function(tb)
             tb=tb or {}
-            if #p.locals>0 then  tb[p.path]=p.data end
+            if #p.locals>0 then
+                if tb[p.path] then Control.warn(" CSSC environment var '%s' already exist in '%s'. Override performed.",p.path,tb)end
+                tb[p.path]=p.data 
+            end
             return tb
         end
     }
@@ -369,8 +372,8 @@ and
 * / // %
 not # -
 ^
-. : [ ( { "
-]]
+. :
+]]-- [ ( { "
 --INSERT VERSION DIFF
 Control:load_lib"text.dual_queue.base"
 Control:load_lib"code.syntax_loader"(lua51,{
@@ -564,7 +567,7 @@ common={event=function(Control)--EVENT SYSTEM
 		for k,v in pairs(e.main[name]or{})do v(...)end--global events
 		for k,v in pairs(l)do rm[k]=v(...)end--local events
 		for k in pairs(rm)do 
-			if"number"==type(k)then remove(t,k)else l[k]=nil end--events cleanup
+			if"number"==type(k)then remove(l,k)else l[k]=nil end--events cleanup
 		end
 	end}
 	clr()--make temp event table
@@ -586,7 +589,7 @@ level=function(Control,level_hash)--LEVELING SYSTEM
 	close=function(obj,nc,f)
 		f=f==a and a or{}
 		local lvl,e,r=remove(l)
-		if f~=a and#l<1 then Control.error("Attempt to close 'main'(%d) level with '%s'!",#l+1,obj)return end
+		if f~=a and#l<1 then Control.error("Attempt to close 'main'(%d) level with '%s'!",#l+1,obj) insert(l,lvl) return end
 		e=lvl.ends or f--setup level ends/fins
 		if e[obj]then Control.Event.run("lvl_close",lvl,obj)return --Level end found! Invoke close event and return!
 		elseif nc then return end -- level is standalone [like "do" kwrd] and can be opened without closeing prewious
@@ -791,6 +794,8 @@ end
     local p_un = opts["#"][2] --unary priority
     local bt=t_swap{shl='<<',shr='>>',bxor='~',bor='|',band='&',idiv='//'}--bitw funcs
     local tb=t_swap{11}
+    local check = t_swap{2,9,4}
+    --local after = t_swap{4,10}
     local loc_base = "__cssc__bit_"
     local used_opts= {}
 
@@ -817,11 +822,20 @@ end
                 local id,prew,is_un = Control.Cdata.tb_while(tb)
 
                 is_un = has_un and prew[1]==2 or prew[1]==9
+
+                local i,d=Control.Cdata.tb_while(tb)
+                if not is_un and check[d[1]] then Control.error("Unexpected '%s' after '%s'!",v,Control.Result[i])end--error check before
+
                 if not used_opts[is_un and "bnot"or v] then Control.Runtime.reg(is_un and loc_base.."bnot" or loc_base..bt[v],is_un and "bit.bnot" or "bit."..bt[v])end
                 Control.inject(nil,is_un and ""or",",2,not is_un and k or nil, is_un and p_un or nil)--inject found operator Control.Cdata.opts[","][1]
                 Control.split_seq(nil,#v)--remove bitwize from queue
                 Control.Event.run(2,v,2,1)--send events to fin opts in OP_st
                 Control.Event.run("all",v,2,1)
+
+                Control.Event.reg("all",function(obj,tp)--error check after
+                    if tp==4 and not match(Control.Result[#Control.Result],"^function") or  tp==10 or tp==2 and not Control.Cdata[#Control.Cdata][3] then Control.error("Unexpected '%s' after '%s'!",obj,v) end
+                    return tp~=11 and 1 
+                end)
                 --reg operator data
                 Control.inject_operator(is_un and has_un or tab,is_un and p_un or k,is_un) --including stat_end
             end
@@ -846,24 +860,27 @@ CA={[_init]=function(Control)--C/C++ additional asignment operators
     local b_func={}
     local s=1
     local stx=[[O
-+ - * / % .. ^
++ - * / % .. ^ ?
 && ||
 ]]--TODO: add support 
     if Control.Operators["~"] then stx=stx.."| & >> <<\n" 
-        bitw={["|"]="__cssc__bit_bor",["&"]="__cssc__bit_band",[">>"]="__cssc__bit_shr",["<<"]="__cssc__bit_shl"}
+        bitw={["|"]="__cssc__bit_bor",["&"]="__cssc__bit_band",[">>"]="__cssc__bit_shr",["<<"]="__cssc__bit_shl"} --last one:questionable_addition
     end--TODO: temporal solution! rework!
+
+
 
     Control:load_lib"code.syntax_loader"(stx,{O=function(...)
         for k, v, t,p in pairs{...}do
             t=s==2 and cond[v] or v
-            p=s==3 and bitw[v]
+            p=s==3 and bitw[v] or v=="?" and "__cssc__op_qad"
             Control.Operators[v.."="]=function()
                 local lvl=Control.Level[#Control.Level]
                 if prohibited_area[lvl.type] or #(lvl.OP_st or"")>0 then
                     Control.error("Attempt to use additional asignment in prohibited area!")
                 end
-                local i,last=Control.inject_operator(nil,Control.Cdata.opts[","][1],false,1)--add ")" to fin on, or stat end
+                local i,last=Control.inject_operator(nil,Control.Cdata.opts[","][1]+1,false,1)--add ")" to fin on, or stat end
                 
+                --print(i,last[1],last[1]==2,last[2], last[2]==Control.Cdata.opts[","][1])
                 if last[1]==2 and last[2]==Control.Cdata.opts[","][1] then --TODO: Temporal solution! Rework!
                     Control.error("Additional asignment do not support multiple additions is this version of cssc_beta!")
                 end
@@ -884,11 +901,12 @@ CA={[_init]=function(Control)--C/C++ additional asignment operators
                 end
 
                 if not p then --insert operator/coma
+                    if match(t,"^[ao]")then Control.Result[#Control.Result]=Control.Result[#Control.Result].." "end --add spaceing
                     Control.inject(nil,t,2,Control.Cdata.opts[t][1])
                     Control.inject(nil,"(",9)
                     cur_d = #Control.Cdata 
                 else
-                    Control.inject(nil,",",2,Control.Cdata.opts["or"][1])--comma with ultra high priority
+                    Control.inject(nil,",",2,Control.Cdata.opts[","][1]+1)--comma with higher priority --TODO: temporal solution! rework!
                 end
 
                 lvl.OP_st[#lvl.OP_st][3]= cur_d--correct operator start/breaket values
@@ -898,6 +916,11 @@ CA={[_init]=function(Control)--C/C++ additional asignment operators
 
                 Control.Event.run(2,v.."=",2,1)--send events to fin opts in OP_st
                 Control.Event.run("all",v.."=",2,1)
+
+                Control.Event.reg("all",function(obj,tp)--error check after
+                    if tp==4 and not match(Control.Result[#Control.Result],"^function") or  tp==10 or tp==2 and not Control.Cdata[#Control.Cdata][3] then Control.error("Unexpected '%s' after '%s'!",obj,v.."=") end
+                    return tp~=11 and 1 
+                end)
             end
         end
         s=s+1
@@ -907,8 +930,8 @@ DA={[_init]=function(Control)
     local l,pht,ct = Control.Level,{},t_swap{11}
 
     local mt=setmetatable({},{__index=function(s,i)return i end})
-    local def_arg_runtime_func = function(...)
-        local data,res,val,tp,def,ch={...},{}
+    local def_arg_runtime_func = function(data)
+        local res,val,tp,def,ch={}
         for i=1,#data,4 do
             val=data[i+1]
             def=data[i+3]
@@ -1005,9 +1028,63 @@ DA={[_init]=function(Control)
         end
     end,"DA_lc",1)
 end},
-IS=function()end,
-KS={[_init]=function(Control)--keyword shorcuts
+IS={[_init]=function(Control)
+    Control:load_lib"code.cssc.pdata"
+    Control:load_lib"code.cssc.op_stack"
+    local ltp,tab,used=type,{{"__cssc__kw_is",3}}
+    Control.typeof=function(obj,comp)
+        local md,tp,rez = ltp(comp),ltp(obj),false
+        if md=="string"then rez=tp==comp
+        elseif md=="table"then for i=1,#comp do rez=rez or tp==comp[i]end
+        else error("bad argument #2 to 'is' operator (got '"..md.."', expected 'table' or 'string')",2)end
+        return rez
+    end
+    local tb = t_swap{11}
+    local check = t_swap{2,9,4}
+    local after = t_swap{4,10}
+    Control.Runtime.build("kwrd.is",Control.typeof)
+    Control.Words["is"]=function()
+        if not used then Control.Runtime.reg("__cssc__kw_is","kwrd.is") end
 
+        local i,d=Control.Cdata.tb_while(tb)
+        if check[d[1]] then Control.error("Unexpected 'is' after '%s'!",Control.Result[i])end--error check before
+
+        Control.inject(nil,",",2,Control.Cdata.opts["^"][1])
+        Control.split_seq(nil,2,1)
+        Control.Event.run(2,"is",2,1)--send events to fin opts in OP_st
+        Control.Event.run("all","is",2,1)
+
+        Control.Event.reg("all",function(obj,tp)--error check after
+            if after[tp] or tp==2 and not Control.Cdata[#Control.Cdata][3] then Control.error("Unexpected '%s' after 'is'!",obj) end
+            return tp~=11 and 1 
+        end)
+
+        Control.inject_operator(tab,Control.Cdata.opts["^"][1])
+        --local st=Control.Level[#Control.Level].OP_st
+        --st[#st][2]=st[#st][2]-1
+
+    end
+    insert(Control.Clear,function()used=nil end)
+end},
+KS={[_init]=function(Control)--keyword shorcuts
+    local stx = [[O
+|| and
+&& or
+@ local
+$ return
+]]
+    local make_react=function(s,i,j) -- s -> replacer string, i - type of reaction, t - type of sequnece, j - local length
+		return function(Control)
+            Control.Result[#Control.Result]= Control.Result[#Control.Result].." "
+			insert(Control.Result,s.." ")
+			Control.operator=sub(Control.operator,j+1)
+			Control.index=Control.index+j
+			Control.Core(i,s)
+		end
+	end
+    Control:load_lib"code.syntax_loader"(stx,{O=function(k,v)
+        Control.Operators[k]=make_react(v,match(v,"^[ao]") and 2 or 4,#k)
+    end})
 end},
 LF={[_init]=function(Control)
 	local ct,fk = t_swap{11},"function"--mk hash table
@@ -1044,8 +1121,47 @@ LF={[_init]=function(Control)
 	end
 	Control.Operators["=>"]=Control.Operators["->"]
 end},
-NC={[_init]=function(Control)--nit check (nil forgiving operator feature)
+NC={[_init]=function(Control)--nil check (nil forgiving operator feature)
+    Control:load_lib"code.cssc.pdata"
+    Control:load_lib"code.cssc.op_stack"
+    local stx = [[O
+?. ?: ?( ?{ ?[ ?" ?'
+]] --all posible operators in current version
+    local phf=function()end
+    local b_used,a_used
 
+    local runtime_meta=setmetatable({},{__call=function()end,__newindex=function()end})
+    local runtime_func=function(obj) return obj==nil and runtime_meta or obj end
+
+    local runtime_dual_meta={__index=function()return phf end}--TODO: TEMPORAL SOLUTION! REWORK!
+    local runtime_dual_func=function(obj) return obj==nil and runtime_dual_meta or setmetatable({},{__index=function(self,i)return obj[i] or phf end}) end
+    Control.Runtime.build("nilF.dual",runtime_dual_func)
+    Control.Runtime.build("nilF.basic",runtime_func)
+    check=t_swap{7,3,10}
+
+    Control:load_lib"code.syntax_loader"(stx,{O=function(...)
+        for k,v in pairs{...}do
+            Control.Operators[v]=function() --shadow operator
+                local tp = sub(v,2)
+                --todo prew ":" check on calls/indexing
+
+                local i,d=Control.Cdata.tb_while(tb)
+                if not check[d[1]] then Control.error("Unexpected '?' after '%s'!",Control.Result[i])end--error check before
+
+                Control.Event.run(2,"?x",2,1)--send events to fin opts in OP_st
+                Control.Event.run("all","?x",2,1)
+                if tp==":" then --dual operatiom -> index -> call
+                    if not a_used then a_used=1 Control.Runtime.reg("__cssc__op_d_nc","nilF.dual")end
+                    Control.inject_operator({{"__cssc__op_d_nc",3}},Control.Cdata.opts["."][1],false,false,true)
+                else
+                    if not b_used then b_used=1 Control.Runtime.reg("__cssc__op_nc","nilF.basic")end
+                    Control.inject_operator({{"__cssc__op_nc",3}},Control.Cdata.opts["."][1],false,false,true)
+                end
+                Control.split_seq(nil,1)--del "?"
+            end
+        end
+    end})
+    insert(Control.Clear,function()b_used,a_used=nil end)
 end},
 NF={[_init]=function(Control)
 	local e,nan="Number '%s' isn't a valid number!",-(0/0)
@@ -1080,6 +1196,26 @@ NF={[_init]=function(Control)
 			return true
 		end
 	end)
+end},
+PC={[_init]=function(Control)--keyword shorcuts
+    local stx = [[O
+? then
+/| if
+:| elseif
+\| else
+]]
+    local make_react=function(s,i,j) -- s -> replacer string, i - type of reaction, t - type of sequnece, j - local length
+        return function(Control)
+            Control.Result[#Control.Result]= Control.Result[#Control.Result].." "--add spaceing
+            insert(Control.Result,s.." ")
+            Control.operator=sub(Control.operator,j+1)
+            Control.index=Control.index+j
+            Control.Core(i,s)
+        end
+    end
+Control:load_lib"code.syntax_loader"(stx,{O=function(k,v)
+    Control.Operators[k]=make_react(v,4,#k)
+end})
 end},
 },--Close modules
 },--Close cssc

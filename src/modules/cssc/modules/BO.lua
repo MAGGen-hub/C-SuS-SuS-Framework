@@ -15,6 +15,8 @@
     local p_un = opts["#"][2] --unary priority
     local bt=t_swap{shl='<<',shr='>>',bxor='~',bor='|',band='&',idiv='//'}--bitw funcs
     local tb=t_swap{__COMMENT__}
+    local check = t_swap{__OPERATOR__,__OPEN_BREAKET__,__KEYWORD__}
+    --local after = t_swap{__KEYWORD__,__CLOSE_BREAKET__}
     local loc_base = "__cssc__bit_"
     local used_opts= {}
 
@@ -41,11 +43,20 @@
                 local id,prew,is_un = Control.Cdata.tb_while(tb)
 
                 is_un = has_un and prew[1]==__OPERATOR__ or prew[1]==__OPEN_BREAKET__
+
+                local i,d=Control.Cdata.tb_while(tb)
+                if not is_un and check[d[1]] then Control.error("Unexpected '%s' after '%s'!",v,Control.Result[i])end--error check before
+
                 if not used_opts[is_un and "bnot"or v] then Control.Runtime.reg(is_un and loc_base.."bnot" or loc_base..bt[v],is_un and "bit.bnot" or "bit."..bt[v])end
                 Control.inject(nil,is_un and ""or",",__OPERATOR__,not is_un and k or nil, is_un and p_un or nil)--inject found operator Control.Cdata.opts[","][1]
                 Control.split_seq(nil,#v)--remove bitwize from queue
                 Control.Event.run(__OPERATOR__,v,__OPERATOR__,__TRUE__)--send events to fin opts in OP_st
                 Control.Event.run("all",v,__OPERATOR__,__TRUE__)
+
+                Control.Event.reg("all",function(obj,tp)--error check after
+                    if tp==__KEYWORD__ and not match(Control.Result[#Control.Result],"^function") or  tp==__CLOSE_BREAKET__ or tp==__OPERATOR__ and not Control.Cdata[#Control.Cdata][3] then Control.error("Unexpected '%s' after '%s'!",obj,v) end
+                    return tp~=__COMMENT__ and __TRUE__ 
+                end)
                 --reg operator data
                 Control.inject_operator(is_un and has_un or tab,is_un and p_un or k,is_un) --including stat_end
             end

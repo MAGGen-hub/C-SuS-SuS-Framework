@@ -41,7 +41,7 @@ function(Control) --cssc feature to process and stack unfinished operators (turn
                 --if cdt[1]==__OPERATOR__ and cdt[2]==0 then end --TODO: EMIT ERROR!!! statement_end detected!!!!
                 cdt=CD[i]
             end --after that cycle i will contain index where we need to place the start of our operator
-            print("cdt:",cdt)
+            --print("cdt:",cdt)
             last=cdt
         else
             _,last=Control.Cdata.tb_while({[__COMMENT__]=1},i-1)

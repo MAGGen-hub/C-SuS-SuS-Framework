@@ -1,6 +1,6 @@
 function(Control,path,dt)--api to inject locals form Control table right into code
     local p,clr
-    p={path=path or "__PROJECT_NAME__runtime", locals={}, modules={}, 
+    p={path=path or "____PROJECT_NAME____runtime", locals={}, modules={}, 
         data=dt or setmetatable({},{__call=function(self,...)
             local t={}
             for _,v in pairs{...}do
@@ -18,7 +18,10 @@ function(Control,path,dt)--api to inject locals form Control table right into co
         is_done=false,
         mk_env=function(tb)
             tb=tb or {}
-            if #p.locals>0 then  tb[p.path]=p.data end
+            if #p.locals>0 then
+                if tb[p.path] then Control.warn(" CSSC environment var '%s' already exist in '%s'. Override performed.",p.path,tb)end
+                tb[p.path]=p.data 
+            end
             return tb
         end
     }

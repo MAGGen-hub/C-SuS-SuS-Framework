@@ -14,7 +14,7 @@ function(Control)--EVENT SYSTEM
 		for k,v in pairs(e.main[name]or{})do v(...)end--global events
 		for k,v in pairs(l)do rm[k]=v(...)end--local events
 		for k in pairs(rm)do 
-			if"number"==type(k)then remove(t,k)else l[k]=nil end--events cleanup
+			if"number"==type(k)then remove(l,k)else l[k]=nil end--events cleanup
 		end
 	end}
 	clr()--make temp event table

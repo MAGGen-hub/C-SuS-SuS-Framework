@@ -12,7 +12,7 @@ function(Control,level_hash)--LEVELING SYSTEM
 	close=function(obj,nc,f)
 		f=f==a and a or{}
 		local lvl,e,r=remove(l)
-		if f~=a and#l<1 then Control.error("Attempt to close 'main'(%d) level with '%s'!",#l+1,obj)return end
+		if f~=a and#l<1 then Control.error("Attempt to close 'main'(%d) level with '%s'!",#l+1,obj) insert(l,lvl) return end
 		e=lvl.ends or f--setup level ends/fins
 		if e[obj]then Control.Event.run("lvl_close",lvl,obj)return --Level end found! Invoke close event and return!
 		elseif nc then return end -- level is standalone [like "do" kwrd] and can be opened without closeing prewious

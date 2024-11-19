@@ -43,8 +43,8 @@ and
 * / // %
 not # -
 ^
-. : [ ( { "
-]]
+. :
+]]-- [ ( { "
 --INSERT VERSION DIFF
 Control:load_lib"text.dual_queue.base"
 Control:load_lib"code.syntax_loader"(lua51,{

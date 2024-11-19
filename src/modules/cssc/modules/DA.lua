@@ -2,8 +2,8 @@
     local l,pht,ct = Control.Level,{},t_swap{__COMMENT__}
 
     local mt=setmetatable({},{__index=function(s,i)return i end})
-    local def_arg_runtime_func = function(...)
-        local data,res,val,tp,def,ch={...},{}
+    local def_arg_runtime_func = function(data)
+        local res,val,tp,def,ch={}
         for i=1,#data,4 do
             val=data[i+1]
             def=data[i+3]
