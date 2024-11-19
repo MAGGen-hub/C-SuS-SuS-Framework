@@ -1,11 +1,12 @@
--- CSSC_LUA-MC_COMPILLER1.1
+-- CSSC_LUA-MC_COMPILLER1.1 (L-make)
 -- Required System Parameters:
 --
--- LinuxOS
+-- LinuxOS 
 -- IntelCoreI3
 -- RAM 4Gb
+-- -- or other with same or gather computing power
 -- 
--- Required Libs
+-- Required Libs (depends on version)
 -- lua-Jit
 -- lua5.1
 -- lua5.2
@@ -14,17 +15,18 @@
 -- craftos-pc
 -- craftos-pc-data
 -- bit32-lua51
--- libcompat51
+-- bitop-lua51
+-- libcompat51 --for tests
 -- libcompat52
--- os.execute-plugin
+-- os.execute-plugin --for craft os related tests
 --
--- Required ENV: CraftOS-pc
+-- Required compilling/testing ENV/IDE: CraftOS-pc - latest
 
 
 --PROJECT DATA
-local project_name = "cssc_beta"
+local project_name = "lua_mc"
 local version	  = "4.5-beta"
-local version_num  = 4.1
+local version_num  = 4.5
 
 --COMPILE DATA
 local work_dir	 = "/cssc_final"
@@ -39,7 +41,7 @@ local test_src	 = "tests/tests.lua"
 local lzss_src	 = "lzss_lib/lzss.lua"
 local lzss_sep_src = "lzss_lib/sep_make.lua"
 local macro={
-	--Bit32
+	--Bit32/bit
 	"__BIT32_LIBRUARY_VERSION_MACRO__",
 	"__BIT32_LIBRUARY_VERSION_MACRO_MINIFIED_LOAD_PART__",
 	"__BIT32_LIBRUARY_VERSION_MACRO_MINIFIED_VARIABLE_NAME__",
@@ -55,29 +57,36 @@ local macro={
 
 --COMPILE CONFIG
 local config ={
-  minify={
+
+--minification function to decrase code size
+  minify={--WARNING!: temporaly unavaliable. 
 	del_spaces	= false, --removes all posible tabs and spaces to make code smaller
 	default_words = false, --turn default variable names (such as operator,word,index) into o,w,i
 	del_comments  = false, -- delete all comments from code
 	control_table = false, --turn control-table into unreadable, but ultra fast mess
 	other		 = false}, --minify other stuff
-  debug=true
+
+  debug=true --if true then @@DEBUG macro will be compilled and inserted in code (required some times)
 }
 
+--compilation function
 local compile = {
 	craft_os = true,  --default C SuS SuS for CraftOS
-	lua51   = false, --optimised for specific Lua version use
+	lua51   = true, --optimised for specific Lua version use
 	lua52   = false, 
 	lua53   = false,
 	lua54   = false,
 	Lua_Jit  = false} --Lua-Jit
 
-local compile_lzss = {
+
+--lzss archiver function to decrase code size
+local compile_lzss = {--WARNING!: temporaly unavaliable. 
 	pre_compress = false, -- Replace common stuff with bytes before compressing
 	default	  = false, -- Default LZSS version
 	SEP		  = false} -- Self extracting program
 
-local run_tests = {
+--testing function
+local run_tests = {--WARNING!: temporaly unavaliable. (other test system setup)
 	craft_os = true,
 	lua51   = false,
 	lua52   = false,
@@ -147,10 +156,11 @@ for code_name,enabled in pairs(compile) do
 			code=code:gsub("@@DEBUG_START.-@@DEBUG_END",""):gsub("@@DEBUG.-\n","")
 		end
 		--SET OUT
-		set_out(fs.combine(out_dir,table.concat({project_name,code_name,"original","lua"},".")),code)
+		set_out(fs.combine(out_dir,table.concat({project_name,code_name,"original"},"__")..".lua"),code)
 	end
 end
 
 --CLEAR STRING METATABLE
 string.gifsub = nil
-shell.run("/cssc_final/out/cssc_beta.craft_os.original.lua")
+--WARNING: debug feature! disable if unwanted
+shell.run("/cssc_final/out/lua_mc__craft_os__original.lua")

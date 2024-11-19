@@ -14,7 +14,7 @@ local sub    = A(string.sub,E)
 local insert = A(table.insert,E)
 local concat = A(table.concat,E)
 local remove = A(table.remove,E)
-local unpack = A(table.unpack or unpack,E)
+local unpack = A(unpack,E)
 
 -- math.lib
 local floor = A(math.floor,E)
@@ -34,7 +34,7 @@ local bit32 = pcall(require,"bit")and require"bit" --attempt to get bitop.dll (b
 or pcall(require,"bit32")and require"bit32" --attempt to get bit32.dll as replacement
 or pcall(require,"bitop")and (require"bitop".bit or require"bitop".bit32) --emergency solution: bitop.lua
 or print and print"Warning! Bit32/bitop libruary not found! Bitwize operators module disabled!"and nil --loading alarm
-if bit32 then --reconfigure lib
+if bit32 then
     local b = {}
     for k,v in pairs(bit32)do b[k]=v end
     b.shl=b.lshift
@@ -44,7 +44,15 @@ if bit32 then --reconfigure lib
 end
 
 -- Lua5.2 load mimicry
-local native_load = A(load,E)
+local native_load
+do
+local loadstring,load,setfenv=A(loadstring,E),A(load,E),A(setfenv,E)
+    native_load = function(x,name,mode,env)
+        local r,e=(type(x)=="string"and loadstring or load)(x,name)
+        if env and r then setfenv(r,env)end
+        return r,e
+    end
+end
 
 A,E=nil
 local cssc_beta = {}

@@ -1,4 +1,4 @@
-{[_init]=function(Ctrl,Value) -- V - argument
+{[_init]=function(Ctrl,Value) --TODO: rework
 	local v=Value
 	Ctrl.Finaliser.dbg=function(x,n,m)
 		if v=="p"then print(concat(Ctrl.Result))end

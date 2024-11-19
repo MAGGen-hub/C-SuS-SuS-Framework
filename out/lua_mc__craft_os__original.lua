@@ -1,6 +1,6 @@
 -- PROTECTION LAYER
 -- This local var layer was created to prevent unpredicted behaviour of preprocessor if one of the functions in _G table was changed.
-local A,E=assert,"cssc_beta load failed because of missing libruary method!"
+local A,E=assert,"lua_mc load failed because of missing libruary method!"
 
 -- string.lib
 local gmatch = A(string.gmatch,E)
@@ -47,7 +47,7 @@ end
 local native_load = A(load,E)
 
 A,E=nil
-local cssc_beta = {}
+local lua_mc = {}
 local placeholder_func = function()end
 
 -- BASE VARIABLES LAYER END
@@ -291,7 +291,7 @@ cssc={op_stack=function(Control) --cssc feature to process and stack unfinished 
 end,
 pdata=function(Control,path,dt)--api to inject locals form Control table right into code
     local p,clr
-    p={path=path or "__cssc_beta__runtime", locals={}, modules={}, 
+    p={path=path or "__lua_mc__runtime", locals={}, modules={}, 
         data=dt or setmetatable({},{__call=function(self,...)
             local t={}
             for _,v in pairs{...}do
@@ -893,7 +893,7 @@ CA={[_init]=function(Control)--C/C++ additional asignment operators
                 
                 --print(i,last[1],last[1]==2,last[2], last[2]==Control.Cdata.opts[","][1])
                 if last[1]==2 and last[2]==Control.Cdata.opts[","][1] then --TODO: Temporal solution! Rework!
-                    Control.error("Additional asignment do not support multiple additions is this version of cssc_beta!")
+                    Control.error("Additional asignment do not support multiple additions is this version of lua_mc!")
                 end
                 if last[1]==2 and last[2]==0 and i-1>0 and Control.Cdata[i-1][1]==4 and match(Control.Result[i-1],"^local")then
                     Control.error("Attempt to perform additional asignment to local variable constructor!")
@@ -1396,8 +1396,8 @@ end},
 
 end
 
-cssc_beta={make=make,run=run,clear=clear,continue=continue,Features=Features,Modules=Modules,Configs=Confgis,dev={init=_init,modules=_modules}}
-_G.cssc_beta=cssc_beta
--- _G.cssc_beta.test=read_control_string
-return cssc_beta
+lua_mc={make=make,run=run,clear=clear,continue=continue,Features=Features,Modules=Modules,Configs=Confgis,dev={init=_init,modules=_modules}}
+ _G.lua_mc=lua_mc
+-- _G.lua_mc.test=read_control_string
+return lua_mc
 

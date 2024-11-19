@@ -1,4 +1,5 @@
-{[_init]=function(Control,direct)--bitwize operators (lua53 - backport feature)
+{[_init]=function(Control,direct)--bitwize operators (lua53 - backport feature) and idiv
+    if not bit32 then Control.error("Unable to load bitwize operators feature! Bit/Bit32 libruary not found!")return end
     direct=false--TODO:temporal solution rework
     Control:load_lib"code.cssc.pdata"
     Control:load_lib"code.cssc.op_stack"
@@ -19,6 +20,7 @@
     --local after = t_swap{__KEYWORD__,__CLOSE_BREAKET__}
     local loc_base = "__cssc__bit_"
     local used_opts= {}
+    local idiv_func= function(a,b)return floor(a/b)end
 
     Control:load_lib"code.syntax_loader"(stx,{O=function(...)--reg syntax
         for k,v,tab,has_un in pairs{...}do
@@ -32,7 +34,7 @@
             --try get metatables from a and b and select function to run (probably it's better to check their type before, but the smaller the function the faster it will be)    
             if not direct then
                 local func = native_load(format([[local p,g,f={},... return function(a,b)return((g(a)or p).%s or(g(b)or p).%s or f)(a,b)end]],"__"..bt[v],"__"..bt[v])
-                ,loc_base..bt[v],nil,nil)(getmetatable,bit32[bt[v]])--this function creates ultra fast & short pice of runtime working code
+                ,loc_base..bt[v],nil,nil)(getmetatable,bit32[bt[v]] or idiv_func)--this function creates ultra fast & short pice of runtime working code
                 --prewious code is equivalent of: function(a,b)
                 --    return((getmetatable(a)or pht)[bit_name] or (getmetatable(b)or pht)[bit_name] or bit_func)(a,b)
                 --end

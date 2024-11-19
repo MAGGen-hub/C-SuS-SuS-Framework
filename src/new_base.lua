@@ -1,7 +1,7 @@
 --ARG CHECK FUNC
 local arg_check,t_copy,t_swap,Modules,Features=function(Control)if(getmetatable(Control)or{}).__type~="cssc_unit"then error(format("Bad argument #1 (expected cssc_unit, got %s)",type(Control)),3)end end,function(s,o,f) for k,v in pairs(s)do o[k]=f and o[k]or v end end,function(t,o)o=o or {}for k,v in pairs(t)do o[v]=k end return o end
 --LOCALS
-local Configs,_init,_modules,_arg,load_lib,run,clear,make,clear_run,read_control_string,load_control_string={cssc="lua.cssc=M.KS.IS.N.CA.DA.NF.LF"},setmetatable({},{__tostring=native_load"return'init'"}),setmetatable({},{__tostring=native_load"return'modules'"}),{'arg'},
+local Configs,_init,_modules,_arg,load_lib,continue,clear,make,run,read_control_string,load_control_string={cssc="lua.cssc=M.KS.IS.N.CA.DA.NF.LF"},setmetatable({},{__tostring=native_load"return'init'"}),setmetatable({},{__tostring=native_load"return'modules'"}),{'arg'},
 function(Control,path,...)arg_check(Control)--load_lib
 	local ld,arg,tp=Control.Loaded[">"..path],{}
 	if false~=ld then
@@ -13,7 +13,7 @@ function(Control,path,...)arg_check(Control)--load_lib
 	end
 	return unpack(arg)
 end,
-function(Control,x,...)arg_check(Control)--run
+function(Control,x,...)arg_check(Control)--continue
 	Control.src=x
 	Control.args={...}
 	--PRE RUN
@@ -38,7 +38,8 @@ function(Control,x,...)arg_check(Control)--run
 	end
 end,
 function(Control)arg_check(Control)Control:tab_run"Clear"end--clear
-clear_run=function(Control,x,...)Control:clear()return Control:run(x,...)end
+run=function(Control,x,...)Control:clear()return Control:continue(x,...)end
+
 make=function(ctrl_str)
 	--ARG CHECK
 	if"string"~=type(ctrl_str)then error(format("Bad argument #2 (expected string, got %s)",type(ctrl_str)))end
@@ -47,7 +48,7 @@ make=function(ctrl_str)
 	r={__call=function(S,s,...)if#S>999 then remove(S,1)end insert(S,format("%-16s : "..s,format("[%0.3d] [%s]",i,S._),...)) i=i+1 end}
 	Control=setmetatable({
 		--MAIN FUNCTIONS
-		ctrl=ctrl_str,run=run,clear=clear,clear_run=clear_run,load_lib=load_lib,
+		ctrl=ctrl_str,run=run,clear=clear,continue=continue,load_lib=load_lib,
 		tab_run=function(Control,tab,br)for k,v in pairs(Control[tab])do if v(Control)and br then break end end end,
 		--MAIN OBJECTS TO WORK WITH
 		PostLoad={},PreRun={},PostRun={},Struct={},Loaded={},Clear={},Result={},
@@ -127,8 +128,8 @@ do
 __MODULES__
 end
 
-__PROJECT_NAME__={make=make,run=run,clear=clear,clear_run=clear_run,Features=Features,Modules=Modules,Configs=Confgis}
+__PROJECT_NAME__={make=make,run=run,clear=clear,continue=continue,Features=Features,Modules=Modules,Configs=Confgis,dev={init=_init,modules=_modules}}
 @@DEBUG _G.__PROJECT_NAME__=__PROJECT_NAME__
-@@DEBUG _G.__PROJECT_NAME__.test=read_control_string
+--@@DEBUG _G.__PROJECT_NAME__.test=read_control_string
 return __PROJECT_NAME__
 

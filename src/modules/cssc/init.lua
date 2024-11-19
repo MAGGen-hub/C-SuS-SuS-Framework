@@ -29,7 +29,7 @@ function(Control)
 			--temporaly remove last text element
 			local temp = remove(Control.Result)
 			--insert markers
-			Control.inject(nil,"" @@DEBUG .."--[["..(mark>0 and"cl"or"st").." mrk]]"
+			Control.inject(nil,"" --@@DEBUG .."--[["..(mark>0 and"cl"or"st").." mrk]]"
 			,__OPERATOR__,mark>0 and opt[":"][1] or 0)
 
 			--init events

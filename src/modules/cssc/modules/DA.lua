@@ -1,4 +1,5 @@
 {[_init]=function(Control)
+    Control:load_lib"code.cssc.pdata"
     local l,pht,ct = Control.Level,{},t_swap{__COMMENT__}
 
     local mt=setmetatable({},{__index=function(s,i)return i end})
@@ -20,7 +21,8 @@
         end
         return unpack(res)
     end
-    @@DEBUG Control.defa=def_arg_runtime_func
+    Control.Runtime.build("func.def_arg",def_arg_runtime_func)
+    Control.Runtime.reg("__cssc__def_arg")
 
     Control.Event.reg("lvl_open",function(lvl)-- def_arg initer
         if lvl.type=="function" then lvl.DA_np=__TRUE__ end --set Def_Args_next_posible true
@@ -88,7 +90,7 @@
             remove(name)
             for i=#name,1,-1 do Control.inject(nil, unpack(remove(name)))end
             Control.inject(nil,"=",__OPERATOR__,Control.Cdata.opts["="][1])
-            Control.inject(nil,"def_arg",__WORD__)--TODO: replace with api function
+            Control.inject(nil,"__cssc__def_arg",__WORD__)--TODO: replace with api function
             Control.inject(nil,"{",__OPEN_BREAKET__)
             val=#Control.Result
             remove(arr)--remove last comma

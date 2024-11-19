@@ -1,6 +1,6 @@
 -- PROTECTION LAYER
 -- This local var layer was created to prevent unpredicted behaviour of preprocessor if one of the functions in _G table was changed.
-local A,E=assert,"cssc_beta load failed because of missing libruary method!"
+local A,E=assert,"lua_mc load failed because of missing libruary method!"
 
 -- string.lib
 local gmatch = A(string.gmatch,E)
@@ -14,7 +14,7 @@ local sub    = A(string.sub,E)
 local insert = A(table.insert,E)
 local concat = A(table.concat,E)
 local remove = A(table.remove,E)
-local unpack = A(table.unpack or unpack,E)
+local unpack = A(unpack,E)
 
 -- math.lib
 local floor = A(math.floor,E)
@@ -34,7 +34,7 @@ local bit32 = pcall(require,"bit")and require"bit" --attempt to get bitop.dll (b
 or pcall(require,"bit32")and require"bit32" --attempt to get bit32.dll as replacement
 or pcall(require,"bitop")and (require"bitop".bit or require"bitop".bit32) --emergency solution: bitop.lua
 or print and print"Warning! Bit32/bitop libruary not found! Bitwize operators module disabled!"and nil --loading alarm
-if bit32 then --reconfigure lib
+if bit32 then
     local b = {}
     for k,v in pairs(bit32)do b[k]=v end
     b.shl=b.lshift
@@ -44,10 +44,18 @@ if bit32 then --reconfigure lib
 end
 
 -- Lua5.2 load mimicry
-local native_load = A(load,E)
+local native_load
+do
+local loadstring,load,setfenv=A(loadstring,E),A(load,E),A(setfenv,E)
+    native_load = function(x,name,mode,env)
+        local r,e=(type(x)=="string"and loadstring or load)(x,name)
+        if env and r then setfenv(r,env)end
+        return r,e
+    end
+end
 
 A,E=nil
-local cssc_beta = {}
+local lua_mc = {}
 local placeholder_func = function()end
 
 -- BASE VARIABLES LAYER END
@@ -291,7 +299,7 @@ cssc={op_stack=function(Control) --cssc feature to process and stack unfinished 
 end,
 pdata=function(Control,path,dt)--api to inject locals form Control table right into code
     local p,clr
-    p={path=path or "__cssc_beta__runtime", locals={}, modules={}, 
+    p={path=path or "__lua_mc__runtime", locals={}, modules={}, 
         data=dt or setmetatable({},{__call=function(self,...)
             local t={}
             for _,v in pairs{...}do
@@ -893,7 +901,7 @@ CA={[_init]=function(Control)--C/C++ additional asignment operators
                 
                 --print(i,last[1],last[1]==2,last[2], last[2]==Control.Cdata.opts[","][1])
                 if last[1]==2 and last[2]==Control.Cdata.opts[","][1] then --TODO: Temporal solution! Rework!
-                    Control.error("Additional asignment do not support multiple additions is this version of cssc_beta!")
+                    Control.error("Additional asignment do not support multiple additions is this version of lua_mc!")
                 end
                 if last[1]==2 and last[2]==0 and i-1>0 and Control.Cdata[i-1][1]==4 and match(Control.Result[i-1],"^local")then
                     Control.error("Attempt to perform additional asignment to local variable constructor!")
@@ -1396,8 +1404,8 @@ end},
 
 end
 
-cssc_beta={make=make,run=run,clear=clear,continue=continue,Features=Features,Modules=Modules,Configs=Confgis,dev={init=_init,modules=_modules}}
-_G.cssc_beta=cssc_beta
--- _G.cssc_beta.test=read_control_string
-return cssc_beta
+lua_mc={make=make,run=run,clear=clear,continue=continue,Features=Features,Modules=Modules,Configs=Confgis,dev={init=_init,modules=_modules}}
+ _G.lua_mc=lua_mc
+-- _G.lua_mc.test=read_control_string
+return lua_mc
 
