@@ -62,7 +62,7 @@ local placeholder_func = function()end
 --ARG CHECK FUNC
 local arg_check,t_copy,t_swap,Modules,Features=function(Control)if(getmetatable(Control)or{}).__type~="cssc_unit"then error(format("Bad argument #1 (expected cssc_unit, got %s)",type(Control)),3)end end,function(s,o,f) for k,v in pairs(s)do o[k]=f and o[k]or v end end,function(t,o)o=o or {}for k,v in pairs(t)do o[v]=k end return o end
 --LOCALS
-local Configs,_init,_modules,_arg,load_lib,continue,clear,make,run,read_control_string,load_control_string={cssc="lua.cssc=M.KS.IS.N.CA.DA.NF.LF"},setmetatable({},{__tostring=native_load"return'init'"}),setmetatable({},{__tostring=native_load"return'modules'"}),{'arg'},
+local Configs,_init,_modules,_arg,load_lib,continue,clear,make,run,read_control_string,load_control_string={lua_mc_full="sys.err,cssc={NF,KS(sc_end,pl_cond),LF,DA,BO,CA}"},setmetatable({},{__tostring=native_load"return'init'"}),setmetatable({},{__tostring=native_load"return'modules'"}),{'arg'},
 function(Control,path,...)arg_check(Control)--load_lib
 	local ld,arg,tp=Control.Loaded[">"..path],{}
 	if false~=ld then
@@ -234,6 +234,7 @@ cssc={op_stack=function(Control) --cssc feature to process and stack unfinished 
 
     --fin all unfinished operators
     Control.Event.reg("lvl_close",function(lvl)
+        --print("OP lc")
         if lvl.OP_st then
             local i = #CD
             for k=#lvl.OP_st,1,-1 do
@@ -244,6 +245,7 @@ cssc={op_stack=function(Control) --cssc feature to process and stack unfinished 
 
     --priority check
     Control.Event.reg(2,function(obj,tp)
+        --print("OP op")
         local lvl,cdt,st,cst = L[#L],CD[#CD]
         st=lvl.OP_st
         if st and cdt[2] then --level has OP_stack and current op is binary (unary opts has no affection on opts before them)
@@ -256,9 +258,9 @@ cssc={op_stack=function(Control) --cssc feature to process and stack unfinished 
         end
     end,"OP_st_d",1)
 
-    Control.inject_operator = function(pre_tab,priority, is_unary,skip_fb,now_end)--function to inject common operators fast
+    Control.inject_operator = function(pre_tab,priority, is_unary,skip_fb,now_end,id)--function to inject common operators fast
         --init locals
-        local lvl,i,cdt,b,st,sp,last =L[#L],#CD --level; index; breaket; curent_cdata,stack_tab,start_pos
+        local lvl,i,cdt,b,st,sp,last =L[#L],id or #CD --level; index; breaket; curent_cdata,stack_tab,start_pos
         cdt,st,pre_tab=CD[i],lvl.OP_st or{},pre_tab or{}
         sp=#st>0 and st[#st][4] or lvl.index --find start_position for while cycle
         --print(sp==lvl.index,lvl.OP_st)
@@ -266,7 +268,7 @@ cssc={op_stack=function(Control) --cssc feature to process and stack unfinished 
         if not is_unary then
 			--print(i,sp,cdt,cdt[1],cdt[2])
             while i>sp and not(cdt[1]==2 and (cdt[2]or cdt[3])<priority)do
-                i=(L.data[Control.Result[i]]or pht)[2] and cdt[2] or i-1
+                i=(L.data[match(Control.Result[i],"%S+")]or pht)[2] and cdt[2] or i-1
                 --if cdt[1]==2 and cdt[2]==0 then end --TODO: EMIT ERROR!!! statement_end detected!!!!
                 cdt=CD[i]
             end --after that cycle i will contain index where we need to place the start of our operator
@@ -337,6 +339,12 @@ pdata=function(Control,path,dt)--api to inject locals form Control table right i
     end
     Control.Runtime=p
     insert(Control.Clear,clr)
+end,
+typeof=function(Control)--typeof function used for "DA" and "IS" modules
+    local ltp,lmt,pht=type,getmetatable,{}
+    Control.typeof=function(obj)
+        return ((lmt(obj)or pht).__type or ltp)(obj)
+    end
 end,
 },--Close cssc
 lua={base=function(Control,O,W)-- O - Control.Operators or other table; W - Control.Words or other table (depends on current text parceing system)
@@ -568,8 +576,9 @@ common={event=function(Control)--EVENT SYSTEM
 	clr=function()e.temp={}end
 	e={main={},
 	reg=function(name,func,id,gl)--id here to control order
-		local l=e.temp[name]or{}
+		local l=gl and e.temp[name] or e.main[name] or{}
 		id=id or#l+1
+		--print("EVreg:", id)
 		if"number"==type(id)then insert(l,id,func)else l[id]=func end
 		e[gl and"main"or"temp"][name]=l
 		return id
@@ -762,7 +771,8 @@ Modules={cssc={[_init]=function(Control)
 	--t=t_swap(t)
 	Control.Core=function(tp,obj)--type_of_text_object,object_it_self
 		local id_prew,c_prew,spifc=Control.Cdata.tb_while(tb)
-		spifc = c_prew[1]==4 and match(Control.Result[id_prew],"^end") and match(Control.Result[c_prew[2]],"^function")
+		--if c_prew[1]==4 and match(Control.Result[id_prew],"^end") then print(id_prew,c_prew[2],Control.Result[id_prew],Control.Result[c_prew[2]])end
+		spifc = c_prew[1]==4 and match(Control.Result[id_prew]or"","^end") and match(Control.Result[c_prew[2]]or"","^function")
 		meta_reg(c_prew[1],tp,spifc)--reg *call*/*stat_end* operator markers (injects before last registered CData)
 		Control.Cdata.run(obj,tp)--reg previous result CData
 
@@ -811,7 +821,14 @@ end
     --local after = t_swap{4,10}
     local loc_base = "__cssc__bit_"
     local used_opts= {}
-    local idiv_func= function(a,b)return floor(a/b)end
+    local num="number"
+    local idiv_func=native_load([[local p,n,t,g,e,F,f={},"number",... f=function(a,b)local ta,tb=t(a)==n, t(b)==n if ta and tb then return F(a/b)end e("bad argument #"..(ta and 2 or 1).." (expected 'number', got '"..(ta and t(b) or t(a)).."')")end
+    return function(a,b)return((g(a)or p).__idiv or(g(b)or p).__idiv or f)(a,b)end]],"OP: '//'",nil,nil)(type,getmetatable,error,floor)
+     --[[function(a,b)
+        local ta,tb=type(a)==num, type(a)==num
+        if ta and tb then return floor(a/b)end
+        error(format("bad argument #%d",ta and 1 or 2,ta and type(a) or type(b)))
+    end]]
 
     Control:load_lib"code.syntax_loader"(stx,{O=function(...)--reg syntax
         for k,v,tab,has_un in pairs{...}do
@@ -824,8 +841,8 @@ end
             local bit_name,bit_func
             --try get metatables from a and b and select function to run (probably it's better to check their type before, but the smaller the function the faster it will be)    
             if not direct then
-                local func = native_load(format([[local p,g,f={},... return function(a,b)return((g(a)or p).%s or(g(b)or p).%s or f)(a,b)end]],"__"..bt[v],"__"..bt[v])
-                ,loc_base..bt[v],nil,nil)(getmetatable,bit32[bt[v]] or idiv_func)--this function creates ultra fast & short pice of runtime working code
+                local func =bit32[bt[v]] and native_load(format([[local p,g,f={},... return function(a,b)return((g(a)or p).%s or(g(b)or p).%s or f)(a,b)end]],"__"..bt[v],"__"..bt[v])
+                ,"OP: '"..v.."'",nil,nil)(getmetatable,bit32[bt[v]])or idiv_func --this function creates ultra fast & short pice of runtime working code
                 --prewious code is equivalent of: function(a,b)
                 --    return((getmetatable(a)or pht)[bit_name] or (getmetatable(b)or pht)[bit_name] or bit_func)(a,b)
                 --end
@@ -840,7 +857,7 @@ end
                 local i,d=Control.Cdata.tb_while(tb)
                 if not is_un and check[d[1]] then Control.error("Unexpected '%s' after '%s'!",v,Control.Result[i])end--error check before
 
-                if not used_opts[is_un and "bnot"or v] then Control.Runtime.reg(is_un and loc_base.."bnot" or loc_base..bt[v],is_un and "bit.bnot" or "bit."..bt[v])end
+                if not used_opts[is_un and "bnot"or v] then used_opts[is_un and "bnot"or v]=1  Control.Runtime.reg(is_un and loc_base.."bnot" or loc_base..bt[v],is_un and "bit.bnot" or "bit."..bt[v])end
                 Control.inject(nil,is_un and ""or",",2,not is_un and k or nil, is_un and p_un or nil)--inject found operator Control.Cdata.opts[","][1]
                 Control.split_seq(nil,#v)--remove bitwize from queue
                 Control.Event.run(2,v,2,1)--send events to fin opts in OP_st
@@ -851,7 +868,7 @@ end
                     return tp~=11 and 1 
                 end)
                 --reg operator data
-                Control.inject_operator(is_un and has_un or tab,is_un and p_un or k,is_un) --including stat_end
+                Control.inject_operator(is_un and has_un or tab,is_un and p_un or k,is_un,nil,nil) --including stat_end
             end
             --TODO: opts
         end
@@ -897,18 +914,26 @@ CA={[_init]=function(Control)--C/C++ additional asignment operators
                 if prohibited_area[lvl.type] or #(lvl.OP_st or"")>0 then
                     Control.error("Attempt to use additional asignment in prohibited area!")
                 end
-                local i,last=Control.inject_operator(nil,Control.Cdata.opts[","][1]+1,false,1)--add ")" to fin on, or stat end
+                --action
+                local cur_i,cur_d = #Control.Cdata
+                Control.inject(nil,"=",2,Control.Cdata.opts["="][1])--insert assignment
+
+                Control.split_seq(nil,#v+1)--clear queue
+
+                Control.Event.run(2,v.."=",2,1)--send events to fin opts in OP_st
+                Control.Event.run("all",v.."=",2,1)
+
+
+                local i,last=Control.inject_operator(nil,Control.Cdata.opts[","][1]+1,false,1,false,#Control.Cdata-1)--add ")" to fin on, or stat end
                 
                 --print(i,last[1],last[1]==2,last[2], last[2]==Control.Cdata.opts[","][1])
                 if last[1]==2 and last[2]==Control.Cdata.opts[","][1] then --TODO: Temporal solution! Rework!
-                    Control.error("Additional asignment do not support multiple additions is this version of lua_mc!")
+                    Control.error("Additional asignment do not support multiple additions in this version of lua_mc!")
                 end
                 if last[1]==2 and last[2]==0 and i-1>0 and Control.Cdata[i-1][1]==4 and match(Control.Result[i-1],"^local")then
                     Control.error("Attempt to perform additional asignment to local variable constructor!")
                 end
-                --action
-                local cur_i,cur_d = #Control.Cdata
-                Control.inject(nil,"=",2,Control.Cdata.opts["="][1])--insert assignment
+
                 if p then
                     Control.inject(nil,p,3)--bitw func call
                     Control.inject(nil,"(",9)--open breaket
@@ -931,10 +956,6 @@ CA={[_init]=function(Control)--C/C++ additional asignment operators
                 lvl.OP_st[#lvl.OP_st][3]= cur_d--correct operator start/breaket values
                 lvl.OP_st[#lvl.OP_st][4]= cur_d
 
-                Control.split_seq(nil,#v+1)--clear queue
-
-                Control.Event.run(2,v.."=",2,1)--send events to fin opts in OP_st
-                Control.Event.run("all",v.."=",2,1)
 
                 Control.Event.reg("all",function(obj,tp)--error check after
                     if tp==4 and not match(Control.Result[#Control.Result],"^function") or  tp==10 or tp==2 and not Control.Cdata[#Control.Cdata][3] then Control.error("Unexpected '%s' after '%s'!",obj,v.."=") end
@@ -948,9 +969,11 @@ CA={[_init]=function(Control)--C/C++ additional asignment operators
 end},
 DA={[_init]=function(Control)
     Control:load_lib"code.cssc.pdata"
+    Control:load_lib"code.cssc.typeof"
     local l,pht,ct = Control.Level,{},t_swap{11}
-
+    local used
     local mt=setmetatable({},{__index=function(s,i)return i end})
+    local typeof=Control.typeof
     local def_arg_runtime_func = function(data)
         local res,val,tp,def,ch={}
         for i=1,#data,4 do
@@ -960,8 +983,8 @@ DA={[_init]=function(Control)
             else
                 ch =data[i+2]
                 if ch then --type check
-                    tp=type(val)
-                    ch=ch==1 and {[type(def)]=1} or t_swap{(native_load("return "..ch,nil,nil,mt)or placeholder_func)()}--> dynamic type! must be equal to def_arg type
+                    tp=typeof(val) --actual typeof
+                    ch=ch==1 and {[typeof(def)]=1} or t_swap{(native_load("return "..ch,nil,nil,mt)or placeholder_func)()}--> dynamic type! must be equal to def_arg type OR parce type val
                     ch=not ch[tp] and error(format("bad argument #%d (%s expected, got %s)",data[i],data[i+2],tp),2)
                 end
                 insert(res,val)
@@ -970,15 +993,18 @@ DA={[_init]=function(Control)
         return unpack(res)
     end
     Control.Runtime.build("func.def_arg",def_arg_runtime_func)
-    Control.Runtime.reg("__cssc__def_arg")
 
     Control.Event.reg("lvl_open",function(lvl)-- def_arg initer
+        --print("DA lo")
         if lvl.type=="function" then lvl.DA_np=1 end --set Def_Args_next_posible true
         if lvl.type=="(" and l[#l].DA_np then lvl.DA_d={c_a=1} end--init Def_Args_data for "()" level
         l[#l].DA_np=nil--set Def_Args_next_posible false
     end,"DA_lo",1)
 
+
+    --DEF ARG DATA STRUCT: {strict_typeing, start_of_def_arg,end_of_def_arg, name_of_arg}
     Control.Event.reg(2,function(obj)
+        --print("DA op")
         local da,i,err=l[#l].DA_d
         if da then i=da.c_a --DA data found
             if obj==":"then
@@ -999,6 +1025,7 @@ DA={[_init]=function(Control)
     
     local err_text = "Unexpected '%s' in function argument type definition! Function argument type must be set using single name or string!"
     Control.Event.reg("lvl_close",function(lvl)-- def_arg injector
+        --print("DA lc")
         if lvl.DA_d then --level had default_args
             local da,arr,name,pr,val,obj,tej,ac=lvl.DA_d,{},{},Control.Cdata.opts[","][1]
             for i=da.c_a,1,-1 do --parce args
@@ -1027,7 +1054,7 @@ DA={[_init]=function(Control)
                             end
                         end
                     end
-                    if ac<1 then Control.error("Expected default argument after '%s'",val[2]and"="or":")end
+                    if val[2] and ac<1 then Control.error("Expected default argument after '%s'",val[2]and"="or":")end
                     ac=not tej and val[1]
                     if ac or not val[1] then remove(ac and arr or pht) insert(arr,{ac and"1"or "nil",8}) insert(arr,{",",2,pr}) end --no strict type inset nil
                     insert(arr,{val[4],3}) insert(arr,{",",2,pr})
@@ -1035,6 +1062,7 @@ DA={[_init]=function(Control)
                 end
             end
             if not obj then return end --obj works as marker that something was found
+            if not used then used = 1 Control.Runtime.reg("__cssc__def_arg","func.def_arg")end
             remove(name)
             for i=#name,1,-1 do Control.inject(nil, unpack(remove(name)))end
             Control.inject(nil,"=",2,Control.Cdata.opts["="][1])
@@ -1049,22 +1077,33 @@ DA={[_init]=function(Control)
             Control.inject(nil,"",2,0)--zero priority -> statement_end
         end
     end,"DA_lc",1)
+    insert(Control.Clear,function()used = nil end)
 end},
 IS={[_init]=function(Control)
     Control:load_lib"code.cssc.pdata"
     Control:load_lib"code.cssc.op_stack"
-    local ltp,tab,used=type,{{"__cssc__kw_is",3}}
-    Control.typeof=function(obj,comp)
-        local md,tp,rez = ltp(comp),ltp(obj),false
+    Control:load_lib"code.cssc.typeof" --typeof func -> Control.typeof
+    local ltp=type
+    local ltpof=Control.typeof
+    local IS_func=function(obj,comp)
+        local md,tp,rez = ltp(comp),ltpof(obj),false --mode,type,rez
         if md=="string"then rez=tp==comp
         elseif md=="table"then for i=1,#comp do rez=rez or tp==comp[i]end
         else error("bad argument #2 to 'is' operator (got '"..md.."', expected 'table' or 'string')",2)end
         return rez
     end
+    local tab,used={{"__cssc__kw_is",3}}
+    --[[Control.typeof=function(obj,comp)
+        local md,tp,rez = ltp(comp),ltp(obj),false
+        if md=="string"then rez=tp==comp
+        elseif md=="table"then for i=1,#comp do rez=rez or tp==comp[i]end
+        else error("bad argument #2 to 'is' operator (got '"..md.."', expected 'table' or 'string')",2)end
+        return rez
+    end]]
     local tb = t_swap{11}
     local check = t_swap{2,9,4}
     local after = t_swap{4,10}
-    Control.Runtime.build("kwrd.is",Control.typeof)
+    Control.Runtime.build("kwrd.is",IS_func)
     Control.Words["is"]=function()
         if not used then Control.Runtime.reg("__cssc__kw_is","kwrd.is") end
 
@@ -1088,13 +1127,27 @@ IS={[_init]=function(Control)
     end
     insert(Control.Clear,function()used=nil end)
 end},
-KS={[_init]=function(Control)--keyword shorcuts
+KS={[_init]=function(Control,mod,arg)--keyword shorcuts
+	--require"cc.pretty".pretty_print(arg)
     local stx = [[O
-|| and
-&& or
+|| or
+&& and
 @ local
 $ return
 ]]
+	for _,v in pairs(arg or{})do
+		if v=="sc_end" then --include semicolon to end conversion basic ; can be placed with \;
+			stx=stx.."; end\n\\; ;\n"
+		end
+		if v=="pl_cond" then --platform condition... the most cursed feature... so probably will be removed in future
+			stx=stx..[[? then
+/| if
+:| elseif
+\| else
+]]
+		end
+	end
+	--specific make react with space addition
     local make_react=function(s,i,j) -- s -> replacer string, i - type of reaction, t - type of sequnece, j - local length
 		return function(Control)
             Control.Result[#Control.Result]= Control.Result[#Control.Result].." "
@@ -1114,9 +1167,9 @@ LF={[_init]=function(Control)
 		local s,ei,ed,cor,br=3,Control.Cdata.tb_while(ct)--get last esenshual_index,esenshual_data
 		if match(Control.Result[ei],"^%)")then--breaket located
 			ei=ed[2]
-			Control.log("EI:%d - %s;%s;%s;",ei,Control.Result[ei],match(Control.Result[ei],"^[=%(,]"), ei and match(Control.Result[ei],"^[=%(,]"))
+			--Control.log("EI:%d - %s;%s;%s;",ei,Control.Result[ei],match(Control.Result[ei],"^[=%(,]"), ei and match(Control.Result[ei],"^[=%(,]"))
 			cor = ei and match(Control.Result[Control.Cdata.tb_while(ct,ei-1)]or"","^[=%(,]")--coma is acceptable here 
-			Control.log("COR:%s",cor)
+			--Control.log("COR:%s",cor)
 		else--default args
 			while ei>0 and(ed[1]==11 or ed[1]==s or s~=3 and ((ed[2]or-1)==Control.Cdata.opts[","][1] and match(Control.Result[ei],"^%,")))do
 				ei,s=ei-1,s*(ed[1]~=11 and-1 or 1)--com skip/swap state 3/2(coma)
@@ -1159,7 +1212,8 @@ NC={[_init]=function(Control)--nil check (nil forgiving operator feature)
     local runtime_dual_func=function(obj) return obj==nil and runtime_dual_meta or setmetatable({},{__index=function(self,i)return obj[i] or phf end}) end
     Control.Runtime.build("nilF.dual",runtime_dual_func)
     Control.Runtime.build("nilF.basic",runtime_func)
-    check=t_swap{7,3,10}
+    local tb = t_swap{11}
+    local check=t_swap{7,3,10}
 
     Control:load_lib"code.syntax_loader"(stx,{O=function(...)
         for k,v in pairs{...}do
@@ -1194,7 +1248,19 @@ NF={[_init]=function(Control)
 		c=c=="b" and 2 or 8 --bin/oct
 		--Control.log("Num src: F'%s' f'%s' exp'%s'",f,s,ex)
 		f=tonumber(#f>0 and f or 0,c)--base
-		if #s>0 then s=(tonumber(s,c)or nan)/c/#s else s=0 end--float
+		--if #s>0 then s=(tonumber(s,c)or nan)/c/#s else s=0 end--float
+		if #s>0 then --float
+			local r=0
+			for i,k in gmatch(s,"()(.)") do
+				if tonumber(k)>=c then s=nan break end  --if number is weird
+				r=r+k*c^(#s-i)
+			end
+			s=s==s and tostring(r/c^#s)
+			--[[for i,k in gmatch(b,"()(.)") do
+				if k>=t then err(Ctrl,"This is not a valid number: 0"..a..b..c) end  --if number is weird
+				r=r+k*t^(#b-i) -- t: number base system, r - result, i - current position in number string
+			 end]]
+		else s=0 end
 		ex=tonumber(#ex>0 and sub(ex,2) or 0,c)--exp
 		--Control.log("Num out: F'%s' f'%s' exp'%s'",f,s,ex)
 		nd =(f and s==s and ex)and ""..(f+s)*(2^ex)or Control.error(e,nd)or nd
@@ -1219,90 +1285,18 @@ NF={[_init]=function(Control)
 		end
 	end)
 end},
-PC={[_init]=function(Control)--keyword shorcuts
-    local stx = [[O
-? then
-/| if
-:| elseif
-\| else
-]]
-    local make_react=function(s,i,j) -- s -> replacer string, i - type of reaction, t - type of sequnece, j - local length
-        return function(Control)
-            Control.Result[#Control.Result]= Control.Result[#Control.Result].." "--add spaceing
-            insert(Control.Result,s.." ")
-            Control.operator=sub(Control.operator,j+1)
-            Control.index=Control.index+j
-            Control.Core(i,s)
-        end
-    end
-Control:load_lib"code.syntax_loader"(stx,{O=function(k,v)
-    Control.Operators[k]=make_react(v,4,#k)
-end})
-end},
 },--Close modules
 },--Close cssc
-dq_dbg={[_init]=function(Control)
+sys={[_modules]={dbg_hl={[_init]=function(Control,mod, arg)
 	--OperatorWordSystem-debug utilite
-	
-	--blit control
-	local rep = string.rep --rep func import
-	local blit_ctrl={
-	space={colors.toBlit(colors.white)," "},
-	[3]={colors.toBlit(colors.white)," "},
-	[4]={colors.toBlit(colors.yellow)," "},
-	[2]={colors.toBlit(colors.lightBlue)," "},
-	[1]={colors.toBlit(colors.lightBlue)," "},
-	[11]={colors.toBlit(colors.green)," "},
-	[8]={colors.toBlit(colors.cyan)," "},
-	[9]={colors.toBlit(colors.white)," "},
-	[10]={colors.toBlit(colors.white)," "},
-	[6]={colors.toBlit(colors.lime)," "},
-	[7]={colors.toBlit(colors.red)," "},
-	[12]={colors.toBlit(colors.pink)," "},
-	}
-	Control.BlitBack={}
-	Control.BlitFront={}
-	local burn_blit=function(tp,len)
-		tp=blit_ctrl[tp]or{" "," "}
-		len=len or #Control.Result[#Control.Result]
-		Control.BlitFront[#Control.BlitFront+1]=rep(tp[1],len)
-		Control.BlitBack[#Control.BlitBack+1]=rep(tp[2],len)
+	if "string"~=type(_HOST) or not match(_HOST,"^ComputerCraft") then
+		--this module desingned only for CraftOS testing purposes! Loading it outside of CraftOS - prohibited!
+		Control.error("Attempt to load debug hilighting module outside of CraftOS environment!")
+		return
 	end
-	
-	--load base lib
-	Control:load_lib"text.dual_queue.base"
-	Control:load_lib"text.dual_queue.parcer"
-	Control:load_lib"text.dual_queue.iterator"
-	--Control:load_lib"text.dual_queue.make_react"
-	Control:load_lib"text.dual_queue.space_handler"
-	
-	--edit space handler
-	local sp_h=remove(Control.Struct)
-	insert(Control.Struct,function()
-		local pl=#Control.Result[#Control.Result]
-		sp_h(Control)
-		burn_blit("space",#Control.Result[#Control.Result]-pl)
-	end)
 
-	Control.Core=function(tp)
-		local len =#Control.Result[#Control.Result]
-		burn_blit(tp)
-	end
-	Control.Return=function()
-		local rez,blit,back=concat(Control.Result).."\n",concat(Control.BlitFront).." ",concat(Control.BlitBack).." "
-		rez=sub(rez,-1)=="\n"and rez or rez.."\n"
-		gsub(rez,"()(.-()\n)",function(st,con,nd)
-			term.blit(gsub(con,".$","\x14"),
-				sub(blit,st,nd-1)..colors.toBlit(colors.lightBlue),
-				sub(back,st,nd))--back color
-			print()
-		end)
-		return Control
-	end
-	insert(Control.Clear,function()Control.BlitBack={}Control.BlitFront={}end)
-end},
-dq_dbg2={[_init]=function(Control)
-	--OperatorWordSystem-debug utilite
+
+	
 	
 	--blit control
 	local rep = string.rep --rep func import
@@ -1314,11 +1308,11 @@ dq_dbg2={[_init]=function(Control)
 	[1]={colors.toBlit(colors.lightBlue)," "},
 	[11]={colors.toBlit(colors.green)," "},
 	[8]={colors.toBlit(colors.cyan)," "},
-	[9]={colors.toBlit(colors.white)," "},
-	[10]={colors.toBlit(colors.white)," "},
+	[9]={colors.toBlit(colors.magenta)," "},
+	[10]={colors.toBlit(colors.magenta)," "},
 	[6]={colors.toBlit(colors.lime)," "},
 	[7]={colors.toBlit(colors.red)," "},
-	[12]={colors.toBlit(colors.pink)," "},
+	[12]={colors.toBlit(colors.purple)," "},
 	}
 	Control.BlitBack={}
 	Control.BlitFront={}
@@ -1335,67 +1329,57 @@ dq_dbg2={[_init]=function(Control)
 	Control:load_lib"text.dual_queue.iterator"
 	--Control:load_lib"text.dual_queue.make_react"
 	Control:load_lib"text.dual_queue.space_handler"
-	Control:load_lib"common.event"
-	Control:load_lib"common.level"
-	
-	--edit space handler
-	local sp_h=remove(Control.Struct)
-	insert(Control.Struct,function()
-		local pl=#Control.Result[#Control.Result]
-		sp_h(Control)
-		burn_blit("space",#Control.Result[#Control.Result]-pl)
-	end)
-	--setup event system
-	--Control.Event.reg("temp",function(tp)print(tp)end,nil,1)
-	Control.Core=function(tp)
-		local len =#Control.Result[#Control.Result]
-		burn_blit(tp)
-		Control.Event.run("temp",tp)
-	end
-	Control.Return=function()
-		local rez,blit,back=concat(Control.Result).."\n",concat(Control.BlitFront).." ",concat(Control.BlitBack).." "
-		rez=sub(rez,-1)=="\n"and rez or rez.."\n"
-		gsub(rez,"()(.-()\n)",function(st,con,nd)
-			term.blit(gsub(con,".$","\x14"),
-				sub(blit,st,nd-1)..colors.toBlit(colors.lightBlue),
-				sub(back,st,nd))--back color
-			print()
-		end)
-		return Control
-	end
-	insert(Control.Clear,function()Control.BlitBack={}Control.BlitFront={}end)
-end},
-lua={[_init]=function(Control)
-	Control:load_lib("code.lua.base",Control.Operators,Control.Words)
-	Control:load_lib"text.dual_queue.space_handler"
-	Control:load_lib"code.lua.struct"
-end
-,
-},--Close lua
-sys={[_modules]={dbg={[_init]=function(Ctrl,Value) --TODO: rework
-	local v=Value
-	Ctrl.Finaliser.dbg=function(x,n,m)
-		if v=="p"then print(concat(Ctrl.Result))end
-		if m=="c"then
-			Ctrl.rt=1
-			return Ctrl.Result
-		elseif m=="s"then
-			Ctrl.rt=1
-			return concat(Ctrl.Result)
+	--lua syntax loading
+	for _,v in pairs(arg or{})do
+		if v=="lua" then
+			Control:load_lib("code.lua.base",Control.Operators,Control.Words)
+			--Control:load_lib"text.dual_queue.space_handler"
+			Control:load_lib"code.lua.struct"
 		end
 	end
-end},
-err={[_init]=function(Ctrl)--TODO: rework
-	Ctrl.Finaliser.err=function()
-		if Ctrl.err then Ctrl.rt=1 return nil,Ctrl.err end
+	
+	--edit space handler
+	local sp_h=remove(Control.Struct,1)
+	insert(Control.Struct,1,function()
+		local pl=#Control.Result[#Control.Result]
+		sp_h(Control)
+		burn_blit("space",#Control.Result[#Control.Result]-pl)
+	end)
+	Control.Core=function(tp)
+		local len =#Control.Result[#Control.Result]
+		if (to==9) then print(br)end
+		burn_blit(tp)
 	end
+	Control.BlitData={}
+	insert(Control.PostRun,function()
+		Control.BlitData={}
+		local rez,blit,back=concat(Control.Result).."\n",concat(Control.BlitFront).." ",concat(Control.BlitBack).." "
+		rez=sub(rez,-1)=="\n"and rez or rez.."\n"
+		gsub(rez,"()(.-()\n)",function(st,con,nd)
+			insert(Control.BlitData,{gsub(con,".$","\x14"),
+				sub(blit,st,nd-1)..colors.toBlit(colors.lightBlue),
+				sub(back,st,nd)})--back color
+		end)
+	end)
+	local min = function(a,b) return a<b and a or b end
+	Control.debug_highlight=function(st,nd)
+		local fn = #Control.BlitData
+		nd = min(nd or fn,fn)
+		st = (st or 0)>0 and st or 1
+		for i=st,nd do
+			term.blit(unpack(Control.BlitData[i]))
+			print()--new line
+		end
+	end
+	Control.Return=function() if (Control.args[1]=="l_now") then Control.debug_highlight()end return Control.BlitData end
+	insert(Control.Clear,function()Control.BlitBack={}Control.BlitFront={}end)
 end},
-pre={[_init]=function(Ctrl,script_id,x,name,mode,env)--TODO: rework
-	if not cssc_beta.preload then cssc_beta.preload={}end
-	local P=cssc_beta.preload
-	if P[script_id] then return native_load(P[script_id],name,mode,env)end
-		Ctrl.Finaliser.pre=function()
-		P[script_id]=concat(Ctrl.Result) 
+err={[_init]=function(Control)--TODO: rework
+	Control.error = function(str,...)
+		local l={...}
+		Control.Iterator=function()
+			error("lua_mc["..(Control.line or"X").."]:"..format(str,unpack(l)),3)
+		end
 	end
 end},
 },--Close modules
@@ -1404,7 +1388,8 @@ end},
 
 end
 
-lua_mc={make=make,run=run,clear=clear,continue=continue,Features=Features,Modules=Modules,Configs=Confgis,dev={init=_init,modules=_modules}}
+lua_mc={make=make,run=run,clear=clear,Features=Features,Modules=Modules,Configs=Confgis,dev={init=_init,modules=_modules}}
+ lua_mc.continue=continue --curently in testing 
  _G.lua_mc=lua_mc
 -- _G.lua_mc.test=read_control_string
 return lua_mc

@@ -14,7 +14,8 @@
     local runtime_dual_func=function(obj) return obj==nil and runtime_dual_meta or setmetatable({},{__index=function(self,i)return obj[i] or phf end}) end
     Control.Runtime.build("nilF.dual",runtime_dual_func)
     Control.Runtime.build("nilF.basic",runtime_func)
-    check=t_swap{__STRING__,__WORD__,__CLOSE_BREAKET__}
+    local tb = t_swap{__COMMENT__}
+    local check=t_swap{__STRING__,__WORD__,__CLOSE_BREAKET__}
 
     Control:load_lib"code.syntax_loader"(stx,{O=function(...)
         for k,v in pairs{...}do

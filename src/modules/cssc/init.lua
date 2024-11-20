@@ -46,7 +46,8 @@ function(Control)
 	--t=t_swap(t)
 	Control.Core=function(tp,obj)--type_of_text_object,object_it_self
 		local id_prew,c_prew,spifc=Control.Cdata.tb_while(tb)
-		spifc = c_prew[1]==__KEYWORD__ and match(Control.Result[id_prew],"^end") and match(Control.Result[c_prew[2]],"^function")
+		--if c_prew[1]==__KEYWORD__ and match(Control.Result[id_prew],"^end") then print(id_prew,c_prew[2],Control.Result[id_prew],Control.Result[c_prew[2]])end
+		spifc = c_prew[1]==__KEYWORD__ and match(Control.Result[id_prew]or"","^end") and match(Control.Result[c_prew[2]]or"","^function")
 		meta_reg(c_prew[1],tp,spifc)--reg *call*/*stat_end* operator markers (injects before last registered CData)
 		Control.Cdata.run(obj,tp)--reg previous result CData
 

@@ -7,7 +7,19 @@
 		c=c=="b" and 2 or 8 --bin/oct
 		--Control.log("Num src: F'%s' f'%s' exp'%s'",f,s,ex)
 		f=tonumber(#f>0 and f or 0,c)--base
-		if #s>0 then s=(tonumber(s,c)or nan)/c/#s else s=0 end--float
+		--if #s>0 then s=(tonumber(s,c)or nan)/c/#s else s=0 end--float
+		if #s>0 then --float
+			local r=0
+			for i,k in gmatch(s,"()(.)") do
+				if k>=c then s=nan break end  --if number is weird
+				r=r+k*c^(#s-i)
+			end
+			s=s==s and tostring(r/c^#s)
+			--[[for i,k in gmatch(b,"()(.)") do
+				if k>=t then err(Ctrl,"This is not a valid number: 0"..a..b..c) end  --if number is weird
+				r=r+k*t^(#b-i) -- t: number base system, r - result, i - current position in number string
+			 end]]
+		else s=0 end
 		ex=tonumber(#ex>0 and sub(ex,2) or 0,c)--exp
 		--Control.log("Num out: F'%s' f'%s' exp'%s'",f,s,ex)
 		nd =(f and s==s and ex)and ""..(f+s)*(2^ex)or Control.error(e,nd)or nd

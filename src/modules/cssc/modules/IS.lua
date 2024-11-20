@@ -1,18 +1,28 @@
 {[_init]=function(Control)
     Control:load_lib"code.cssc.pdata"
     Control:load_lib"code.cssc.op_stack"
-    local ltp,tab,used=type,{{"__cssc__kw_is",__WORD__}}
-    Control.typeof=function(obj,comp)
-        local md,tp,rez = ltp(comp),ltp(obj),false
+    Control:load_lib"code.cssc.typeof" --typeof func -> Control.typeof
+    local ltp=type
+    local ltpof=Control.typeof
+    local IS_func=function(obj,comp)
+        local md,tp,rez = ltp(comp),ltpof(obj),false --mode,type,rez
         if md=="string"then rez=tp==comp
         elseif md=="table"then for i=1,#comp do rez=rez or tp==comp[i]end
         else error("bad argument #2 to 'is' operator (got '"..md.."', expected 'table' or 'string')",2)end
         return rez
     end
+    local tab,used={{"__cssc__kw_is",__WORD__}}
+    --[[Control.typeof=function(obj,comp)
+        local md,tp,rez = ltp(comp),ltp(obj),false
+        if md=="string"then rez=tp==comp
+        elseif md=="table"then for i=1,#comp do rez=rez or tp==comp[i]end
+        else error("bad argument #2 to 'is' operator (got '"..md.."', expected 'table' or 'string')",2)end
+        return rez
+    end]]
     local tb = t_swap{__COMMENT__}
     local check = t_swap{__OPERATOR__,__OPEN_BREAKET__,__KEYWORD__}
     local after = t_swap{__KEYWORD__,__CLOSE_BREAKET__}
-    Control.Runtime.build("kwrd.is",Control.typeof)
+    Control.Runtime.build("kwrd.is",IS_func)
     Control.Words["is"]=function()
         if not used then Control.Runtime.reg("__cssc__kw_is","kwrd.is") end
 

@@ -30,15 +30,6 @@
                 if prohibited_area[lvl.type] or #(lvl.OP_st or"")>0 then
                     Control.error("Attempt to use additional asignment in prohibited area!")
                 end
-                local i,last=Control.inject_operator(nil,Control.Cdata.opts[","][1]+1,false,__TRUE__)--add ")" to fin on, or stat end
-                
-                --print(i,last[1],last[1]==__OPERATOR__,last[2], last[2]==Control.Cdata.opts[","][1])
-                if last[1]==__OPERATOR__ and last[2]==Control.Cdata.opts[","][1] then --TODO: Temporal solution! Rework!
-                    Control.error("Additional asignment do not support multiple additions is this version of __PROJECT_NAME__!")
-                end
-                if last[1]==__OPERATOR__ and last[2]==0 and i-1>0 and Control.Cdata[i-1][1]==__KEYWORD__ and match(Control.Result[i-1],"^local")then
-                    Control.error("Attempt to perform additional asignment to local variable constructor!")
-                end
                 --action
                 local cur_i,cur_d = #Control.Cdata
                 Control.inject(nil,"=",__OPERATOR__,Control.Cdata.opts["="][1])--insert assignment
@@ -47,7 +38,18 @@
 
                 Control.Event.run(__OPERATOR__,v.."=",__OPERATOR__,__TRUE__)--send events to fin opts in OP_st
                 Control.Event.run("all",v.."=",__OPERATOR__,__TRUE__)
+
+
+                local i,last=Control.inject_operator(nil,Control.Cdata.opts[","][1]+1,false,__TRUE__,false,#Control.Cdata-1)--add ")" to fin on, or stat end
                 
+                --print(i,last[1],last[1]==__OPERATOR__,last[2], last[2]==Control.Cdata.opts[","][1])
+                if last[1]==__OPERATOR__ and last[2]==Control.Cdata.opts[","][1] then --TODO: Temporal solution! Rework!
+                    Control.error("Additional asignment do not support multiple additions in this version of __PROJECT_NAME__!")
+                end
+                if last[1]==__OPERATOR__ and last[2]==0 and i-1>0 and Control.Cdata[i-1][1]==__KEYWORD__ and match(Control.Result[i-1],"^local")then
+                    Control.error("Attempt to perform additional asignment to local variable constructor!")
+                end
+
                 if p then
                     Control.inject(nil,p,__WORD__)--bitw func call
                     Control.inject(nil,"(",__OPEN_BREAKET__)--open breaket

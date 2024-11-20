@@ -44,9 +44,21 @@
               "icon": "lucide-git-fork",
               "title": "Граф"
             }
+          },
+          {
+            "id": "64b900696bf985cf",
+            "type": "leaf",
+            "state": {
+              "type": "release-notes",
+              "state": {
+                "currentVersion": "1.7.5"
+              },
+              "icon": "lucide-file",
+              "title": "Release Notes 1.7.5"
+            }
           }
         ],
-        "currentTab": 2
+        "currentTab": 3
       }
     ],
     "direction": "vertical"
@@ -183,7 +195,7 @@
       "command-palette:Открыть палитру команд": false
     }
   },
-  "active": "8c59c818c5162c30",
+  "active": "64b900696bf985cf",
   "lastOpenFiles": [
     "__obsidian/Lua-MC.md",
     "Lua-MC/src/base.lua.md",

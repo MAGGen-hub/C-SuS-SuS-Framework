@@ -2,11 +2,10 @@
 --LUA-MC tests
 
 --TEST LIB
-
 local test_matrix = { 
-    {   test_name = "single_lambda_test",
-        short_ctrl = "<LF>",
-        full_ctrl = "<lambda_functions>",
+    {   test_name = "single_lambda_test", --1 test
+        short_ctrl = "sys.err,cssc.LF",
+        --full_ctrl = "<lambda_functions>",
         test_function = [===[
     
             local dbg_str = "debug string"
@@ -21,7 +20,7 @@ local test_matrix = {
             local func2 = a,b => return a+b end
     
             --argument-less lambda
-            local func3 = => return dbg_str end
+            local func3 = ()=> return dbg_str end
     
     
             local test_print = function (f)
@@ -35,9 +34,9 @@ local test_matrix = {
             assert(test_print(func2) == 7)
             assert(test_print(func3) == dbg_str)
         ]===] },
-    {   test_name = "single_default_args_test",
-        short_ctrl = "<DA>",
-        full_ctrl = "<default_arguments>" ,
+    {   test_name = "single_default_args_test",--2 test
+        short_ctrl = "sys.err,cssc.DA",
+        --full_ctrl = "<default_arguments>" ,
         test_function = [===[
              
              --single arg
@@ -63,9 +62,9 @@ local test_matrix = {
              
              
          ]===] },
-     {   test_name = "single_number_format_test",
-         short_ctrl = "<NF>",
-         full_ctrl = "<number_formats>",
+     {   test_name = "single_number_format_test",--3 test
+         short_ctrl = "sys.err,cssc.NF",
+         --full_ctrl = "<number_formats>",
          test_function = [===[
              
              --binary test
@@ -82,9 +81,9 @@ local test_matrix = {
              print(assert(0o11.2E-1 == 9.25E-1)) --exponenta
              
          ]===] },
-     {   test_name = "single_C_assignment_addition",
-         short_ctrl = "<CA>",
-         full_ctrl = "<C_assignment_addition>",
+     {   test_name = "single_C_assignment_addition",--4 test
+         short_ctrl = "sys.err,cssc.CA",
+         --full_ctrl = "<C_assignment_addition>",
          test_function = [===[
              local a = 1
              
@@ -101,9 +100,9 @@ local test_matrix = {
              assert(a==5)
              
          ]===] },
-     {   test_name = "single_nil_forgiving_test",
-         short_ctrl = "<N>",
-         full_ctrl = "<nil_forgiving>",
+     {   test_name = "single_nil_forgiving_test",--5 test
+         short_ctrl = "sys.err,cssc.NC",
+         --full_ctrl = "<nil_forgiving>",
          test_function = [===[
          
              local nil_call = function (obj) return obj?() end
@@ -125,9 +124,9 @@ local test_matrix = {
              assert(nil_table_ind()==nil)
              
          ]===] },
-     {   test_name = "single_lua5.3_opts_test_(bitwizes)",
-         short_ctrl = "<M>",
-         long_ctrl = "<lua5.3>",
+     {   test_name = "single_lua5.3_opts_test_(bitwizes)",--6 test
+         short_ctrl = "sys.err,cssc.BO",
+         --long_ctrl = "<lua5.3>",
          test_function = [===[
              
              --single operator test
@@ -171,8 +170,8 @@ local test_matrix = {
              
          ]===]
      },
-     {   test_name = "single_complex_test",
-         short_ctrl = "<A>",
+     --[[{   test_name = "single_complex_test", --DEPRECATED!
+         short_ctrl = "<A>",--config
          long_ctrl = "<All>",
          test_function = [===[
              
@@ -207,18 +206,35 @@ local test_matrix = {
              
              
              
-         ]===] },
+         ]===] },]]
          
          
 }
-require"lua-mc"
+
+package.path=package.path..";../?.lua"--add previous directory to require check
+local bitop = require("lib/bitop")
+
+local bitop_force_load=true
+if bitop_force_load then
+    local req = require 
+    require = function(s,...)if s=="bit" or s=="bit32"then return nil end return req(s,...)end
+end
+
+package.preload["bitop"]=function() print("\nWARNIGN!\nBitop.lua loaded. Bitwize operators performance might be low.\n\n") return bitop end--for situations where bit/bit32 dlls not exist
+local lua_mc=require("out/lua_mc__lua51__original")--load system
+
 test = test_matrix[tonumber(arg[1])]
 print("Selected test: ",arg[1],"- ",test.test_name)
 print("SOURCE CODE  : \n", test.test_function)
 print("PREPROCESSED : ")
-local func,err = lua_mc.load(test.short_ctrl:sub(1,-2)..",dbg(p)>"..test.test_function)
-print("Call output  : ")
+comp1 = lua_mc.make(test.short_ctrl)
+local prep = comp1:run(test.test_function)
+print(prep)
+local l, err = comp1:cssc_load(nil,nil,setmetatable({},{__index=_G}))
+print("Call output  : ",pcall(l))
 print("Error        : ", err)
-func()
+
+package.path=package.path..";../lib/?.lua" --load cc.pretty extracted from CraftOS for better output with -i atrubute
+P=require("lib/cc.pretty")
 
 

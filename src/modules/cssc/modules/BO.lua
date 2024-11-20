@@ -20,7 +20,14 @@
     --local after = t_swap{__KEYWORD__,__CLOSE_BREAKET__}
     local loc_base = "__cssc__bit_"
     local used_opts= {}
-    local idiv_func= function(a,b)return floor(a/b)end
+    local num="number"
+    local idiv_func=native_load([[local p,n,t,g,e,F,f={},"number",... f=function(a,b)local ta,tb=t(a)==n, t(b)==n if ta and tb then return F(a/b)end e("bad argument #"..(ta and 2 or 1).." (expected 'number', got '"..(ta and t(b) or t(a)).."')")end
+    return function(a,b)return((g(a)or p).__idiv or(g(b)or p).__idiv or f)(a,b)end]],"OP: '//'",nil,nil)(type,getmetatable,error,floor)
+     --[[function(a,b)
+        local ta,tb=type(a)==num, type(a)==num
+        if ta and tb then return floor(a/b)end
+        error(format("bad argument #%d",ta and 1 or 2,ta and type(a) or type(b)))
+    end]]
 
     Control:load_lib"code.syntax_loader"(stx,{O=function(...)--reg syntax
         for k,v,tab,has_un in pairs{...}do
@@ -33,8 +40,8 @@
             local bit_name,bit_func
             --try get metatables from a and b and select function to run (probably it's better to check their type before, but the smaller the function the faster it will be)    
             if not direct then
-                local func = native_load(format([[local p,g,f={},... return function(a,b)return((g(a)or p).%s or(g(b)or p).%s or f)(a,b)end]],"__"..bt[v],"__"..bt[v])
-                ,loc_base..bt[v],nil,nil)(getmetatable,bit32[bt[v]] or idiv_func)--this function creates ultra fast & short pice of runtime working code
+                local func =bit32[bt[v]] and native_load(format([[local p,g,f={},... return function(a,b)return((g(a)or p).%s or(g(b)or p).%s or f)(a,b)end]],"__"..bt[v],"__"..bt[v])
+                ,"OP: '"..v.."'",nil,nil)(getmetatable,bit32[bt[v]])or idiv_func --this function creates ultra fast & short pice of runtime working code
                 --prewious code is equivalent of: function(a,b)
                 --    return((getmetatable(a)or pht)[bit_name] or (getmetatable(b)or pht)[bit_name] or bit_func)(a,b)
                 --end
@@ -49,7 +56,7 @@
                 local i,d=Control.Cdata.tb_while(tb)
                 if not is_un and check[d[1]] then Control.error("Unexpected '%s' after '%s'!",v,Control.Result[i])end--error check before
 
-                if not used_opts[is_un and "bnot"or v] then Control.Runtime.reg(is_un and loc_base.."bnot" or loc_base..bt[v],is_un and "bit.bnot" or "bit."..bt[v])end
+                if not used_opts[is_un and "bnot"or v] then used_opts[is_un and "bnot"or v]=__TRUE__  Control.Runtime.reg(is_un and loc_base.."bnot" or loc_base..bt[v],is_un and "bit.bnot" or "bit."..bt[v])end
                 Control.inject(nil,is_un and ""or",",__OPERATOR__,not is_un and k or nil, is_un and p_un or nil)--inject found operator Control.Cdata.opts[","][1]
                 Control.split_seq(nil,#v)--remove bitwize from queue
                 Control.Event.run(__OPERATOR__,v,__OPERATOR__,__TRUE__)--send events to fin opts in OP_st
@@ -60,7 +67,7 @@
                     return tp~=__COMMENT__ and __TRUE__ 
                 end)
                 --reg operator data
-                Control.inject_operator(is_un and has_un or tab,is_un and p_un or k,is_un) --including stat_end
+                Control.inject_operator(is_un and has_un or tab,is_un and p_un or k,is_un,nil,nil) --including stat_end
             end
             --TODO: opts
         end

@@ -3,8 +3,9 @@ function(Control)--EVENT SYSTEM
 	clr=function()e.temp={}end
 	e={main={},
 	reg=function(name,func,id,gl)--id here to control order
-		local l=e.temp[name]or{}
+		local l=gl and e.temp[name] or e.main[name] or{}
 		id=id or#l+1
+		--print("EVreg:", id)
 		if"number"==type(id)then insert(l,id,func)else l[id]=func end
 		e[gl and"main"or"temp"][name]=l
 		return id

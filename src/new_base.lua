@@ -1,7 +1,7 @@
 --ARG CHECK FUNC
 local arg_check,t_copy,t_swap,Modules,Features=function(Control)if(getmetatable(Control)or{}).__type~="cssc_unit"then error(format("Bad argument #1 (expected cssc_unit, got %s)",type(Control)),3)end end,function(s,o,f) for k,v in pairs(s)do o[k]=f and o[k]or v end end,function(t,o)o=o or {}for k,v in pairs(t)do o[v]=k end return o end
 --LOCALS
-local Configs,_init,_modules,_arg,load_lib,continue,clear,make,run,read_control_string,load_control_string={cssc="lua.cssc=M.KS.IS.N.CA.DA.NF.LF"},setmetatable({},{__tostring=native_load"return'init'"}),setmetatable({},{__tostring=native_load"return'modules'"}),{'arg'},
+local Configs,_init,_modules,_arg,load_lib,continue,clear,make,run,read_control_string,load_control_string={__PROJECT_NAME___full="sys.err,cssc={NF,KS(sc_end,pl_cond),LF,DA,BO,CA}"},setmetatable({},{__tostring=native_load"return'init'"}),setmetatable({},{__tostring=native_load"return'modules'"}),{'arg'},
 function(Control,path,...)arg_check(Control)--load_lib
 	local ld,arg,tp=Control.Loaded[">"..path],{}
 	if false~=ld then
@@ -128,7 +128,8 @@ do
 __MODULES__
 end
 
-__PROJECT_NAME__={make=make,run=run,clear=clear,continue=continue,Features=Features,Modules=Modules,Configs=Confgis,dev={init=_init,modules=_modules}}
+__PROJECT_NAME__={make=make,run=run,clear=clear,Features=Features,Modules=Modules,Configs=Confgis,dev={init=_init,modules=_modules}}
+@@DEBUG __PROJECT_NAME__.continue=continue --curently in testing 
 @@DEBUG _G.__PROJECT_NAME__=__PROJECT_NAME__
 --@@DEBUG _G.__PROJECT_NAME__.test=read_control_string
 return __PROJECT_NAME__

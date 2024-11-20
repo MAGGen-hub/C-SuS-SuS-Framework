@@ -1,3 +1,0 @@
--- lua5.1 - VM
--- libcompat51
--- bitop-lua51 or bit32-lua51 (lzss test only)
