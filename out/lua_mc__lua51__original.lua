@@ -62,7 +62,7 @@ local placeholder_func = function()end
 --ARG CHECK FUNC
 local arg_check,t_copy,t_swap,Modules,Features=function(Control)if(getmetatable(Control)or{}).__type~="cssc_unit"then error(format("Bad argument #1 (expected cssc_unit, got %s)",type(Control)),3)end end,function(s,o,f) for k,v in pairs(s)do o[k]=f and o[k]or v end end,function(t,o)o=o or {}for k,v in pairs(t)do o[v]=k end return o end
 --LOCALS
-local Configs,_init,_modules,_arg,load_lib,continue,clear,make,run,read_control_string,load_control_string={lua_mc_full="sys.err,cssc={NF,KS(sc_end,pl_cond),LF,DA,BO,CA}"},setmetatable({},{__tostring=native_load"return'init'"}),setmetatable({},{__tostring=native_load"return'modules'"}),{'arg'},
+local Configs,_init,_modules,_arg,load_lib,continue,clear,make,run,read_control_string,load_control_string={lua_mc_basic="sys.err,cssc={NF,KS,LF,BO,CA}",lua_mc_user="sys.err,cssc={NF,KS(sc_end),LF,DA,BO,CA,NC,IS}",lua_mc_full="sys.err,cssc={NF,KS(sc_end,pl_cond),LF,DA,BO,CA,NC,IS}"},setmetatable({},{__tostring=native_load"return'init'"}),setmetatable({},{__tostring=native_load"return'modules'"}),{'arg'},
 function(Control,path,...)arg_check(Control)--load_lib
 	local ld,arg,tp=Control.Loaded[">"..path],{}
 	if false~=ld then
@@ -143,7 +143,7 @@ read_control_string=function(s)--RECURSIVE FUNC: turn control string into table 
 	t=1
 	for k,v in pairs(e and read_control_string(e)or{})do
 		-- l["number"==type(k)and#l+1 or k]=v
-		if"number"==type(k)then insert(l,v,t) t=t+1 else l[k]=v end
+		if"number"==type(k)then insert(l,t,v) t=t+1 else l[k]=v end
 	end
 	return l,a
 end
@@ -1252,7 +1252,7 @@ NF={[_init]=function(Control)
 		if #s>0 then --float
 			local r=0
 			for i,k in gmatch(s,"()(.)") do
-				if tonumber(k)>=c then s=nan break end  --if number is weird
+				if k>=c then s=nan break end  --if number is weird
 				r=r+k*c^(#s-i)
 			end
 			s=s==s and tostring(r/c^#s)
@@ -1388,7 +1388,7 @@ end},
 
 end
 
-lua_mc={make=make,run=run,clear=clear,Features=Features,Modules=Modules,Configs=Confgis,dev={init=_init,modules=_modules}}
+lua_mc={make=make,run=run,clear=clear,Features=Features,Modules=Modules,Configs=Configs,dev={init=_init,modules=_modules}}
  lua_mc.continue=continue --curently in testing 
  _G.lua_mc=lua_mc
 -- _G.lua_mc.test=read_control_string
