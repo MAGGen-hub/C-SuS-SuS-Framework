@@ -343,7 +343,7 @@ end,
 typeof=function(Control)--typeof function used for "DA" and "IS" modules
     local ltp,lmt,pht=type,getmetatable,{}
     Control.typeof=function(obj)
-        return ((lmt(obj)or pht).__type or ltp)(obj)
+        return (lmt(obj)or pht).__type or ltp(obj)
     end
 end,
 },--Close cssc
@@ -389,7 +389,7 @@ and
 
 ..
 + -
-* / // %
+* / %
 not # -
 ^
 . :
@@ -457,6 +457,8 @@ struct=function(Control)--comment/string/number detector
 	local get_number_part=function(nd,f) --function that collect number parts into num_data. 
 		local ex                            --Returns 1 if end of number found or nil if floating point posible
 		nd[#nd+1],ex,Control.word=match(Control.word,format("^(%s*([%s]?%%d*))(.*)",unpack(f)))--get number part
+		--print(format("^(%s*([%s]?%%d*))(.*)",unpack(f)))
+		--print(nd[#nd],ex)
 		Control.operator="" -- dot-able number protection (reset operator)
 		if#Control.word>0 or#ex>1 then return 1 end--finished number or finished exponenta
 		if#ex>0 then--unfinished exponenta #ex==1
@@ -471,9 +473,9 @@ struct=function(Control)--comment/string/number detector
 		end --unfinished exponenta #ex==1
 	end
 	local get_number,split_seq=function()--get_number:function to locate numbers with floating point;
-		local c,d=match(Control.word,"^0x")d=Control.operator=="."and not c--dot-able number detection (t-> dot located | c->hex located)
+		local c,d=match(Control.word,"^0([Xx])")d=Control.operator=="."and not c--dot-able number detection (t-> dot located | c->hex located)
 		if not match(Control.word,"^%d")or not d and#Control.operator>0 then return end --number not located... return
-		local num_data,f=d and{"."}or{},c and{"0x%x","Pp"}or{"%d","Ee"}
+		local num_data,f=d and{"."}or{},c and{"0"..c.."%x","Pp"}or{"%d","Ee"}
 		if get_number_part(num_data,f)or"."==num_data[1]then return num_data end--fin of number or dot-able floating point number
 		-- now: #ex==0 and #Control.word==0; all other ways are found
 		--Control.word==0 -> number might have floating point
@@ -1192,6 +1194,7 @@ LF={[_init]=function(Control)
 		Control.Event.run("all",sub(Control.operator,1,1)..">",tp,1)
 
 		Control.Level.open(fk,nil,ei)--open new function level (auto end set)
+		Control.Level[#Control.Level].DA_np=nil --prevent DEF ARGS
 		Control.split_seq(nil,2)-- remove ->/=> from Control.operator
 	end
 	Control.Operators["=>"]=Control.Operators["->"]
@@ -1245,14 +1248,17 @@ NF={[_init]=function(Control)
 		--Control.log("CSSC Number format located. System: '%s'", c=='b' and 'binary' or 'octal')
 		nd=concat(nd)
 		local f,s,ex=match(nd,"..(%d*)%.?(%d*)(.*)")
-		c=c=="b" and 2 or 8 --bin/oct
+		--print("ND:",nd)
+		--print("EX:",ex,match(ex,"^[Ee]"))
+		if match(ex,"^[Ee]") then Control.error(e,nd) end --Ee exponenta is prohibited!
+		c=(c=="b" or c=="B") and 2 or 8 --bin/oct
 		--Control.log("Num src: F'%s' f'%s' exp'%s'",f,s,ex)
 		f=tonumber(#f>0 and f or 0,c)--base
 		--if #s>0 then s=(tonumber(s,c)or nan)/c/#s else s=0 end--float
 		if #s>0 then --float
 			local r=0
 			for i,k in gmatch(s,"()(.)") do
-				if k>=c then s=nan break end  --if number is weird
+				if tonumber(k)>=c then s=nan break end  --if number is weird
 				r=r+k*c^(#s-i)
 			end
 			s=s==s and tostring(r/c^#s)
@@ -1270,9 +1276,9 @@ NF={[_init]=function(Control)
 	end
 	
 	insert(Control.Struct,2,function()--this stuff must run before lua_struct and after space_handler parts.
-		local c =#Control.operator<1 and match(Control.word,"^0([ob])%d")
+		local c =#Control.operator<1 and match(Control.word,"^0([OoBb])%d")
 		if c then
-			local num_data,f = {},{0 ..c.."%d","Pp"}
+			local num_data,f = {},{0 ..c.."%d","PpEe"}
 			if Control.get_num_prt(num_data,f)then fin_num(num_data,c)return true end
 			Control.Iterator()
 			if Control.operator=="."then

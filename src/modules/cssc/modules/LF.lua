@@ -29,6 +29,7 @@
 		Control.Event.run("all",sub(Control.operator,1,1)..">",tp,__TRUE__)
 
 		Control.Level.open(fk,nil,ei)--open new function level (auto end set)
+		Control.Level[#Control.Level].DA_np=nil --prevent DEF ARGS
 		Control.split_seq(nil,2)-- remove ->/=> from Control.operator
 	end
 	Control.Operators["=>"]=Control.Operators["->"]

@@ -14,7 +14,7 @@ local sub    = A(string.sub,E)
 local insert = A(table.insert,E)
 local concat = A(table.concat,E)
 local remove = A(table.remove,E)
-local unpack = A(table.unpack or unpack,E)
+local unpack = A(table.unpack,E)
 
 -- math.lib
 local floor = A(math.floor,E)
@@ -30,11 +30,8 @@ local setmetatable = A(setmetatable,E)
 local pcall        = A(pcall,E)
 local _ --WASTE (dev null)
 --Bit32 libruary prepare section
-local bit32 = pcall(require,"bit")and require"bit" --attempt to get bitop.dll (bit64)
-or pcall(require,"bit32")and require"bit32" --attempt to get bit32.dll as replacement
-or pcall(require,"bitop")and (require"bitop".bit or require"bitop".bit32) --emergency solution: bitop.lua
-or print and print"Warning! Bit32/bitop libruary not found! Bitwize operators module disabled!"and nil --loading alarm
-if bit32 then --reconfigure lib
+local bit32        = (bitop and bitop.bit or bitop.bit32)or bit32 or pcall(require,"bit32")and require"bit32"or print"Warning! Bit32/bitop libruary not found! Bitwize operators module disabled!"and nil
+if bit32 then
     local b = {}
     for k,v in pairs(bit32)do b[k]=v end
     b.shl=b.lshift

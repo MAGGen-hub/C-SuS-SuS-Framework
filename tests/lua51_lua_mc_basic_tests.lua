@@ -71,14 +71,16 @@ local test_matrix = {
              print(assert(0b10001 == 17)) --default
              print(assert(0b0.1 == 0.5))  --floating point
              print(assert(0b0.01 == 0.25))
-             print(assert(0b111E+1 == 7E+1)) --decimal exponenta
+             --print(assert(0b111E+1 == 7E+1)) --decimal exponenta
+             print(assert(0b111P+1 ,14))
              
              --octal test
              print(assert(0o10 == 8)) --default
              print(assert(0o4501 == 2369)) --hard
              print(assert(0o0.1 == 0.125)) --floating point
              print(assert(0o10.201 == 8.251953125))
-             print(assert(0o11.2E-1 == 9.25E-1)) --exponenta
+             --print(assert(0o11.2E-1 == 9.25E-1)) --exponenta
+             print(assert(0o12.1P+2,40.5))
              
          ]===] },
      {   test_name = "single_C_assignment_addition",--4 test

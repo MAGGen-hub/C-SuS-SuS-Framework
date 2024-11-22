@@ -2,6 +2,8 @@ function(Control)--comment/string/number detector
 	local get_number_part=function(nd,f) --function that collect number parts into num_data. 
 		local ex                            --Returns 1 if end of number found or nil if floating point posible
 		nd[#nd+1],ex,Control.word=match(Control.word,format("^(%s*([%s]?%%d*))(.*)",unpack(f)))--get number part
+		--print(format("^(%s*([%s]?%%d*))(.*)",unpack(f)))
+		--print(nd[#nd],ex)
 		Control.operator="" -- dot-able number protection (reset operator)
 		if#Control.word>0 or#ex>1 then return 1 end--finished number or finished exponenta
 		if#ex>0 then--unfinished exponenta #ex==1
@@ -16,9 +18,9 @@ function(Control)--comment/string/number detector
 		end --unfinished exponenta #ex==1
 	end
 	local get_number,split_seq=function()--get_number:function to locate numbers with floating point;
-		local c,d=match(Control.word,"^0x")d=Control.operator=="."and not c--dot-able number detection (t-> dot located | c->hex located)
+		local c,d=match(Control.word,"^0([Xx])")d=Control.operator=="."and not c--dot-able number detection (t-> dot located | c->hex located)
 		if not match(Control.word,"^%d")or not d and#Control.operator>0 then return end --number not located... return
-		local num_data,f=d and{"."}or{},c and{"0x%x","Pp"}or{"%d","Ee"}
+		local num_data,f=d and{"."}or{},c and{"0"..c.."%x","Pp"}or{"%d","Ee"}
 		if get_number_part(num_data,f)or"."==num_data[1]then return num_data end--fin of number or dot-able floating point number
 		-- now: #ex==0 and #Control.word==0; all other ways are found
 		--Control.word==0 -> number might have floating point
