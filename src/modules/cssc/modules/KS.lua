@@ -3,6 +3,7 @@
     local stx = [[O
 || or
 && and
+! not
 @ local
 $ return
 ]]
@@ -29,6 +30,6 @@ $ return
 		end
 	end
     Control:load_lib"code.syntax_loader"(stx,{O=function(k,v)
-        Control.Operators[k]=make_react(v,match(v,"^[ao]") and __OPERATOR__ or __KEYWORD__,#k)
+        Control.Operators[k]=make_react(v,match(v,"^[aon]") and __OPERATOR__ or __KEYWORD__,#k)
     end})
 end}
