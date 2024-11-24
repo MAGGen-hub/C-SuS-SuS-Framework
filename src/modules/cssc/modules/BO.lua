@@ -15,19 +15,13 @@
     local p = opts["<"][1]+1 --priority base
     local p_un = opts["#"][2] --unary priority
     local bt=t_swap{shl='<<',shr='>>',bxor='~',bor='|',band='&',idiv='//'}--bitw funcs
-    local tb=t_swap{__COMMENT__}
+    local tb=Control.Cdata.skip_tb
     local check = t_swap{__OPERATOR__,__OPEN_BREAKET__,__KEYWORD__}
-    --local after = t_swap{__KEYWORD__,__CLOSE_BREAKET__}
     local loc_base = "__cssc__bit_"
     local used_opts= {}
     local num="number"
     local idiv_func=native_load([[local p,n,t,g,e,F,f={},"number",... f=function(a,b)local ta,tb=t(a)==n, t(b)==n if ta and tb then return F(a/b)end e("attempt to perform ariphmetic on a "..(ta and t(b) or t(a)).." value",2)end
     return function(a,b)return((g(a)or p).__idiv or(g(b)or p).__idiv or f)(a,b)end]],"OP: '//'",nil,nil)(type,getmetatable,error,floor)
-     --[[function(a,b)
-        local ta,tb=type(a)==num, type(a)==num
-        if ta and tb then return floor(a/b)end
-        error(format("bad argument #%d",ta and 1 or 2,ta and type(a) or type(b)))
-    end]]
 
     Control:load_lib"code.syntax_loader"(stx,{O=function(...)--reg syntax
         for k,v,tab,has_un in pairs{...}do
@@ -40,7 +34,7 @@
             local bit_name,bit_func
             --try get metatables from a and b and select function to run (probably it's better to check their type before, but the smaller the function the faster it will be)    
             if not direct then
-                local func =bit32[bt[v]] and native_load(format([[local p,g,f,P,e,t={},... return function(a,b)return((g(a)or p).%s or(g(b)or p).%s or P(f) or e("attempt to perform bitwise operation on a "..(t(a)=="number" and t(b)or t(a)).." value",2))(a,b)end]],"__"..bt[v],"__"..bt[v])
+                local func =bit32[bt[v]] and native_load(format([[local p,g,f,P,e,t={},... return function(a,b)a,b=P((g(a)or p).%s or(g(b)or p).%s or f ,a,b) return a and b or e(((g(a)or p).%s or(g(b)or p).%s) and b or("attempt to perform ariphmetic on a "..(ta and t(b) or t(a)).." value"),2) end]],"__"..bt[v],"__"..bt[v],"__"..bt[v],"__"..bt[v])
                 ,"OP: '"..v.."'",nil,nil)(getmetatable,bit32[bt[v]],pcall,error,type)or idiv_func --this function creates ultra fast & short pice of runtime working code
                 --prewious code is equivalent of: function(a,b)
                 --    return((getmetatable(a)or pht)[bit_name] or (getmetatable(b)or pht)[bit_name] or bit_func)(a,b)
@@ -64,7 +58,7 @@
 
                 Control.Event.reg("all",function(obj,tp)--error check after
                     if tp==__KEYWORD__ and not match(Control.Result[#Control.Result],"^function") or  tp==__CLOSE_BREAKET__ or tp==__OPERATOR__ and not Control.Cdata[#Control.Cdata][3] then Control.error("Unexpected '%s' after '%s'!",obj,v) end
-                    return tp~=__COMMENT__ and __TRUE__ 
+                    return not tb[tp] and __TRUE__ 
                 end)
                 --reg operator data
                 Control.inject_operator(is_un and has_un or tab,is_un and p_un or k,is_un,nil,nil) --including stat_end
@@ -74,7 +68,7 @@
         p=p+1
     end})
     if not direct then
-        local func = native_load([[local p,g,f,P,e,t={},... return function(a)return((g(a)or p).__bnot or P(f) or e("attempt to perform bitwise operation on a "..t(a).." value",2))(a)end]],"__cssc_bit_bnot",nil,nil)(getmetatable,bit32.bnot,pcall,error,type)
+        local func = native_load([[local p,g,f,P,e,t,_={},... return function(a)_,a=P((g(a)or p).__bnot or f,a) return _ and a or e((g(a)or p).__bnot and a or ("attempt to perform bitwise operation on a "..t(a).." value"),2) end]],"__cssc_bit_bnot",nil,nil)(getmetatable,bit32.bnot,pcall,error,type)
         Control.Runtime.build("bit.bnot",func,__TRUE__)
     else
         Control.Runtime.build("bitD.bnot",bit32.bnot,__TRUE__)

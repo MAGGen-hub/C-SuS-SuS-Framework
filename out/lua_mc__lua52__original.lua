@@ -174,11 +174,7 @@ do
 
 Features={code={cdata=function(Control,opts_hash,level_hash)--API to save code data to specific table
     local check,c,clr=t_swap{2,4,9}
-    clr=function()
-        for i=1,#c do c[i]=nil end c[1]={2,0}
-        --c={opts=c.opts,lvl=c.lvl,run=c.run,reg=c.reg,del=c.del,tb_until=c.tb_until,tb_while=c.tb_while, {11}}
-        --Control.Cdata=c
-    end
+    clr=function() for i=1,#c do c[i]=nil end c[1]={2,0}end
     c={opts=opts_hash,lvl=level_hash,
     run=function(obj,tp)--to call from core
         local lh,rez=c.lvl[obj]
@@ -202,6 +198,7 @@ Features={code={cdata=function(Control,opts_hash,level_hash)--API to save code d
     del=function(id)--del specific value from index
         return remove(c,id or #c+1)
     end,
+    skip_tb=t_swap{11,5},
     tb_until=function(type_tab,i)--thaceback_until:
         i=i or#c+1
         repeat i=i-1 until i<1 or type_tab[c[i][1]]
@@ -807,19 +804,13 @@ end
     local p = opts["<"][1]+1 --priority base
     local p_un = opts["#"][2] --unary priority
     local bt=t_swap{shl='<<',shr='>>',bxor='~',bor='|',band='&',idiv='//'}--bitw funcs
-    local tb=t_swap{11}
+    local tb=Control.Cdata.skip_tb
     local check = t_swap{2,9,4}
-    --local after = t_swap{4,10}
     local loc_base = "__cssc__bit_"
     local used_opts= {}
     local num="number"
     local idiv_func=native_load([[local p,n,t,g,e,F,f={},"number",... f=function(a,b)local ta,tb=t(a)==n, t(b)==n if ta and tb then return F(a/b)end e("attempt to perform ariphmetic on a "..(ta and t(b) or t(a)).." value",2)end
     return function(a,b)return((g(a)or p).__idiv or(g(b)or p).__idiv or f)(a,b)end]],"OP: '//'",nil,nil)(type,getmetatable,error,floor)
-     --[[function(a,b)
-        local ta,tb=type(a)==num, type(a)==num
-        if ta and tb then return floor(a/b)end
-        error(format("bad argument #%d",ta and 1 or 2,ta and type(a) or type(b)))
-    end]]
 
     Control:load_lib"code.syntax_loader"(stx,{O=function(...)--reg syntax
         for k,v,tab,has_un in pairs{...}do
@@ -832,7 +823,7 @@ end
             local bit_name,bit_func
             --try get metatables from a and b and select function to run (probably it's better to check their type before, but the smaller the function the faster it will be)    
             if not direct then
-                local func =bit32[bt[v]] and native_load(format([[local p,g,f,P,e,t={},... return function(a,b)return((g(a)or p).%s or(g(b)or p).%s or P(f) or e("attempt to perform bitwise operation on a "..(t(a)=="number" and t(b)or t(a)).." value",2))(a,b)end]],"__"..bt[v],"__"..bt[v])
+                local func =bit32[bt[v]] and native_load(format([[local p,g,f,P,e,t={},... return function(a,b)a,b=P((g(a)or p).%s or(g(b)or p).%s or f ,a,b) return a and b or e(((g(a)or p).%s or(g(b)or p).%s) and b or("attempt to perform ariphmetic on a "..(ta and t(b) or t(a)).." value"),2) end]],"__"..bt[v],"__"..bt[v],"__"..bt[v],"__"..bt[v])
                 ,"OP: '"..v.."'",nil,nil)(getmetatable,bit32[bt[v]],pcall,error,type)or idiv_func --this function creates ultra fast & short pice of runtime working code
                 --prewious code is equivalent of: function(a,b)
                 --    return((getmetatable(a)or pht)[bit_name] or (getmetatable(b)or pht)[bit_name] or bit_func)(a,b)
@@ -856,7 +847,7 @@ end
 
                 Control.Event.reg("all",function(obj,tp)--error check after
                     if tp==4 and not match(Control.Result[#Control.Result],"^function") or  tp==10 or tp==2 and not Control.Cdata[#Control.Cdata][3] then Control.error("Unexpected '%s' after '%s'!",obj,v) end
-                    return tp~=11 and 1 
+                    return not tb[tp] and 1 
                 end)
                 --reg operator data
                 Control.inject_operator(is_un and has_un or tab,is_un and p_un or k,is_un,nil,nil) --including stat_end
@@ -866,7 +857,7 @@ end
         p=p+1
     end})
     if not direct then
-        local func = native_load([[local p,g,f,P,e,t={},... return function(a)return((g(a)or p).__bnot or P(f) or e("attempt to perform bitwise operation on a "..t(a).." value",2))(a)end]],"__cssc_bit_bnot",nil,nil)(getmetatable,bit32.bnot,pcall,error,type)
+        local func = native_load([[local p,g,f,P,e,t,_={},... return function(a)_,a=P((g(a)or p).__bnot or f,a) return _ and a or e((g(a)or p).__bnot and a or ("attempt to perform bitwise operation on a "..t(a).." value"),2) end]],"__cssc_bit_bnot",nil,nil)(getmetatable,bit32.bnot,pcall,error,type)
         Control.Runtime.build("bit.bnot",func,1)
     else
         Control.Runtime.build("bitD.bnot",bit32.bnot,1)
@@ -882,6 +873,7 @@ CA={[_init]=function(Control)--C/C++ additional asignment operators
 
     local b_func={}
     local s=1
+    local tb=Control.CData.skip_tb
     local used
     local stx=[[O
 + - * / % .. ^ ?
@@ -950,7 +942,7 @@ CA={[_init]=function(Control)--C/C++ additional asignment operators
 
                 Control.Event.reg("all",function(obj,tp)--error check after
                     if tp==4 and not match(Control.Result[#Control.Result],"^function") or  tp==10 or tp==2 and not Control.Cdata[#Control.Cdata][3] then Control.error("Unexpected '%s' after '%s'!",obj,v.."=") end
-                    return tp~=11 and 1 
+                    return not tb[tp] and 1 
                 end)
             end
         end
@@ -1257,7 +1249,9 @@ NF={[_init]=function(Control)
 				r=r+k*t^(#b-i) -- t: number base system, r - result, i - current position in number string
 			 end]]
 		else s=0 end
-		ex=tonumber(#ex>0 and sub(ex,2) or 0,c)--exp
+		--print(ex)
+		ex=tonumber(#ex>0 and sub(ex,2) or 0,10)--exp
+		--print(ex)
 		--Control.log("Num out: F'%s' f'%s' exp'%s'",f,s,ex)
 		nd =(f and s==s and ex)and ""..(f+s)*(2^ex)or Control.error(e,nd)or nd
 		--insert(Control.Result,""..(f+s)*(2^ex))

@@ -7,6 +7,7 @@
 
     local b_func={}
     local s=1
+    local tb=Control.CData.skip_tb
     local used
     local stx=[[O
 + - * / % .. ^ ?
@@ -75,7 +76,7 @@
 
                 Control.Event.reg("all",function(obj,tp)--error check after
                     if tp==__KEYWORD__ and not match(Control.Result[#Control.Result],"^function") or  tp==__CLOSE_BREAKET__ or tp==__OPERATOR__ and not Control.Cdata[#Control.Cdata][3] then Control.error("Unexpected '%s' after '%s'!",obj,v.."=") end
-                    return tp~=__COMMENT__ and __TRUE__ 
+                    return not tb[tp] and __TRUE__ 
                 end)
             end
         end

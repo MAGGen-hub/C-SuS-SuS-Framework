@@ -1,10 +1,6 @@
 function(Control,opts_hash,level_hash)--API to save code data to specific table
     local check,c,clr=t_swap{__OPERATOR__,__KEYWORD__,__OPEN_BREAKET__}
-    clr=function()
-        for i=1,#c do c[i]=nil end c[1]={__OPERATOR__,0}
-        --c={opts=c.opts,lvl=c.lvl,run=c.run,reg=c.reg,del=c.del,tb_until=c.tb_until,tb_while=c.tb_while, {__COMMENT__}}
-        --Control.Cdata=c
-    end
+    clr=function() for i=1,#c do c[i]=nil end c[1]={__OPERATOR__,0}end
     c={opts=opts_hash,lvl=level_hash,
     run=function(obj,tp)--to call from core
         local lh,rez=c.lvl[obj]
@@ -28,6 +24,7 @@ function(Control,opts_hash,level_hash)--API to save code data to specific table
     del=function(id)--del specific value from index
         return remove(c,id or #c+1)
     end,
+    skip_tb=t_swap{__COMMENT__,__SPACE__},
     tb_until=function(type_tab,i)--thaceback_until:
         i=i or#c+1
         repeat i=i-1 until i<1 or type_tab[c[i][1]]

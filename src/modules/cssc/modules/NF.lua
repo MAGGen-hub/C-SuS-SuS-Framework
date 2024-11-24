@@ -23,7 +23,9 @@
 				r=r+k*t^(#b-i) -- t: number base system, r - result, i - current position in number string
 			 end]]
 		else s=0 end
-		ex=tonumber(#ex>0 and sub(ex,2) or 0,c)--exp
+		--print(ex)
+		ex=tonumber(#ex>0 and sub(ex,2) or 0,10)--exp
+		--print(ex)
 		--Control.log("Num out: F'%s' f'%s' exp'%s'",f,s,ex)
 		nd =(f and s==s and ex)and ""..(f+s)*(2^ex)or Control.error(e,nd)or nd
 		--insert(Control.Result,""..(f+s)*(2^ex))
