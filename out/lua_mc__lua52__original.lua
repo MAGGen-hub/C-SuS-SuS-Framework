@@ -791,7 +791,7 @@ Modules={cssc={[_init]=function(Control)
 end
 ,
 [_modules]={BO={[_init]=function(Control,direct)--bitwize operators (lua53 - backport feature) and idiv
-    if not bit32 then Control.error("Unable to load bitwize operators feature! Bit/Bit32 libruary not found!")return end
+    if not bit32 then Control.warn("Unable to load bitwize operators feature! Bit/Bit32 libruary not found!")return end
     direct=false--TODO:temporal solution rework
     Control:load_lib"code.cssc.pdata"
     Control:load_lib"code.cssc.op_stack"
@@ -813,7 +813,7 @@ end
     local loc_base = "__cssc__bit_"
     local used_opts= {}
     local num="number"
-    local idiv_func=native_load([[local p,n,t,g,e,F,f={},"number",... f=function(a,b)local ta,tb=t(a)==n, t(b)==n if ta and tb then return F(a/b)end e("bad argument #"..(ta and 2 or 1).." (expected 'number', got '"..(ta and t(b) or t(a)).."')")end
+    local idiv_func=native_load([[local p,n,t,g,e,F,f={},"number",... f=function(a,b)local ta,tb=t(a)==n, t(b)==n if ta and tb then return F(a/b)end e("attempt to perform ariphmetic on a "..(ta and t(b) or t(a)).." value",2)end
     return function(a,b)return((g(a)or p).__idiv or(g(b)or p).__idiv or f)(a,b)end]],"OP: '//'",nil,nil)(type,getmetatable,error,floor)
      --[[function(a,b)
         local ta,tb=type(a)==num, type(a)==num
@@ -832,8 +832,8 @@ end
             local bit_name,bit_func
             --try get metatables from a and b and select function to run (probably it's better to check their type before, but the smaller the function the faster it will be)    
             if not direct then
-                local func =bit32[bt[v]] and native_load(format([[local p,g,f={},... return function(a,b)return((g(a)or p).%s or(g(b)or p).%s or f)(a,b)end]],"__"..bt[v],"__"..bt[v])
-                ,"OP: '"..v.."'",nil,nil)(getmetatable,bit32[bt[v]])or idiv_func --this function creates ultra fast & short pice of runtime working code
+                local func =bit32[bt[v]] and native_load(format([[local p,g,f,P,e,t={},... return function(a,b)return((g(a)or p).%s or(g(b)or p).%s or P(f) or e("attempt to perform bitwise operation on a "..(t(a)=="number" and t(b)or t(a)).." value",2))(a,b)end]],"__"..bt[v],"__"..bt[v])
+                ,"OP: '"..v.."'",nil,nil)(getmetatable,bit32[bt[v]],pcall,error,type)or idiv_func --this function creates ultra fast & short pice of runtime working code
                 --prewious code is equivalent of: function(a,b)
                 --    return((getmetatable(a)or pht)[bit_name] or (getmetatable(b)or pht)[bit_name] or bit_func)(a,b)
                 --end
@@ -866,7 +866,7 @@ end
         p=p+1
     end})
     if not direct then
-        local func = native_load([[local p,g,f={},... return function(a)return((g(a)or p).__bnot or f)(a)end]],"__cssc_bit_bnot",nil,nil)(getmetatable,bit32.bnot)
+        local func = native_load([[local p,g,f,P,e,t={},... return function(a)return((g(a)or p).__bnot or P(f) or e("attempt to perform bitwise operation on a "..t(a).." value",2))(a)end]],"__cssc_bit_bnot",nil,nil)(getmetatable,bit32.bnot,pcall,error,type)
         Control.Runtime.build("bit.bnot",func,1)
     else
         Control.Runtime.build("bitD.bnot",bit32.bnot,1)
@@ -1123,6 +1123,7 @@ KS={[_init]=function(Control,mod,arg)--keyword shorcuts
     local stx = [[O
 || or
 && and
+! not
 @ local
 $ return
 ]]
@@ -1149,7 +1150,7 @@ $ return
 		end
 	end
     Control:load_lib"code.syntax_loader"(stx,{O=function(k,v)
-        Control.Operators[k]=make_react(v,match(v,"^[ao]") and 2 or 4,#k)
+        Control.Operators[k]=make_react(v,match(v,"^[aon]") and 2 or 4,#k)
     end})
 end},
 LF={[_init]=function(Control)
