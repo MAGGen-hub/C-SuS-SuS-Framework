@@ -1,7 +1,7 @@
 {[_init]=function(Control)
     Control:load_lib"code.cssc.pdata"
     Control:load_lib"code.cssc.typeof"
-    local l,pht,ct = Control.Level,{},t_swap{__COMMENT__}
+    local l,pht,tb = Control.Level,{},Control.Cdata.skip_tb
     local used
     local mt=setmetatable({},{__index=function(s,i)return i end})
     local typeof=Control.typeof
@@ -39,12 +39,12 @@
         local da,i,err=l[#l].DA_d
         if da then i=da.c_a --DA data found
             if obj==":"then
-                --Control.log("nm :'%s'",Control.Result[Control.Cdata.tb_while(ct,#Control.Cdata-1)])
-                da[i]=da[i]or{[4]=Control.Result[Control.Cdata.tb_while(ct,#Control.Cdata-1)]}
+                --Control.log("nm :'%s'",Control.Result[Control.Cdata.tb_while(tb,#Control.Cdata-1)])
+                da[i]=da[i]or{[4]=Control.Result[Control.Cdata.tb_while(tb,#Control.Cdata-1)]}
                 if not da[i][2]then --block if inside def_arg
                     err,da[i][1]=da[i][1],#Control.Cdata--this arg has strict typing!
                 end
-            elseif obj=="="then da[i]=da[i]or{[4]=Control.Result[Control.Cdata.tb_while(ct,#Control.Cdata-1)]} err,da[i][2]=da[i][2],#Control.Cdata--def arg start
+            elseif obj=="="then da[i]=da[i]or{[4]=Control.Result[Control.Cdata.tb_while(tb,#Control.Cdata-1)]} err,da[i][2]=da[i][2],#Control.Cdata--def arg start
             elseif obj==","then da.c_a=da.c_a+1 (da[i]or pht)[3]=#Control.Cdata-1 --next possible arg; arg state end
             elseif not da[i] or not da[i][2] then err=__TRUE__ end
             if err then
@@ -72,8 +72,8 @@
                             insert(arr,{",",__OPERATOR__,pr}) --comma replace
                         elseif val[2]and j>val[2] then--def_arg
                             insert(arr,obj)
-                            ac=__COMMENT__~=obj[2] and ac+1 or ac
-                        elseif __COMMENT__~=obj[2] then--strict_type (val[1] - 100% exist) val[2]--already parced
+                            ac=not tb[obj[2]] and ac+1 or ac
+                        elseif not tb[obj[2]] then--strict_type (val[1] - 100% exist) val[2]--already parced
                             if not(obj[2]==__WORD__ or obj[2]==__STRING__ or match(obj[1],"^nil"))then 
                                 Control.error(err_text,obj[1])
                             elseif tej then 

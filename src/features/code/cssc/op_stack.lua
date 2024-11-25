@@ -1,7 +1,7 @@
 function(Control) --cssc feature to process and stack unfinished operators (turned into function calls) in current level data field. (op_st - field name) 
     --Control.OStack
     --OP_stack feature: {OP_index,OP_priority,OP_start,OP_breaket}
-    local L,CD,pht = Control.Level,Control.Cdata,{}
+    local L,CD,pht,tb = Control.Level,Control.Cdata,{},Control.Cdata.skip_tb
 
     --fin all unfinished operators
     Control.Event.reg("lvl_close",function(lvl)
@@ -46,7 +46,7 @@ function(Control) --cssc feature to process and stack unfinished operators (turn
             --print("cdt:",cdt)
             last=cdt
         else
-            _,last=Control.Cdata.tb_while({[__COMMENT__]=1},i-1)
+            _,last=Control.Cdata.tb_while(tb,i-1)
         end
         if i<sp then Control.error("OP_STACK Unexpected error!")end
         i=i+1 --increment i (index correction)

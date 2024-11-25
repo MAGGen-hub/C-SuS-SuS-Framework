@@ -24,7 +24,7 @@ function(Control,opts_hash,level_hash)--API to save code data to specific table
     del=function(id)--del specific value from index
         return remove(c,id or #c+1)
     end,
-    skip_tb=t_swap{__COMMENT__,__SPACE__},
+    skip_tb=t_swap{__COMMENT__,__SPACE__}, --specific table with non esentual values (by default)
     tb_until=function(type_tab,i)--thaceback_until:
         i=i or#c+1
         repeat i=i-1 until i<1 or type_tab[c[i][1]]

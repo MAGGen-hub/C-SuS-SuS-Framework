@@ -37,4 +37,16 @@
                 :gsub("temp"        ,   "t")
             
             end
-        
+
+
+--platform condition and semicolon end
+local a,b,c = get_values()
+    /|a? print(a)
+    :|b? print(b)
+    \| print(c);
+
+--basic condtiton, basic end
+local a,b,c = get_values()
+    if a then print(a)
+    elseif b then print(b)
+    else print(c) end

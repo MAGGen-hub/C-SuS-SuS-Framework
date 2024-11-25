@@ -19,7 +19,7 @@
         else error("bad argument #2 to 'is' operator (got '"..md.."', expected 'table' or 'string')",2)end
         return rez
     end]]
-    local tb = t_swap{__COMMENT__}
+    local tb = Control.Cdata.skip_tb
     local check = t_swap{__OPERATOR__,__OPEN_BREAKET__,__KEYWORD__}
     local after = t_swap{__KEYWORD__,__CLOSE_BREAKET__}
     Control.Runtime.build("kwrd.is",IS_func)
@@ -36,7 +36,7 @@
 
         Control.Event.reg("all",function(obj,tp)--error check after
             if after[tp] or tp==__OPERATOR__ and not Control.Cdata[#Control.Cdata][3] then Control.error("Unexpected '%s' after 'is'!",obj) end
-            return tp~=__COMMENT__ and __TRUE__ 
+            return not tb[tp] and __TRUE__ 
         end)
 
         Control.inject_operator(tab,Control.Cdata.opts["^"][1])

@@ -14,7 +14,7 @@
     local runtime_dual_func=function(obj) return obj==nil and runtime_dual_meta or setmetatable({},{__index=function(self,i)return obj[i] or phf end}) end
     Control.Runtime.build("nilF.dual",runtime_dual_func)
     Control.Runtime.build("nilF.basic",runtime_func)
-    local tb = t_swap{__COMMENT__}
+    local tb = Control.Cdata.skip_tb
     local check=t_swap{__STRING__,__WORD__,__CLOSE_BREAKET__}
 
     Control:load_lib"code.syntax_loader"(stx,{O=function(...)
@@ -30,10 +30,10 @@
                 Control.Event.run("all","?x",__OPERATOR__,__TRUE__)
                 if tp==":" then --dual operatiom -> index -> call
                     if not a_used then a_used=__TRUE__ Control.Runtime.reg("__cssc__op_d_nc","nilF.dual")end
-                    Control.inject_operator({{"__cssc__op_d_nc",__WORD__}},Control.Cdata.opts["."][1],false,false,true)
+                    Control.inject_operator({{" ",__SPACE__},{"__cssc__op_d_nc",__WORD__}},Control.Cdata.opts["."][1],false,false,true)
                 else
                     if not b_used then b_used=__TRUE__ Control.Runtime.reg("__cssc__op_nc","nilF.basic")end
-                    Control.inject_operator({{"__cssc__op_nc",__WORD__}},Control.Cdata.opts["."][1],false,false,true)
+                    Control.inject_operator({{" ",__SPACE__},{"__cssc__op_nc",__WORD__}},Control.Cdata.opts["."][1],false,false,true)
                 end
                 Control.split_seq(nil,1)--del "?"
             end

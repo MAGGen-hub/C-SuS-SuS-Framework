@@ -209,7 +209,7 @@ Features={code={cdata=function(Control,opts_hash,level_hash)--API to save code d
     del=function(id)--del specific value from index
         return remove(c,id or #c+1)
     end,
-    skip_tb=t_swap{11,5},
+    skip_tb=t_swap{11,5}, --specific table with non esentual values (by default)
     tb_until=function(type_tab,i)--thaceback_until:
         i=i or#c+1
         repeat i=i-1 until i<1 or type_tab[c[i][1]]
@@ -227,7 +227,7 @@ end,
 cssc={op_stack=function(Control) --cssc feature to process and stack unfinished operators (turned into function calls) in current level data field. (op_st - field name) 
     --Control.OStack
     --OP_stack feature: {OP_index,OP_priority,OP_start,OP_breaket}
-    local L,CD,pht = Control.Level,Control.Cdata,{}
+    local L,CD,pht,tb = Control.Level,Control.Cdata,{},Control.Cdata.skip_tb
 
     --fin all unfinished operators
     Control.Event.reg("lvl_close",function(lvl)
@@ -272,7 +272,7 @@ cssc={op_stack=function(Control) --cssc feature to process and stack unfinished 
             --print("cdt:",cdt)
             last=cdt
         else
-            _,last=Control.Cdata.tb_while({[11]=1},i-1)
+            _,last=Control.Cdata.tb_while(tb,i-1)
         end
         if i<sp then Control.error("OP_STACK Unexpected error!")end
         i=i+1 --increment i (index correction)
@@ -711,7 +711,10 @@ space_handler=function(Control)-- function to proccess spaces
 		space,Control[temp]=match(Control[temp],"^(%s*)(.*)")
 		space,temp=gsub(space,"\n",{})--line counter
 		Control.line=Control.line+temp
-		Control.Result[#Control.Result]=Control.Result[#Control.Result]..space--return space back to place
+		Control.index=Control.index+#space
+		--Control.Result[#Control.Result]=Control.Result[#Control.Result]..space--return space back to place
+		Control.Result[#Control.Result+1]=space
+		Control.Core(5,space)
 	end)
 end,
 },--Close dual_queue
@@ -766,7 +769,7 @@ Modules={cssc={[_init]=function(Control)
 	
 	--core setup
 	--DEPRECATED: local t={3,4,6,7,8}
-	local tb=t_swap{11}
+	local tb=Control.Cdata.skip_tb
 	--t=t_swap(t)
 	Control.Core=function(tp,obj)--type_of_text_object,object_it_self
 		local id_prew,c_prew,spifc=Control.Cdata.tb_while(tb)
@@ -828,7 +831,7 @@ end
             has_un=v=="~"
             k= v=="//" and opts["*"][1] or p --calc actual priority
             opts[v]=has_un and{k,p_un}or{k}
-            tab={{loc_base..bt[v],3}}
+            tab={{" ",5},{loc_base..bt[v],3}}
             
             has_un=has_un and {{loc_base.."bnot",3}}
             local bit_name,bit_func
@@ -884,7 +887,7 @@ CA={[_init]=function(Control)--C/C++ additional asignment operators
 
     local b_func={}
     local s=1
-    local tb=Control.CData.skip_tb
+    local tb=Control.Cdata.skip_tb
     local used
     local stx=[[O
 + - * / % .. ^ ?
@@ -964,7 +967,7 @@ end},
 DA={[_init]=function(Control)
     Control:load_lib"code.cssc.pdata"
     Control:load_lib"code.cssc.typeof"
-    local l,pht,ct = Control.Level,{},t_swap{11}
+    local l,pht,tb = Control.Level,{},Control.Cdata.skip_tb
     local used
     local mt=setmetatable({},{__index=function(s,i)return i end})
     local typeof=Control.typeof
@@ -1002,12 +1005,12 @@ DA={[_init]=function(Control)
         local da,i,err=l[#l].DA_d
         if da then i=da.c_a --DA data found
             if obj==":"then
-                --Control.log("nm :'%s'",Control.Result[Control.Cdata.tb_while(ct,#Control.Cdata-1)])
-                da[i]=da[i]or{[4]=Control.Result[Control.Cdata.tb_while(ct,#Control.Cdata-1)]}
+                --Control.log("nm :'%s'",Control.Result[Control.Cdata.tb_while(tb,#Control.Cdata-1)])
+                da[i]=da[i]or{[4]=Control.Result[Control.Cdata.tb_while(tb,#Control.Cdata-1)]}
                 if not da[i][2]then --block if inside def_arg
                     err,da[i][1]=da[i][1],#Control.Cdata--this arg has strict typing!
                 end
-            elseif obj=="="then da[i]=da[i]or{[4]=Control.Result[Control.Cdata.tb_while(ct,#Control.Cdata-1)]} err,da[i][2]=da[i][2],#Control.Cdata--def arg start
+            elseif obj=="="then da[i]=da[i]or{[4]=Control.Result[Control.Cdata.tb_while(tb,#Control.Cdata-1)]} err,da[i][2]=da[i][2],#Control.Cdata--def arg start
             elseif obj==","then da.c_a=da.c_a+1 (da[i]or pht)[3]=#Control.Cdata-1 --next possible arg; arg state end
             elseif not da[i] or not da[i][2] then err=1 end
             if err then
@@ -1035,8 +1038,8 @@ DA={[_init]=function(Control)
                             insert(arr,{",",2,pr}) --comma replace
                         elseif val[2]and j>val[2] then--def_arg
                             insert(arr,obj)
-                            ac=11~=obj[2] and ac+1 or ac
-                        elseif 11~=obj[2] then--strict_type (val[1] - 100% exist) val[2]--already parced
+                            ac=not tb[obj[2]] and ac+1 or ac
+                        elseif not tb[obj[2]] then--strict_type (val[1] - 100% exist) val[2]--already parced
                             if not(obj[2]==3 or obj[2]==7 or match(obj[1],"^nil"))then 
                                 Control.error(err_text,obj[1])
                             elseif tej then 
@@ -1094,7 +1097,7 @@ IS={[_init]=function(Control)
         else error("bad argument #2 to 'is' operator (got '"..md.."', expected 'table' or 'string')",2)end
         return rez
     end]]
-    local tb = t_swap{11}
+    local tb = Control.Cdata.skip_tb
     local check = t_swap{2,9,4}
     local after = t_swap{4,10}
     Control.Runtime.build("kwrd.is",IS_func)
@@ -1111,7 +1114,7 @@ IS={[_init]=function(Control)
 
         Control.Event.reg("all",function(obj,tp)--error check after
             if after[tp] or tp==2 and not Control.Cdata[#Control.Cdata][3] then Control.error("Unexpected '%s' after 'is'!",obj) end
-            return tp~=11 and 1 
+            return not tb[tp] and 1 
         end)
 
         Control.inject_operator(tab,Control.Cdata.opts["^"][1])
@@ -1145,11 +1148,15 @@ $ return
 	--specific make react with space addition
     local make_react=function(s,i,j) -- s -> replacer string, i - type of reaction, t - type of sequnece, j - local length
 		return function(Control)
-            Control.Result[#Control.Result]= Control.Result[#Control.Result].." "
-			insert(Control.Result,s.." ")
+            --Control.Result[#Control.Result]= Control.Result[#Control.Result].." "
+			Control.inject(nil," ",5)
+			
 			Control.operator=sub(Control.operator,j+1)
 			Control.index=Control.index+j
+			insert(Control.Result,s)
+			
 			Control.Core(i,s)
+			Control.inject(nil," ",5)
 		end
 	end
     Control:load_lib"code.syntax_loader"(stx,{O=function(k,v)
@@ -1157,17 +1164,17 @@ $ return
     end})
 end},
 LF={[_init]=function(Control)
-	local ct,fk = t_swap{11},"function"--mk hash table
+	local tb,fk = Control.Cdata.skip_tb,"function"--mk hash table
 	Control.Operators["->"]=function(Control)
-		local s,ei,ed,cor,br=3,Control.Cdata.tb_while(ct)--get last esenshual_index,esenshual_data
+		local s,ei,ed,cor,br=3,Control.Cdata.tb_while(tb)--get last esenshual_index,esenshual_data
 		if match(Control.Result[ei],"^%)")then--breaket located
 			ei=ed[2]
 			--Control.log("EI:%d - %s;%s;%s;",ei,Control.Result[ei],match(Control.Result[ei],"^[=%(,]"), ei and match(Control.Result[ei],"^[=%(,]"))
-			cor = ei and match(Control.Result[Control.Cdata.tb_while(ct,ei-1)]or"","^[=%(,]")--coma is acceptable here 
+			cor = ei and match(Control.Result[Control.Cdata.tb_while(tb,ei-1)]or"","^[=%(,]")--coma is acceptable here 
 			--Control.log("COR:%s",cor)
 		else--default args
-			while ei>0 and(ed[1]==11 or ed[1]==s or s~=3 and ((ed[2]or-1)==Control.Cdata.opts[","][1] and match(Control.Result[ei],"^%,")))do
-				ei,s=ei-1,s*(ed[1]~=11 and-1 or 1)--com skip/swap state 3/2(coma)
+			while ei>0 and(tb[ed[1]] or ed[1]==s or s~=3 and ((ed[2]or-1)==Control.Cdata.opts[","][1] and match(Control.Result[ei],"^%,")))do
+				ei,s=ei-1,s*(tb[ed[1]] and-1 or 1)--com skip/swap state 3/2(coma)
 				ed=Control.Cdata[ei]
 			end
 			ei,br,cor=ei+1,1,ei>0 and s~=3 and match(Control.Result[ei],"^[=%(]")
@@ -1176,12 +1183,13 @@ LF={[_init]=function(Control)
 		
 		--Control.inject(ei,""  .."--[[cl mrk]]"
 		--,2,Control.Cdata.opts[":"][1])--call mark
+		Control.inject(nil," ",5)
 		Control.inject(ei,fk,4)--inject function kwrd
 		if br then --place breakets
 			Control.inject(ei+1,"(",9)--inject open breaket
 			Control.inject(nil,")",10,ei+1)--inject closeing breaket
 		end
-		if"-"==sub(Control.operator,1,1)then Control.inject(nil,"return ",4) end--inject return kwrd
+		if"-"==sub(Control.operator,1,1)then Control.inject(nil,"return",4) Control.inject(nil," ",5) end--inject return kwrd
 
 		Control.Event.run(2,"->",2,1)--Iinform core about insertet operators (1 means cssc_generated)
 		Control.Event.run("all",sub(Control.operator,1,1)..">",tp,1)
@@ -1208,7 +1216,7 @@ NC={[_init]=function(Control)--nil check (nil forgiving operator feature)
     local runtime_dual_func=function(obj) return obj==nil and runtime_dual_meta or setmetatable({},{__index=function(self,i)return obj[i] or phf end}) end
     Control.Runtime.build("nilF.dual",runtime_dual_func)
     Control.Runtime.build("nilF.basic",runtime_func)
-    local tb = t_swap{11}
+    local tb = Control.Cdata.skip_tb
     local check=t_swap{7,3,10}
 
     Control:load_lib"code.syntax_loader"(stx,{O=function(...)
@@ -1224,10 +1232,10 @@ NC={[_init]=function(Control)--nil check (nil forgiving operator feature)
                 Control.Event.run("all","?x",2,1)
                 if tp==":" then --dual operatiom -> index -> call
                     if not a_used then a_used=1 Control.Runtime.reg("__cssc__op_d_nc","nilF.dual")end
-                    Control.inject_operator({{"__cssc__op_d_nc",3}},Control.Cdata.opts["."][1],false,false,true)
+                    Control.inject_operator({{" ",5},{"__cssc__op_d_nc",3}},Control.Cdata.opts["."][1],false,false,true)
                 else
                     if not b_used then b_used=1 Control.Runtime.reg("__cssc__op_nc","nilF.basic")end
-                    Control.inject_operator({{"__cssc__op_nc",3}},Control.Cdata.opts["."][1],false,false,true)
+                    Control.inject_operator({{" ",5},{"__cssc__op_nc",3}},Control.Cdata.opts["."][1],false,false,true)
                 end
                 Control.split_seq(nil,1)--del "?"
             end

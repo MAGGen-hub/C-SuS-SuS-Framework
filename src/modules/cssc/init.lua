@@ -42,7 +42,7 @@ function(Control)
 	
 	--core setup
 	--DEPRECATED: local t={__WORD__,__KEYWORD__,__NUMBER__,__STRING__,__VALUE__}
-	local tb=t_swap{__COMMENT__}
+	local tb=Control.Cdata.skip_tb
 	--t=t_swap(t)
 	Control.Core=function(tp,obj)--type_of_text_object,object_it_self
 		local id_prew,c_prew,spifc=Control.Cdata.tb_while(tb)

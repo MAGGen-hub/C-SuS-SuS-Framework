@@ -28,7 +28,7 @@
             has_un=v=="~"
             k= v=="//" and opts["*"][1] or p --calc actual priority
             opts[v]=has_un and{k,p_un}or{k}
-            tab={{loc_base..bt[v],__WORD__}}
+            tab={{" ",__SPACE__},{loc_base..bt[v],__WORD__}}
             
             has_un=has_un and {{loc_base.."bnot",__WORD__}}
             local bit_name,bit_func

@@ -4,6 +4,9 @@ function(Control)-- function to proccess spaces
 		space,Control[temp]=match(Control[temp],"^(%s*)(.*)")
 		space,temp=gsub(space,"\n",{})--line counter
 		Control.line=Control.line+temp
-		Control.Result[#Control.Result]=Control.Result[#Control.Result]..space--return space back to place
+		Control.index=Control.index+#space
+		--Control.Result[#Control.Result]=Control.Result[#Control.Result]..space--return space back to place
+		Control.Result[#Control.Result+1]=space
+		Control.Core(__SPACE__,space)
 	end)
 end

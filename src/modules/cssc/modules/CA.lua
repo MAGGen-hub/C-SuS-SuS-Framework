@@ -7,7 +7,7 @@
 
     local b_func={}
     local s=1
-    local tb=Control.CData.skip_tb
+    local tb=Control.Cdata.skip_tb
     local used
     local stx=[[O
 + - * / % .. ^ ?
