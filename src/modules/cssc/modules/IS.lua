@@ -11,7 +11,7 @@
         else error("bad argument #2 to 'is' operator (got '"..md.."', expected 'table' or 'string')",2)end
         return rez
     end
-    local tab,used={{"__cssc__kw_is",__WORD__}}
+    local tab,used={{" ",__SPACE__},{"__cssc__kw_is",__WORD__}}
     --[[Control.typeof=function(obj,comp)
         local md,tp,rez = ltp(comp),ltp(obj),false
         if md=="string"then rez=tp==comp

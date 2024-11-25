@@ -25,6 +25,7 @@ local type         = A(type,E)
 local pairs        = A(pairs,E)
 local error        = A(error,E)
 local tostring     = A(tostring,E)
+local tonumber     = A(tonumber,E)
 local getmetatable = A(getmetatable,E)
 local setmetatable = A(setmetatable,E)
 local pcall        = A(pcall,E)
@@ -36,5 +37,25 @@ __NATIVE_LOAD_VERSION_MACRO__
 A,E=nil
 local __PROJECT_NAME__ = {}
 local placeholder_func = function()end
+
+
+
+local E_ENV
+local env_load = function(...)
+    local rez = {}
+    for k,v in pairs{...}do
+
+    end
+end
+--DO NOT CHANGE VARIABLE ORDER IN E_ENV TAB!
+E_ENV = {gmatch,match,format,find,gsub,sub, --string functions
+insert,concat,remove,unpack, --table function
+floor, --math functions
+assert,type,pairs,error,tostring,tonumber, --generic functions
+getmetatable,setmetatable,pcall,native_load,bit32,
+placeholder_func,t_swap,t_copy
+
+}
+--EMBED_ENV make
 
 -- BASE VARIABLES LAYER END

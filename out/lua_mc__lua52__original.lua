@@ -25,6 +25,7 @@ local type         = A(type,E)
 local pairs        = A(pairs,E)
 local error        = A(error,E)
 local tostring     = A(tostring,E)
+local tonumber     = A(tonumber,E)
 local getmetatable = A(getmetatable,E)
 local setmetatable = A(setmetatable,E)
 local pcall        = A(pcall,E)
@@ -47,12 +48,32 @@ A,E=nil
 local lua_mc = {}
 local placeholder_func = function()end
 
+
+
+local E_ENV
+local env_load = function(...)
+    local rez = {}
+    for k,v in pairs{...}do
+
+    end
+end
+--DO NOT CHANGE VARIABLE ORDER IN E_ENV TAB!
+E_ENV = {gmatch,match,format,find,gsub,sub, --string functions
+insert,concat,remove,unpack, --table function
+floor, --math functions
+assert,type,pairs,error,tostring,tonumber, --generic functions
+getmetatable,setmetatable,pcall,native_load,bit32,
+placeholder_func,t_swap,t_copy
+
+}
+--EMBED_ENV make
+
 -- BASE VARIABLES LAYER END
 --ARG CHECK FUNC
 local arg_check,t_copy,t_swap,Modules,Features=function(Control)if(getmetatable(Control)or{}).__type~="cssc_unit"then error(format("Bad argument #1 (expected cssc_unit, got %s)",type(Control)),3)end end,function(s,o,f) for k,v in pairs(s)do o[k]=f and o[k]or v end end,function(t,o)o=o or {}for k,v in pairs(t)do o[v]=k end return o end
 --LOCALS
 local Configs,_init,_modules,_arg,load_lib,continue,clear,make,run,read_control_string,load_control_string={lua_mc_basic="sys.err,cssc={NF,KS,LF,BO,CA}",lua_mc_user="sys.err,cssc={NF,KS(sc_end),LF,DA,BO,CA,NC,IS}",lua_mc_full="sys.err,cssc={NF,KS(sc_end,pl_cond),LF,DA,BO,CA,NC,IS}"},setmetatable({},{__tostring=native_load"return'init'"}),setmetatable({},{__tostring=native_load"return'modules'"}),{'arg'},
-function(Control,path,...)arg_check(Control)--load_lib
+function(Control,path,...)arg_check(Control)--LOAD_LIB function
 	local ld,arg,tp=Control.Loaded[">"..path],{}
 	if false~=ld then
 		Control.log("Load %s",">"..path)
@@ -66,19 +87,14 @@ end,
 function(Control,x,...)arg_check(Control)--continue
 	Control.src=x
 	Control.args={...}
-	--PRE RUN
-	Control:tab_run"PreRun"
-	--COMPILE
-	while not Control.Iterator(0)do
-		Control:tab_run("Struct",1)
-		--for k,v in pairs(Control.Struct)do --custom structure system
-		--	if v(Control)then break end
-		--end
-	end
-	--POST RUN
-	Control:tab_run"PostRun"
-	--FINISH COMPILE and return result
-	local e=type(Control.Return)
+	
+	Control:tab_run"PreRun"--PRE RUN
+	
+	while not Control.Iterator(0)do Control:tab_run("Struct",1)end--COMPILE
+
+	Control:tab_run"PostRun"--POST RUN
+
+	local e=type(Control.Return)--FINISH COMPILE
 	if"function"==e then
 		return Control.Return()
 	elseif"table"==e then
@@ -88,11 +104,11 @@ function(Control,x,...)arg_check(Control)--continue
 	end
 end,
 function(Control)arg_check(Control)Control:tab_run"Clear"end--clear
-run=function(Control,x,...)Control:clear()return Control:continue(x,...)end
+run=function(Control,x,...)arg_check(Control)Control:clear()return Control:continue(x,...)end
 
 make=function(ctrl_str)
-	--ARG CHECK
-	if"string"~=type(ctrl_str)then error(format("Bad argument #2 (expected string, got %s)",type(ctrl_str)))end
+	if"string"~=type(ctrl_str)then error(format("Bad argument #2 (expected string, got %s)",type(ctrl_str)))end--ARG CHECK
+
 	--INITIALISE PREPROCESSOR OBJECT
 	local m,i,Control,r={__type="cssc_unit",__name="cssc_unit"},1
 	r={__call=function(S,s,...)if#S>999 then remove(S,1)end insert(S,format("%-16s : "..s,format("[%0.3d] [%s]",i,S._),...)) i=i+1 end}
@@ -110,28 +126,28 @@ make=function(ctrl_str)
 		Iterator=native_load"return 1",
 		--META
 		meta=m},m)
-	--Control.push_error=function(str,...)insert(Control.Errors,{format(str,...),...})end--default error inserter
-	--CONTROL STRING LOAD
-	load_control_string(Control,read_control_string(ctrl_str))
+	
+	load_control_string(Control,read_control_string(ctrl_str))--CONTROL STRING LOAD AND PARCE
 	--POST LOAD
 	Control:tab_run"PostLoad"
 	return Control
 end
 read_control_string=function(s)--RECURSIVE FUNC: turn control string into table and load configs
 	local c,t,l,e,m={"config",[_arg]={}}--config and arg marks!
-	m={__index=function(s,i)s=s==c and setmetatable({c[1],[_arg]={}},m)or s s[#s+1]=i return s end,__call=function(s,...)
+	m={__index=function(s,i)s=s==c and setmetatable({c[1],[_arg]={}},m)or s s[#s+1]=i return s end,
+		__call=function(s,...)
 			local l={...}
 			for i=1,#l do l[i]="table"==type(l[i])and l[i][_arg]and concat(l[i],".")or l[i] end
 			s[_arg][s[#s]]=#l==1 and"table"==type(l[1])and l[1]or l
 			return s end}
+
 	l,e=native_load(gsub(format("return{%s}",s),"([{,])([^,]-)=","%1[%2]="),"ctrl_str",t,setmetatable({},{__index=function(s,i)return setmetatable(i==c[1]and c or{[_arg]={},i},m) end}))
 	l=e and error(format("Invalid control string: <%s> -> %s",s,e))or l()
 	s,l[c]=l[c]
 	t,e=pcall(concat,s)
 	e=Configs[t and e or s]
 	t=1
-	for k,v in pairs(e and read_control_string(e)or{})do
-		-- l["number"==type(k)and#l+1 or k]=v
+	for k,v in pairs(e and read_control_string(e)or{})do --read config
 		if"number"==type(k)then insert(l,t,v) t=t+1 else l[k]=v end
 	end
 	return l,a
@@ -145,18 +161,16 @@ load_control_string=function(Control,main,sub,nxt,path)--RECURSIVE FUNC: load re
 		Control.Loaded[path],e=pcall(function()
 			if Control.Loaded[path]then return end --prevent double load
 			Control.log("Load %s",path)
-			--prt=mod[_modules]and{}or#main>0 and main or sub or{}
-			--for k,v in pairs(prt)do if"table"==type(v)then prt={}break end end
-			--   print(path,mod[_init])
 			;(mod[_init]or placeholder_func)(Control,mod,main[_arg][prt])
-			--write(path)write"Args: "p(prt)
 		end)
 		mod=e and error(format('Error loading module "%s": %s',path,e),4)or mod[_modules]
 	else
 		mod=Modules--INIT LOADER
 		sub=main
 	end
+
 	--mod={}--DEBUG! Show all modules without any rules
+
 	if mod then  --load sub_modules if exist
 		path=path and path.."."or"@"
 		if nxt and#main>0 then load_control_string(Control,main,sub,mod,path)
@@ -168,7 +182,7 @@ load_control_string=function(Control,main,sub,nxt,path)--RECURSIVE FUNC: load re
 		end end
 	end
 end
---TODO: giper native load with auto _ENV set
+
 do
 --__PREPARE_FEATURES__
 
@@ -485,11 +499,6 @@ struct=function(Control)--comment/string/number detector
 	--STRUCTURE MODULE
 	insert(Control.Struct,function()
 		local com,rez,mode,lvl,str=#Control.operator>0 and"operator"or"word"
-		--SPACE HANDLER
-		--mode,Control[com]=match(Control[com],"^(%s*)(.*)")
-		--mode,com=gsub(mode,"\n","\n")--line counter
-		--Control.line=Control.line+com
-		--Control.Result[#Control.Result]=Control.Result[#Control.Result]..mode--return space back to place
 		--STRUCTURE HANDLER
 		if#Control.operator>0 then --string structures
 			rez,com,lvl={},match(Control.operator,"^(-?)%1%[(=*)%[")--long strings and coments
@@ -790,9 +799,14 @@ Modules={cssc={[_init]=function(Control)
 	--TODO:RUNTIME DATA PUSH API (inject cssc functions at the start of file to work with them)
 end
 ,
-[_modules]={BO={[_init]=function(Control,direct)--bitwize operators (lua53 - backport feature) and idiv
+[_modules]={BO={[_init]=function(Control,mod,arg)--bitwize operators (lua53 - backport feature) and idiv
     if not bit32 then Control.warn("Unable to load bitwize operators feature! Bit/Bit32 libruary not found!")return end
-    direct=false--TODO:temporal solution rework
+    local direct=false--TODO:temporal solution rework
+    if arg then
+        for k,v in pairs(arg)do
+            direct = direct or v=="direct"
+        end
+    end
     Control:load_lib"code.cssc.pdata"
     Control:load_lib"code.cssc.op_stack"
     local opts= Control.Cdata.opts
@@ -809,7 +823,7 @@ end
     local bt=t_swap{shl='<<',shr='>>',bxor='~',bor='|',band='&',idiv='//'}--bitw funcs
     local tb=Control.Cdata.skip_tb
     local check = t_swap{2,9,4}
-    local loc_base = "__cssc__bit_"
+    local loc_base = "__cssc__bit_"..(direct and"d_"or"")
     local used_opts= {}
     local num="number"
     local idiv_func=native_load([[local p,n,t,g,e,F,f={},"number",... f=function(a,b)local ta,tb=t(a)==n, t(b)==n if ta and tb then return F(a/b)end e("attempt to perform ariphmetic on a "..(ta and t(b) or t(a)).." value",2)end
@@ -828,11 +842,8 @@ end
             if not direct then
                 local func =bit32[bt[v]] and native_load(format([[local p,g,f,P,e,t={},... return function(a,b)a,b=P((g(a)or p).%s or(g(b)or p).%s or f ,a,b) return a and b or e(((g(a)or p).%s or(g(b)or p).%s) and b or("attempt to perform ariphmetic on a "..(ta and t(b) or t(a)).." value"),2) end]],"__"..bt[v],"__"..bt[v],"__"..bt[v],"__"..bt[v])
                 ,"OP: '"..v.."'",nil,nil)(getmetatable,bit32[bt[v]],pcall,error,type)or idiv_func --this function creates ultra fast & short pice of runtime working code
-                --prewious code is equivalent of: function(a,b)
-                --    return((getmetatable(a)or pht)[bit_name] or (getmetatable(b)or pht)[bit_name] or bit_func)(a,b)
-                --end
                 Control.Runtime.build("bit."..bt[v],func,1)
-            else Control.Runtime.build("bitD."..bt[v],func,1) end
+            else Control.Runtime.build("bitD."..bt[v],bit32[bt[v]] or idiv_func ,1) end
             
             Control.Operators[v]=function()--operator detected!
                 local id,prew,is_un = Control.Cdata.tb_while(tb)
@@ -859,11 +870,11 @@ end
         end
         p=p+1
     end})
-    if not direct then
+    if  direct then
+        Control.Runtime.build("bitD.bnot",bit32.bnot,1)
+    else
         local func = native_load([[local p,g,f,P,e,t,_={},... return function(a)_,a=P((g(a)or p).__bnot or f,a) return _ and a or e((g(a)or p).__bnot and a or ("attempt to perform bitwise operation on a "..t(a).." value"),2) end]],"__cssc_bit_bnot",nil,nil)(getmetatable,bit32.bnot,pcall,error,type)
         Control.Runtime.build("bit.bnot",func,1)
-    else
-        Control.Runtime.build("bitD.bnot",bit32.bnot,1)
     end
     insert(Control.Clear,function()used_opts={}end)
 end},
@@ -1078,7 +1089,7 @@ IS={[_init]=function(Control)
         else error("bad argument #2 to 'is' operator (got '"..md.."', expected 'table' or 'string')",2)end
         return rez
     end
-    local tab,used={{"__cssc__kw_is",3}}
+    local tab,used={{" ",5},{"__cssc__kw_is",3}}
     --[[Control.typeof=function(obj,comp)
         local md,tp,rez = ltp(comp),ltp(obj),false
         if md=="string"then rez=tp==comp
@@ -1391,4 +1402,3 @@ lua_mc={make=make,run=run,clear=clear,Features=Features,Modules=Modules,Configs=
  _G.lua_mc=lua_mc
 -- _G.lua_mc.test=read_control_string
 return lua_mc
-

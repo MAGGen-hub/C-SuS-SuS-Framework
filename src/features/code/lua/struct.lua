@@ -44,11 +44,6 @@ function(Control)--comment/string/number detector
 	--STRUCTURE MODULE
 	insert(Control.Struct,function()
 		local com,rez,mode,lvl,str=#Control.operator>0 and"operator"or"word"
-		--SPACE HANDLER
-		--mode,Control[com]=match(Control[com],"^(%s*)(.*)")
-		--mode,com=gsub(mode,"\n","\n")--line counter
-		--Control.line=Control.line+com
-		--Control.Result[#Control.Result]=Control.Result[#Control.Result]..mode--return space back to place
 		--STRUCTURE HANDLER
 		if#Control.operator>0 then --string structures
 			rez,com,lvl={},match(Control.operator,"^(-?)%1%[(=*)%[")--long strings and coments

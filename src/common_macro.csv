@@ -19,3 +19,31 @@ __COMMENT__,11,Comment that means nothing to compiller
 __UNFINISHED__,12,Unfinished comment/string/structure/anything
 
 __TRUE__,1,boolean "avoider"
+
+__ENV_GMATCH__,1, Access funcs in embed scripts from 
+__ENV_MATCH__,2
+__ENV_FORMAT__,3
+__ENV_FIND__,4
+__ENV_GSUB__,5
+__ENV_SUB__,6
+__ENV_INSERT__,7
+__ENV_CONCAT__,8
+__ENV_REMOVE__,9
+__ENV_UNPACK__,10
+__ENV_FLOOR__,11
+__ENV_ASSERT__,12
+__ENV_TYPE__,13
+__ENV_PAIRS__,14
+__ENV_ERROR__,15
+__ENV_TOSTRING__,16
+__ENV_TONUMBER__,17
+__ENV_GETMETATABLE__,18
+__ENV_SETMETATABLE__,19
+__ENV_PCALL__,20
+__ENV_LOAD__,21
+__ENV_BIT_LIB__,22
+__ENV_PLACEHOLDER_FUNC__,23
+__ENV_T_SWAP__,24
+__ENV_T_COPY__,25
+
+
