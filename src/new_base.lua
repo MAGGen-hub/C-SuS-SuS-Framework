@@ -89,8 +89,8 @@ load_control_string=function(Control,main,sub,nxt,path)--RECURSIVE FUNC: load re
 		path=path..prt
 		Control.Loaded[path],e=pcall(function()
 			if Control.Loaded[path]then return end --prevent double load
-			Control.log("Load %s",path)
-			;(mod[_init]or placeholder_func)(Control,mod,main[_arg][prt])
+			Control.log("Load %s",path);
+			(mod[_init]or placeholder_func)(Control,mod,main[_arg][prt])
 		end)
 		mod=e and error(format('Error loading module "%s": %s',path,e),4)or mod[_modules]
 	else
