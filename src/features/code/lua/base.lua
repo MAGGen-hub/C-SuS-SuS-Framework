@@ -1,4 +1,5 @@
-function(Control,O,W)-- O - Control.Operators or other table; W - Control.Words or other table (depends on current text parceing system)
+local match,pairs,tonumber = ENV(__ENV_MATCH__,__ENV_PAIRS__,__ENV_TONUMBER__)
+local O,W=...-- O - Control.Operators or other table; W - Control.Words or other table (depends on current text parceing system)
 --BASE LUA SYNTAX STRING (keywords/operators/breakets/values)
 local make_react,lvl,kw,kwrd,opt,t,p,lua51=Control:load_lib"text.dual_queue.make_react",{},{},{},{},{},1,
 [[K
@@ -84,4 +85,3 @@ opt["not"]={nil,opt["not"][1]}--unary opts fix
 opt["#"]={nil,opt["#"][1]}
 --TODO: inject cdata api -> stat_ends/calls
 return __RECALLABLE__,lvl,opt,kwrd--(leveling_hash,operator_hash<with_priority>,keywrod_hash)
-end

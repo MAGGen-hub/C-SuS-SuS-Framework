@@ -24,7 +24,7 @@
 
 
 --PROJECT DATA
-local project_name = "lua_mc"
+local project_name = "cssc_beta"
 local version	  = "4.5-beta"
 local version_num  = 4.5
 
@@ -113,7 +113,7 @@ end
 string.gifsub = function(text,condition,pattern,replacement)
 	return condition and text:gsub(pattern,replacement) or text
 end
-
+--[=[
 local compile_dir
 compile_dir = function(src,path,subdir,md)
 	path=path.."={"
@@ -130,24 +130,53 @@ compile_dir = function(src,path,subdir,md)
 		end
 	end
 	return path..(subdir and""or"}")
+end]=]
+local compile_macros=function(code_name,code)
+	--COMPILE MACROS
+	if code_name then
+		for k,v in pairs(macro)do
+			code=code:gsub(v,get_src(fs.combine(src_dir,code_name,v..".lua")))
+		end
+	end
+	get_src(macro_src):sub(16):gsub("\n+(.-),(.-),.-",function(name,value)code=code:gsub(name,value)end)
+	--SET PROJECT NAME
+	code=code:gsub("__PROJECT_NAME__",project_name)
+	return code
 end
+local compile_dir
+compile_dir = function(src_dir,out_dir,sub_dir)
+	local new_dir = fs.combine(out_dir,sub_dir)
+	if not(fs.exists(new_dir) and fs.isDir(new_dir))then
+		--if fs.exist(new_dir)then fs.delete() end
+		fs.makeDir(new_dir)
+	end
+	for k,v in pairs(fs.list(src_dir))do --for each file/dir
+		local obj = fs.combine(src_dir,v)
+		if fs.isDir(obj) then compile_dir(obj,new_dir,v)--dir
+		else
+			local src = get_src(obj)--file
+			src=compile_macros(nil,src)
+			set_out(fs.combine(new_dir,v),src)
+		end
+	end
 
+end
 --COMPILE:
 for code_name,enabled in pairs(compile) do
 	if enabled then
 		--GET CODE
 		local code = table.concat{get_src(protect_src),get_src(base_src)}--,get_src(cores_src),get_src(modules_src)}
 		--MAKE_FEATURES
-		code=code:gsub("__FEATURES__",function()return compile_dir(features_src,"\nFeatures").."--END OF FEATURES\n"end)
+		compile_dir(features_src,out_dir,"features")
+		compile_dir(modules_src,out_dir,"modules")
+		--code=code:gsub("__FEATURES__",function()return compile_dir(features_src,"\nFeatures").."--END OF FEATURES\n"end)
 		--MAKE MODULES
-		code=code:gsub("__MODULES__",function()return compile_dir(modules_src ,"\nModules",nil,1).."--END OF MODULES\n"end)
-		--COMPILE MACROS
-		for k,v in pairs(macro)do
+		--code=code:gsub("__MODULES__",function()return compile_dir(modules_src ,"\nModules",nil,1).."--END OF MODULES\n"end)
+		code=compile_macros(code_name,code)
+		--[==[for k,v in pairs(macro)do
 			code=code:gsub(v,get_src(fs.combine(src_dir,code_name,v..".lua")))
 			get_src(macro_src):sub(16):gsub("\n+(.-),(.-),.-",function(name,value)code=code:gsub(name,value)end)
-		end 
-		--SET PROJECT NAME
-		code=code:gsub("__PROJECT_NAME__",project_name)
+		end ]==]
 		--code = code
 		--REMOVE DEBUG
 		if config.debug then
@@ -163,4 +192,4 @@ end
 --CLEAR STRING METATABLE
 string.gifsub = nil
 --WARNING: debug feature! disable if unwanted
-shell.run("/cssc_final/out/lua_mc__craft_os__original.lua")
+shell.run("/cssc_final/out/cssc_beta__craft_os__original.lua")

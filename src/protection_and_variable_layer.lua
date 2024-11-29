@@ -1,7 +1,7 @@
 -- PROTECTION LAYER
 -- This local var layer was created to prevent unpredicted behaviour of preprocessor if one of the functions in _G table was changed.
 local A,E=assert,"__PROJECT_NAME__ load failed because of missing libruary method!"
-
+local base_path="/cssc_final/out/"
 -- string.lib
 local gmatch = A(string.gmatch,E)
 local match  = A(string.match,E)
@@ -38,14 +38,15 @@ A,E=nil
 local __PROJECT_NAME__ = {}
 local placeholder_func = function()end
 
-
+local t_copy,t_swap=	
+    function(s,o,f) for k,v in pairs(s)do o[k]=f and o[k]or v end end,
+    function(t,o)o=o or {}for k,v in pairs(t)do o[v]=k end return o end
 
 local E_ENV
 local env_load = function(...)
     local rez = {}
-    for k,v in pairs{...}do
-
-    end
+    for k,v in pairs{...}do insert(rez,E_ENV[v]) end
+    return unpack(rez)
 end
 --DO NOT CHANGE VARIABLE ORDER IN E_ENV TAB!
 E_ENV = {gmatch,match,format,find,gsub,sub, --string functions
