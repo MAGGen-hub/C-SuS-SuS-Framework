@@ -1,6 +1,6 @@
 local sub,insert,pairs,setmetatable,t_swap=ENV(6,7,14,19,24)
 --nil check (nil forgiving operator feature)
-Control:load_lib"code.cssc.pdata"
+Control:load_lib"code.cssc.runtime"
 Control:load_lib"code.cssc.op_stack"
 local stx = [[O
 ?. ?: ?( ?{ ?[ ?" ?'
@@ -31,14 +31,14 @@ Control:load_lib"code.syntax_loader"(stx,{O=function(...)
             Control.Event.run("all","?x",2,1)
             if tp==":" then --dual operatiom -> index -> call
                 if not a_used then a_used=1 Control.Runtime.reg("__cssc__op_d_nc","nilF.dual")end
-                Control.inject_operator({{" ",5},{"__cssc__op_d_nc",3}},Control.Cdata.opts["."][1],false,false,true)
+                Control.configure_operator({{" ",5},{"__cssc__op_d_nc",3}},Control.Cdata.opts["."][1],false,false,true)
             else
                 if not b_used then b_used=1 Control.Runtime.reg("__cssc__op_nc","nilF.basic")end
-                Control.inject_operator({{" ",5},{"__cssc__op_nc",3}},Control.Cdata.opts["."][1],false,false,true)
+                Control.configure_operator({{" ",5},{"__cssc__op_nc",3}},Control.Cdata.opts["."][1],false,false,true)
             end
             Control.split_seq(nil,1)--del "?"
         end
     end
 end})
 insert(Control.Clear,function()b_used,a_used=nil end)
-return 1
+--return 1

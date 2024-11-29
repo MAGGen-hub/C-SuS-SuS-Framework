@@ -5,4 +5,4 @@ Control.error = function(str,...)
 		error("cssc_beta["..(Control.line or"X").."]:"..format(str,unpack(l)),3)
 	end
 end
-return 1
+--return 1

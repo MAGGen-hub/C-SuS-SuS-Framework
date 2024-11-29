@@ -5,4 +5,4 @@ Control.error = function(str,...)
 		error("__PROJECT_NAME__["..(Control.line or"X").."]:"..format(str,unpack(l)),3)
 	end
 end
-return __TRUE__
+--return __TRUE__

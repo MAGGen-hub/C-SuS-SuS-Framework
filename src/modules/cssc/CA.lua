@@ -1,6 +1,6 @@
 local match,insert,unpack,pairs,t_swap = ENV(__ENV_MATCH__,__ENV_INSERT__,__ENV_UNPACK__,__ENV_PAIRS__,__ENV_T_SWAP__)
 --C/C++ additional asignment operators
-Control:load_lib"code.cssc.pdata"
+Control:load_lib"code.cssc.runtime"
 Control:load_lib"code.cssc.op_stack"
 local prohibited_area = t_swap{"(","{","[","for","while","if","elseif","until"}
 local cond ={["&&"]="and",["||"]="or"}
@@ -42,7 +42,7 @@ Control:load_lib"code.syntax_loader"(stx,{O=function(...)
             Control.Event.run("all",v.."=",__OPERATOR__,__TRUE__)
 
 
-            local i,last=Control.inject_operator(nil,Control.Cdata.opts[","][1]+1,false,__TRUE__,false,#Control.Cdata-1)--add ")" to fin on, or stat end
+            local i,last=Control.configure_operator(nil,Control.Cdata.opts[","][1]+1,false,__TRUE__,false,#Control.Cdata-1)--add ")" to fin on, or stat end
             
             --print(i,last[1],last[1]==__OPERATOR__,last[2], last[2]==Control.Cdata.opts[","][1])
             if last[1]==__OPERATOR__ and last[2]==Control.Cdata.opts[","][1] then --TODO: Temporal solution! Rework!
@@ -84,4 +84,4 @@ Control:load_lib"code.syntax_loader"(stx,{O=function(...)
     s=s+1
 end})
 insert(Control.Clear,function()used=nil end)
-return __TRUE__
+--return __TRUE__

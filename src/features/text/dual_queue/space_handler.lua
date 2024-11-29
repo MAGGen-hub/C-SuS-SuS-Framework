@@ -6,7 +6,6 @@ insert(Control.Struct,function()--SPACE HANDLER
 	space,temp=gsub(space,"\n",{})--line counter
 	Control.line=Control.line+temp
 	Control.index=Control.index+#space
-	--Control.Result[#Control.Result]=Control.Result[#Control.Result]..space--return space back to place
 	Control.Result[#Control.Result+1]=space
 	Control.Core(__SPACE__,space)
 end)

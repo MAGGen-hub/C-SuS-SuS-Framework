@@ -1,4 +1,4 @@
-local match,insert,remove,unpack,placeholder_func = ENV(__ENV_MATCH__,__ENV_INSERT__,__ENV_REMOVE__,__ENV_UNPACK__,__ENV_PLACEHOLDER_FUNC__)
+local match,insert,remove,unpack,native_load,placeholder_func = ENV(__ENV_MATCH__,__ENV_INSERT__,__ENV_REMOVE__,__ENV_UNPACK__,__ENV_LOAD__,__ENV_PLACEHOLDER_FUNC__)
 --code parceing system
 Control:load_lib"text.dual_queue.base"
 Control:load_lib"text.dual_queue.parcer"
@@ -7,7 +7,7 @@ Control:load_lib"text.dual_queue.space_handler"
 
 --base lua data (structs/operators/keywords)
 local lvl, opt, kwrd = Control:load_lib("code.lua.base",Control.Operators,Control.Words)
-Control.get_num_prt,Control.split_seq=Control:load_lib"code.lua.struct"
+Control:load_lib"code.lua.struct"
 
 --load analisys systems
 Control:load_lib("code.cdata",opt,lvl,placeholder_func)

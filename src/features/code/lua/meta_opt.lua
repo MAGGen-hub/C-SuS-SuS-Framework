@@ -1,3 +1,4 @@
+--LUA CALL AND STAT_END (statement_separation) MARKERS
 local t_swap = ENV(__ENV_T_SWAP__)
 local place_mark=...
 

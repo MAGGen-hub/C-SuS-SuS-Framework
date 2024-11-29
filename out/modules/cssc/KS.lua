@@ -1,4 +1,4 @@
-local match,sub,pairs=ENV(2,6,14)
+local match,sub,insert,pairs=ENV(2,6,7,14)
 
 local mod,arg=... --keyword shorcuts
 --require"cc.pretty".pretty_print(arg)
@@ -38,4 +38,4 @@ end
 Control:load_lib"code.syntax_loader"(stx,{O=function(k,v)
 	Control.Operators[k]=make_react(v,match(v,"^[aon]") and 2 or 4,#k)
 end})
-return 1
+--return 1

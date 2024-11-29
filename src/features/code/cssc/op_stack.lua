@@ -32,7 +32,7 @@ Control.Event.reg(__OPERATOR__,function(obj,tp)
     end
 end,"OP_st_d",__TRUE__)
 
-Control.inject_operator = function(pre_tab,priority, is_unary,skip_fb,now_end,id)--function to inject common operators fast
+Control.configure_operator = function(pre_tab,priority, is_unary,skip_fb,now_end,id)--function to inject common operators fast
     --init locals
     local lvl,i,cdt,b,st,sp,last =L[#L],id or #CD --level; index; breaket; curent_cdata,stack_tab,start_pos
     cdt,st,pre_tab=CD[i],lvl.OP_st or{},pre_tab or{}

@@ -2,13 +2,13 @@ local match,format,insert,floor,type,pairs,error,getmetatable,pcall,native_load,
 local mod,arg=...
 --bitwize operators (lua53 - backport feature) and idiv
 if not bit32 then Control.warn("Unable to load bitwize operators feature! Bit/Bit32 libruary not found!")return end
-local direct=false--TODO:temporal solution rework
+local direct--TODO:temporal solution rework
 if arg then
     for k,v in pairs(arg)do
         direct = direct or v=="direct"
     end
 end
-Control:load_lib"code.cssc.pdata"
+Control:load_lib"code.cssc.runtime"
 Control:load_lib"code.cssc.op_stack"
 local opts= Control.Cdata.opts
 local stx=[[O
@@ -17,7 +17,7 @@ local stx=[[O
 &
 << >>
 //
-]]--last one 'bitwize not'
+]]--last one 'bitwize not' (not shown in "stx")
 local pht ={}
 local p = opts["<"][1]+1 --priority base
 local p_un = opts["#"][2] --unary priority
@@ -65,7 +65,7 @@ Control:load_lib"code.syntax_loader"(stx,{O=function(...)--reg syntax
                 return not tb[tp] and __TRUE__ 
             end)
             --reg operator data
-            Control.inject_operator(is_un and has_un or tab,is_un and p_un or k,is_un,nil,nil) --including stat_end
+            Control.configure_operator(is_un and has_un or tab,is_un and p_un or k,is_un,nil,nil) --including stat_end
         end
         --TODO: opts
     end
@@ -78,4 +78,4 @@ else
     Control.Runtime.build("bit.bnot",func,__TRUE__)
 end
 insert(Control.Clear,function()used_opts={}end)
-return __TRUE__
+--return __TRUE__

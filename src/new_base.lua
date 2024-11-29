@@ -4,35 +4,44 @@ local arg_check=function(Control)
 		error(format("Bad argument #1 (expected cssc_unit, got %s)",type(Control)),3)
 	end 
 end
+--TAB RUN helping function to execute all funcs in table
+local tab_run=function(Control,tab,br)for k,v in pairs(Control[tab])do if v(Control)and br then break end end end
 --LOCALS
 local Configs,_arg,load_lib,continue,clear,make,run,read_control_string,load_control_string=
 {cssc_basic="sys.err,cssc={NF,KS,LF,BO,CA}",--configs
  cssc_user="sys.err,cssc={NF,KS(sc_end),LF,DA,BO,CA,NC,IS}",
  cssc_full="sys.err,cssc={NF,KS(sc_end,pl_cond),LF,DA,BO,CA,NC,IS}"},
 {'arg'},--constrol_string_arg_accessor
-function(Control,path,...)arg_check(Control)--LOAD_LIB function TODO:REWORK
+function(Control,path,...)arg_check(Control)--LOAD_LIB function
 	local ld,arg,tp=Control.Loaded[">"..path],{}
-	if false~=ld then
-		Control.log("Load %s",">"..path)
-		if ld and ld~=__RECALLABLE__ then return unpack(ld)end--return previous result (__RESULTABLE__ mode)
-		--arg={native_load("return "..path.."(...)","Feature Loader",nil,Features)(Control,...)}
+	if false~=ld then--__SINGLECALL__ -> default mode
+		Control.log("Load %s",">"..path)--log func loading
+		if ld and"function"==type(ld)then arg={ld(...)} remove(arg,1)return unpack(arg)end--__RECALLABLE__ mode
+		if ld and"table"==type(ld)then return unpack(ld)end--__RESULTABLE__ mode
+		--FIRST LOAD or __RELOADABLE__ mode
 		local r,e=native_loadfile(base_path.."features/"..gsub(path,"%.","/")..".lua",nil,setmetatable({C=Control,Control=Control,ENV=env_load,_G=_G,_E=_ENV},{__index=Control}))
-		e=e and error("Lib ["..path.."]:"..e.."; "..base_path.."features/"..path..".lua")--error(format('Error loading libruary "%s": %s',path,e))
+		e=e and error("Lib ["..path.."]:"..e)
 		arg={r(...)}
-		tp=remove(arg,1)or false --if no return -> default mode (only one launch allowed)
-		Control.Loaded[">"..path]=__RESULTABLE__==tp and arg or tp--setup reaction to future call(deny_lib_load/recal/return_old_rez)
+		tp=remove(arg,1)or false --if no return -> __SINGLECALL__ mode (only one launch allowed)
+		Control.Loaded[">"..path]=__RESULTABLE__==tp and arg or (tp==__RECALLABLE__) and r or tp--setup reaction to future call(deny_lib_load/recal/return_old_rez)
 	end
-	return unpack(arg)
-end,
-function(Control,x,...)arg_check(Control)--continue
+	return unpack(arg)--__FIRST LOAD return
+end
+
+--continue=function(Control,x,...)arg_check(Control)end --TODO: Future feature
+
+clear=function(Control)arg_check(Control)tab_run(Control,"Clear")end--clear
+
+run=function(Control,x,...)arg_check(Control)
+	tab_run(Control,"Clear")
 	Control.src=x
 	Control.args={...}
 	
-	Control:tab_run"PreRun"--PRE RUN
-	
-	while not Control.Iterator(__MAIN_CYCLE__)do Control:tab_run("Struct",1)end--COMPILE
+	tab_run(Control,"PreRun")--PRE RUN
 
-	Control:tab_run"PostRun"--POST RUN
+	while not Control.Iterator(__MAIN_CYCLE__)do tab_run(Control,"Struct",1)end--COMPILE
+
+	tab_run(Control,"PostRun")--POST RUN
 
 	local e=type(Control.Return)--FINISH COMPILE
 	if"function"==e then
@@ -42,23 +51,22 @@ function(Control,x,...)arg_check(Control)--continue
 	else
 		return Control.Return
 	end
-end,
-function(Control)arg_check(Control)Control:tab_run"Clear"end--clear
-
-run=function(Control,x,...)arg_check(Control)
-	Control:clear()return Control:continue(x,...)
 end
 
+--PROJECT MAKER
 make=function(ctrl_str)
 	if"string"~=type(ctrl_str)then error(format("Bad argument #2 (expected string, got %s)",type(ctrl_str)))end--ARG CHECK
 
 	--INITIALISE PREPROCESSOR OBJECT
 	local m,i,Control,r={__type="cssc_unit",__name="cssc_unit"},1
-	r={__call=function(S,s,...)if#S>999 then remove(S,1)end insert(S,format("%-16s : "..s,format("[%0.3d] [%s]",i,S._),...)) i=i+1 end}
+	r={__call=function(S,s,...)
+		if#S>999 then remove(S,1)end
+		insert(S,format("%-16s : "..s,format("[%0.3d] [%s]",i,S._),...))
+		i=i+1
+	end}
 	Control=setmetatable({
 		--MAIN FUNCTIONS
-		ctrl=ctrl_str,run=run,clear=clear,continue=continue,load_lib=load_lib,
-		tab_run=function(Control,tab,br)for k,v in pairs(Control[tab])do if v(Control)and br then break end end end,
+		ctrl=ctrl_str,run=run,load_lib=load_lib,--clear=clear,continue=continue,
 		--MAIN OBJECTS TO WORK WITH
 		PostLoad={},PreRun={},PostRun={},Struct={},Loaded={},Clear={},Result={},
 		--SYSTEM PLACEHOLDERS
@@ -68,11 +76,12 @@ make=function(ctrl_str)
 		Core=placeholedr_func,
 		Iterator=native_load"return 1",
 		--META
-		meta=m},m)
+		--meta=m
+	},m)
 	
 	load_control_string(Control,read_control_string(ctrl_str))--CONTROL STRING LOAD AND PARCE
 	--POST LOAD
-	Control:tab_run"PostLoad"
+	tab_run(Control,"PostLoad")
 	return Control
 end
 
@@ -135,7 +144,7 @@ load_control_string=function(Control,main,subm,path,cur_sc)--RECURSIVE FUNC: loa
 	end
 end
 
-__PROJECT_NAME__={make=make,Configs=Configs,creator="M.A.G.Gen.",version="4.5-beta"}
+__PROJECT_NAME__={make=make,Configs=Configs,creator="M.A.G.Gen.",version='__VERSION__'}
 @@DEBUG __PROJECT_NAME__.continue=continue --curently in testing 
 @@DEBUG _G.__PROJECT_NAME__=__PROJECT_NAME__
 return __PROJECT_NAME__

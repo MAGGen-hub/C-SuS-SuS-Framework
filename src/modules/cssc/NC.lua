@@ -1,6 +1,6 @@
 local sub,insert,pairs,setmetatable,t_swap=ENV(__ENV_SUB__,__ENV_INSERT__,__ENV_PAIRS__,__ENV_SETMETATABLE__,__ENV_T_SWAP__)
 --nil check (nil forgiving operator feature)
-Control:load_lib"code.cssc.pdata"
+Control:load_lib"code.cssc.runtime"
 Control:load_lib"code.cssc.op_stack"
 local stx = [[O
 ?. ?: ?( ?{ ?[ ?" ?'
@@ -31,14 +31,14 @@ Control:load_lib"code.syntax_loader"(stx,{O=function(...)
             Control.Event.run("all","?x",__OPERATOR__,__TRUE__)
             if tp==":" then --dual operatiom -> index -> call
                 if not a_used then a_used=__TRUE__ Control.Runtime.reg("__cssc__op_d_nc","nilF.dual")end
-                Control.inject_operator({{" ",__SPACE__},{"__cssc__op_d_nc",__WORD__}},Control.Cdata.opts["."][1],false,false,true)
+                Control.configure_operator({{" ",__SPACE__},{"__cssc__op_d_nc",__WORD__}},Control.Cdata.opts["."][1],false,false,true)
             else
                 if not b_used then b_used=__TRUE__ Control.Runtime.reg("__cssc__op_nc","nilF.basic")end
-                Control.inject_operator({{" ",__SPACE__},{"__cssc__op_nc",__WORD__}},Control.Cdata.opts["."][1],false,false,true)
+                Control.configure_operator({{" ",__SPACE__},{"__cssc__op_nc",__WORD__}},Control.Cdata.opts["."][1],false,false,true)
             end
             Control.split_seq(nil,1)--del "?"
         end
     end
 end})
 insert(Control.Clear,function()b_used,a_used=nil end)
-return __TRUE__
+--return __TRUE__

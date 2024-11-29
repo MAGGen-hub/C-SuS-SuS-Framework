@@ -1,3 +1,4 @@
+--LUA CALL AND STAT_END (statement_separation) MARKERS
 local t_swap = ENV(24)
 local place_mark=...
 

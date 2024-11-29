@@ -1,7 +1,7 @@
 -- PROTECTION LAYER
 -- This local var layer was created to prevent unpredicted behaviour of preprocessor if one of the functions in _G table was changed.
 local A,E=assert,"__PROJECT_NAME__ load failed because of missing libruary method!"
-local base_path="/cssc_final/out/"
+local base_path=__BASE_PATH__
 -- string.lib
 local gmatch = A(string.gmatch,E)
 local match  = A(string.match,E)
@@ -55,7 +55,6 @@ floor, --math functions
 assert,type,pairs,error,tostring,tonumber, --generic functions
 getmetatable,setmetatable,pcall,native_load,bit32,
 placeholder_func,t_swap,t_copy
-
 }
 --EMBED_ENV make
 

@@ -323,7 +323,7 @@ lzss_src_final=[===[
 
 --prepare:
 package.path=package.path..";../?.lua"--add previous directory to require check
-local lua_mc=require("out/lua_mc__lua51__original")--load system
+local lua_mc=require("out/cssc_beta__lua51__original")--load system
 
 local comp1 = lua_mc.make("sys.err,cssc={BO}")--basic compiller
 local compilled=comp1:run(lzss_src)--compile basic lzss

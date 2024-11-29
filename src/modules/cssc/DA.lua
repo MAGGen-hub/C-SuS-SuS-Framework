@@ -1,11 +1,10 @@
 local match,format,insert,remove,unpack,error,tostring,setmetatable,native_load,placeholder_func,t_swap=ENV(__ENV_MATCH__,__ENV_FORMAT__,__ENV_INSERT__,__ENV_REMOVE__,__ENV_UNPACK__,__ENV_ERROR__,__ENV_TOSTRING__,__ENV_SETMETATABLE__,__ENV_LOAD__,__ENV_PLACEHOLDER_FUNC__,__ENV_T_SWAP__)
 
-Control:load_lib"code.cssc.pdata"
-Control:load_lib"code.cssc.typeof"
+Control:load_lib"code.cssc.runtime"
 local l,pht,tb = Control.Level,{},Control.Cdata.skip_tb
 local used
 local mt=setmetatable({},{__index=function(s,i)return i end})
-local typeof=Control.typeof
+local typeof=Control:load_lib"code.cssc.typeof"
 local def_arg_runtime_func = function(data)
     local res,val,tp,def,ch={}
     for i=1,#data,4 do
@@ -110,4 +109,4 @@ Control.Event.reg("lvl_close",function(lvl)-- def_arg injector
     end
 end,"DA_lc",__TRUE__)
 insert(Control.Clear,function()used = nil end)
-return __TRUE__
+--return __TRUE__

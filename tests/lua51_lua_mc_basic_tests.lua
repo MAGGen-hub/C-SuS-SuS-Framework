@@ -223,7 +223,7 @@ if bitop_force_load then
 end
 
 package.preload["bitop"]=function() print("\nWARNIGN!\nBitop.lua loaded. Bitwize operators performance might be low.\n\n") return bitop end--for situations where bit/bit32 dlls not exist
-local lua_mc=require("out/lua_mc__lua51__original")--load system
+local lua_mc=require("out/cssc_beta__lua51__original")--load system
 
 test = test_matrix[tonumber(arg[1])]
 print("Selected test: ",arg[1],"- ",test.test_name)

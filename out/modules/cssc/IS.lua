@@ -1,9 +1,8 @@
 local insert,type,error,t_swap=ENV(7,13,15,24)
 
-Control:load_lib"code.cssc.pdata"
-Control:load_lib"code.cssc.op_stack"
-Control:load_lib"code.cssc.typeof" --typeof func -> Control.typeof
-local ltpof=Control.typeof
+Control:load_lib"code.cssc.runtime"
+Control:load_lib"code.cssc.op_stack" --typeof func -> Control.typeof
+local ltpof=Control:load_lib"code.cssc.typeof"
 local IS_func=function(obj,comp)
     local md,tp,rez = type(comp),ltpof(obj),false --mode,type,rez
     if md=="string"then rez=tp==comp
@@ -33,10 +32,10 @@ Control.Words["is"]=function()
         return not tb[tp] and 1 
     end)
 
-    Control.inject_operator(tab,Control.Cdata.opts["^"][1])
+    Control.configure_operator(tab,Control.Cdata.opts["^"][1])
     --local st=Control.Level[#Control.Level].OP_st
     --st[#st][2]=st[#st][2]-1
 
 end
 insert(Control.Clear,function()used=nil end)
-return 1
+--return 1

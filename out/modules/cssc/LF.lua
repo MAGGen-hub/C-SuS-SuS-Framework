@@ -35,4 +35,4 @@ Control.Operators["->"]=function(Control)
 	Control.split_seq(nil,2)-- remove ->/=> from Control.operator
 end
 Control.Operators["=>"]=Control.Operators["->"]
-return 1
+--return 1

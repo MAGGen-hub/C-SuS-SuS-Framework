@@ -1,4 +1,8 @@
-local match,pairs,tonumber = ENV(__ENV_MATCH__,__ENV_PAIRS__,__ENV_TONUMBER__)
+-- LUA LANGUAGE SYNTAX AND DATA API
+-- provides: keywords
+-- code blocks (leveling) data
+-- operators priority
+local match,format,unpack,pairs,tonumber = ENV(__ENV_MATCH__,__ENV_FORMAT__,__ENV_UNPACK__,__ENV_PAIRS__,__ENV_TONUMBER__)
 local O,W=...-- O - Control.Operators or other table; W - Control.Words or other table (depends on current text parceing system)
 --BASE LUA SYNTAX STRING (keywords/operators/breakets/values)
 local make_react,lvl,kw,kwrd,opt,t,p,lua51=Control:load_lib"text.dual_queue.make_react",{},{},{},{},{},1,
@@ -83,5 +87,23 @@ Control:load_lib"code.syntax_loader"(lua51,{
 lvl["do"][3]=1 --do can be standalone level and init block on it's own
 opt["not"]={nil,opt["not"][1]}--unary opts fix
 opt["#"]={nil,opt["#"][1]}
---TODO: inject cdata api -> stat_ends/calls
+
+local get_number_part=function(nd,f) --function that collect number parts into num_data. 
+	local ex                            --Returns 1 if end of number found or nil if floating point posible
+	nd[#nd+1],ex,Control.word=match(Control.word,format("^(%s*([%s]?%%d*))(.*)",unpack(f)))--get number part
+	Control.operator="" -- dot-able number protection (reset operator)
+	if#Control.word>0 or#ex>1 then return 1 end--finished number or finished exponenta
+	if#ex>0 then--unfinished exponenta #ex==1
+		Control.Iterator()-- update op_word_seq
+		ex=match(Control.operator or"","^[+-]$")
+		if ex then
+			nd[#nd+1]=ex
+			nd[#nd+1],Control.word=match(Control.word,"^(%d*)(.*)")
+			Control.operator=""
+		end --TODO: else push_error() end -> incorrect exponenta prohibited by lua
+		return 1
+	end --unfinished exponenta #ex==1
+end
+Control.get_num_prt=get_number_part
+
 return __RECALLABLE__,lvl,opt,kwrd--(leveling_hash,operator_hash<with_priority>,keywrod_hash)

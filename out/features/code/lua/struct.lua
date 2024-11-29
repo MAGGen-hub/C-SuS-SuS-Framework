@@ -1,24 +1,7 @@
 local match,format,gsub,sub,insert,concat,unpack=
 ENV(2,3,5,6,7,8,10)
 --comment/string/number detector
-local get_number_part=function(nd,f) --function that collect number parts into num_data. 
-	local ex                            --Returns 1 if end of number found or nil if floating point posible
-	nd[#nd+1],ex,Control.word=match(Control.word,format("^(%s*([%s]?%%d*))(.*)",unpack(f)))--get number part
-	--print(format("^(%s*([%s]?%%d*))(.*)",unpack(f)))
-	--print(nd[#nd],ex)
-	Control.operator="" -- dot-able number protection (reset operator)
-	if#Control.word>0 or#ex>1 then return 1 end--finished number or finished exponenta
-	if#ex>0 then--unfinished exponenta #ex==1
-		Control.Iterator()-- update op_word_seq
-		ex=match(Control.operator or"","^[+-]$")
-		if ex then
-			nd[#nd+1]=ex
-			nd[#nd+1],Control.word=match(Control.word,"^(%d*)(.*)")
-			Control.operator=""
-		end --TODO: else push_error() end -> incorrect exponenta prohibited by lua
-		return 1
-	end --unfinished exponenta #ex==1
-end
+local get_number_part=Control.get_num_prt
 local get_number,split_seq=function()--get_number:function to locate numbers with floating point;
 	local c,d=match(Control.word,"^0([Xx])")d=Control.operator=="."and not c--dot-able number detection (t-> dot located | c->hex located)
 	if not match(Control.word,"^%d")or not d and#Control.operator>0 then return end --number not located... return
@@ -33,16 +16,7 @@ local get_number,split_seq=function()--get_number:function to locate numbers wit
 		get_number_part(num_data,f)
 	end
 	return num_data
-end,
-function(data,i,seq)--split_seq:function to split operator/word quences
-	seq=seq and"word"or"operator"
-	if data then
-		data[#data+1]=i and sub(Control[seq],1,i)or Control[seq]
-	end
-	Control[seq]=i and sub(Control[seq],i+1)or""
-	Control.index=Control.index+(i or 0)
-	return i
-end
+end,Control.split_seq
 --STRUCTURE MODULE
 insert(Control.Struct,function()
 	local com,rez,mode,lvl,str=#Control.operator>0 and"operator"or"word"
@@ -97,5 +71,3 @@ insert(Control.Struct,function()
 		return true --inform base that structure is found and structure_module_restart required before future processing
 	end
 end)
---RETURN LOCALS FOR FUTURE USE
-return __REZULTABLE__,get_number_part,split_seq
