@@ -23,7 +23,7 @@ local p = opts["<"][1]+1 --priority base
 local p_un = opts["#"][2] --unary priority
 local bt=t_swap{shl='<<',shr='>>',bxor='~',bor='|',band='&',idiv='//'}--bitw funcs
 local tb=Control.Cdata.skip_tb
-check = t_swap{2,9,4}
+local check = t_swap{2,9,4}
 local loc_base = "__cssc__bit_"..(direct and"d_"or"")
 --local num="number"
 local idiv_func=native_load([[local p,n,t,g,e,F,f={},"number",... f=function(a,b)local ta,tb=t(a)==n, t(b)==n if ta and tb then return F(a/b)end e("attempt to perform ariphmetic on a "..(ta and t(b) or t(a)).." value",2)end
