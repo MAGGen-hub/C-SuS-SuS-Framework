@@ -6,7 +6,6 @@ local stx = [[O
 ?. ?: ?( ?{ ?[ ?" ?'
 ]] --all posible operators in current version
 local phf=function()end
-local b_used,a_used
 
 local runtime_meta=setmetatable({},{__call=function()end,__newindex=function()end})
 local runtime_func=function(obj) return obj==nil and runtime_meta or obj end
@@ -30,15 +29,14 @@ Control:load_lib"code.syntax_loader"(stx,{O=function(...)
             Control.Event.run(2,"?x",2,1)--send events to fin opts in OP_st
             Control.Event.run("all","?x",2,1)
             if tp==":" then --dual operatiom -> index -> call
-                if not a_used then a_used=1 Control.Runtime.reg("__cssc__op_d_nc","nilF.dual")end
+                Control.Runtime.reg("__cssc__op_d_nc","nilF.dual")
                 Control.configure_operator({{" ",5},{"__cssc__op_d_nc",3}},Control.Cdata.opts["."][1],false,false,true)
             else
-                if not b_used then b_used=1 Control.Runtime.reg("__cssc__op_nc","nilF.basic")end
+                Control.Runtime.reg("__cssc__op_nc","nilF.basic")
                 Control.configure_operator({{" ",5},{"__cssc__op_nc",3}},Control.Cdata.opts["."][1],false,false,true)
             end
-            Control.split_seq(nil,1)--del "?"
+            Control.Text.split_seq(nil,1)--del "?"
         end
     end
 end})
-insert(Control.Clear,function()b_used,a_used=nil end)
 --return 1

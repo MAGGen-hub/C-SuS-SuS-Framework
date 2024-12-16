@@ -1,7 +1,7 @@
 --ARG CHECK FUNC
 local arg_check=function(Control)
-	if(getmetatable(Control)or{}).__type~="cssc_unit"then 
-		error(format("Bad argument #1 (expected cssc_unit, got %s)",type(Control)),3)
+	if(getmetatable(Control)or{}).__type~="cssf_unit"then 
+		error(format("Bad argument #1 (expected cssf_unit, got %s)",type(Control)),3)
 	end 
 end
 --TAB RUN helping function to execute all funcs in table
@@ -12,7 +12,7 @@ local Configs,_arg,load_lib,continue,clear,make,run,read_control_string,load_con
  cssc_user="sys.err,cssc={NF,KS(sc_end),LF,DA,BO,CA,NC,IS}",
  cssc_full="sys.err,cssc={NF,KS(sc_end,pl_cond),LF,DA,BO,CA,NC,IS}"},
 {'arg'},--constrol_string_arg_accessor
-function(Control,path,...)arg_check(Control)--LOAD_LIB function
+function(Control,path,...)--arg_check(Control)--LOAD_LIB function
 	local ld,arg,tp=Control.Loaded[">"..path],{}
 	if false~=ld then--__SINGLECALL__ -> default mode
 		Control.log("Load %s",">"..path)--log func loading
@@ -28,11 +28,12 @@ function(Control,path,...)arg_check(Control)--LOAD_LIB function
 	return unpack(arg)--__FIRST LOAD return
 end
 
---continue=function(Control,x,...)arg_check(Control)end --TODO: Future feature
+--continue=function(Obj,x,...)arg_check(Obj)end --TODO: Future feature
 
-clear=function(Control)arg_check(Control)tab_run(Control,"Clear")end--clear
+clear=function(Obj)arg_check(Obj)tab_run(Obj.data,"Clear")end--clear
 
-run=function(Control,x,...)arg_check(Control)
+run=function(Obj,x,...)arg_check(Obj)
+	local Control=Obj.data
 	tab_run(Control,"Clear")
 	Control.src=x
 	Control.args={...}
@@ -58,31 +59,35 @@ make=function(ctrl_str)
 	if"string"~=type(ctrl_str)then error(format("Bad argument #2 (expected string, got %s)",type(ctrl_str)))end--ARG CHECK
 
 	--INITIALISE PREPROCESSOR OBJECT
-	local m,i,Control,r={__type="cssc_unit",__name="cssc_unit"},1
+	local m,i,Control,Obj,r={__type="cssf_unit",__name="cssf_unit"},1
 	r={__call=function(S,s,...)
 		if#S>999 then remove(S,1)end
 		insert(S,format("%-16s : "..s,format("[%0.3d] [%s]",i,S._),...))
 		i=i+1
 	end}
-	Control=setmetatable({
+	--PROCESSING OBJECT
+	Control={
 		--MAIN FUNCTIONS
-		ctrl=ctrl_str,run=run,load_lib=load_lib,--clear=clear,continue=continue,
+		load_lib=load_lib,--clear=clear,continue=continue,ctrl=ctrl_str,
 		--MAIN OBJECTS TO WORK WITH
 		PostLoad={},PreRun={},PostRun={},Struct={},Loaded={},Clear={},Result={},
 		--SYSTEM PLACEHOLDERS
-		error=setmetatable({_=" Error "},r),--send error msg
+		error=setmetatable({_=" Error "},r),--send error msg TODO:Rework
 		log=setmetatable({_="  Log  "},r),  --send log msg
 		warn=setmetatable({_="Warning"},r), --send warning msg
 		Core=placeholedr_func,
 		Iterator=native_load"return 1",
 		--META
 		--meta=m
-	},m)
+	}
+	--USER ACCESS OBJECT
+	Obj=setmetatable({data=Control,run=run,info="C SuS SuS Framework object"},m)
+	Control.User=Obj--link to user accessable object (Control Parent)
 	
 	load_control_string(Control,read_control_string(ctrl_str))--CONTROL STRING LOAD AND PARCE
 	--POST LOAD
 	tab_run(Control,"PostLoad")
-	return Control
+	return Obj
 end
 
 --CONTROL STRING READER

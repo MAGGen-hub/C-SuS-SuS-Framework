@@ -8,8 +8,8 @@ if arg then
         direct = direct or v=="direct"
     end
 end
-Control:load_lib"code.cssc.runtime"
-Control:load_lib"code.cssc.op_stack"
+C:load_lib"code.cssc.runtime"
+C:load_lib"code.cssc.op_stack"
 local opts= Control.Cdata.opts
 local stx=[[O
 |
@@ -25,8 +25,7 @@ local bt=t_swap{shl='<<',shr='>>',bxor='~',bor='|',band='&',idiv='//'}--bitw fun
 local tb=Control.Cdata.skip_tb
 local check = t_swap{__OPERATOR__,__OPEN_BREAKET__,__KEYWORD__}
 local loc_base = "__cssc__bit_"..(direct and"d_"or"")
-local used_opts= {}
-local num="number"
+--local num="number"
 local idiv_func=native_load([[local p,n,t,g,e,F,f={},"number",... f=function(a,b)local ta,tb=t(a)==n, t(b)==n if ta and tb then return F(a/b)end e("attempt to perform ariphmetic on a "..(ta and t(b) or t(a)).." value",2)end
 return function(a,b)return((g(a)or p).__idiv or(g(b)or p).__idiv or f)(a,b)end]],"OP: '//'",nil,nil)(type,getmetatable,error,floor)
 
@@ -47,21 +46,21 @@ Control:load_lib"code.syntax_loader"(stx,{O=function(...)--reg syntax
         else Control.Runtime.build("bitD."..bt[v],bit32[bt[v]] or idiv_func ,__TRUE__) end
         
         Control.Operators[v]=function()--operator detected!
-            local id,prew,is_un = Control.Cdata.tb_while(tb)
+            local id,prew,is_un,i,d = Control.Cdata.tb_while(tb)
+            is_un = has_un and prew[1]==__OPERATOR__ or prew[1]==__OPEN_BREAKET__ --is unary operator
+            i,d=Control.Cdata.tb_while(tb)
 
-            is_un = has_un and prew[1]==__OPERATOR__ or prew[1]==__OPEN_BREAKET__
-
-            local i,d=Control.Cdata.tb_while(tb)
             if not is_un and check[d[1]] then Control.error("Unexpected '%s' after '%s'!",v,Control.Result[i])end--error check before
 
-            if not used_opts[is_un and "bnot"or v] then used_opts[is_un and "bnot"or v]=__TRUE__  Control.Runtime.reg(is_un and loc_base.."bnot" or loc_base..bt[v],is_un and "bit.bnot" or "bit."..bt[v])end
+            Control.Runtime.reg(is_un and loc_base.."bnot" or loc_base..bt[v],is_un and "bit.bnot" or "bit."..bt[v])
             Control.inject(nil,is_un and ""or",",__OPERATOR__,not is_un and k or nil, is_un and p_un or nil)--inject found operator Control.Cdata.opts[","][1]
-            Control.split_seq(nil,#v)--remove bitwize from queue
+            Control.Text.split_seq(nil,#v)--remove bitwize from queue
             Control.Event.run(__OPERATOR__,v,__OPERATOR__,__TRUE__)--send events to fin opts in OP_st
             Control.Event.run("all",v,__OPERATOR__,__TRUE__)
 
             Control.Event.reg("all",function(obj,tp)--error check after
-                if tp==__KEYWORD__ and not match(Control.Result[#Control.Result],"^function") or  tp==__CLOSE_BREAKET__ or tp==__OPERATOR__ and not Control.Cdata[#Control.Cdata][3] then Control.error("Unexpected '%s' after '%s'!",obj,v) end
+                --if tp==__KEYWORD__ and not match(Control.Result[#Control.Result],"^function") or  tp==__CLOSE_BREAKET__ or tp==__OPERATOR__ and not Control.Cdata[#Control.Cdata][3] then Control.error("Unexpected '%s' after '%s'!",obj,v) end
+                if tp==__KEYWORD__ and Control.Result[#Control.Result]~="function" or  tp==__CLOSE_BREAKET__ or tp==__OPERATOR__ and not Control.Cdata[#Control.Cdata][3] then Control.error("Unexpected '%s' after '%s'!",obj,v) end
                 return not tb[tp] and __TRUE__ 
             end)
             --reg operator data
@@ -77,5 +76,4 @@ else
     local func = native_load([[local p,g,f,P,e,t,_={},... return function(a)_,a=P((g(a)or p).__bnot or f,a) return _ and a or e((g(a)or p).__bnot and a or ("attempt to perform bitwise operation on a "..t(a).." value"),2) end]],"__cssc_bit_bnot",nil,nil)(getmetatable,bit32.bnot,pcall,error,type)
     Control.Runtime.build("bit.bnot",func,__TRUE__)
 end
-insert(Control.Clear,function()used_opts={}end)
 --return __TRUE__

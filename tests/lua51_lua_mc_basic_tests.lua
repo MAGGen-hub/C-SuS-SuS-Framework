@@ -233,7 +233,7 @@ comp1 = lua_mc.make(test.short_ctrl)
 local _,prep = pcall(comp1.run,comp1,test.test_function)
 print(prep)
 --if not _ then return end
-local l, err = comp1:cssc_load(nil,nil,setmetatable({},{__index=_G}))
+local l, err = comp1:load(nil,nil,setmetatable({},{__index=_G}))
 print("Call output  : ",pcall(l))
 print("Error        : ", err)
 

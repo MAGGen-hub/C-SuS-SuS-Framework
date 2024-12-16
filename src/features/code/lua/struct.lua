@@ -1,22 +1,22 @@
 local match,format,gsub,sub,insert,concat,unpack=
 ENV(__ENV_MATCH__,__ENV_FORMAT__,__ENV_GSUB__,__ENV_SUB__,__ENV_INSERT__,__ENV_CONCAT__,__ENV_UNPACK__)
 --comment/string/number detector
-local get_number_part=Control.get_num_prt
+--local get_number_part=Control.Text.get_num_prt
 local get_number,split_seq=function()--get_number:function to locate numbers with floating point;
 	local c,d=match(Control.word,"^0([Xx])")d=Control.operator=="."and not c--dot-able number detection (t-> dot located | c->hex located)
 	if not match(Control.word,"^%d")or not d and#Control.operator>0 then return end --number not located... return
 	local num_data,f=d and{"."}or{},c and{"0"..c.."%x","Pp"}or{"%d","Ee"}
-	if get_number_part(num_data,f)or"."==num_data[1]then return num_data end--fin of number or dot-able floating point number
+	if Control.Text.get_num_prt(num_data,f)or"."==num_data[1]then return num_data end--fin of number or dot-able floating point number
 	-- now: #ex==0 and #Control.word==0; all other ways are found
 	--Control.word==0 -> number might have floating point
 	Control.Iterator() --update op_word_sequences
 	if Control.operator=="."then --floating point found
 		num_data[#num_data+1]="."
 		f[1]=sub(f[1],-2)
-		get_number_part(num_data,f)
+		Control.Text.get_num_prt(num_data,f)
 	end
 	return num_data
-end,Control.split_seq
+end,Control.Text.split_seq
 --STRUCTURE MODULE
 insert(Control.Struct,function()
 	local com,rez,mode,lvl,str=#Control.operator>0 and"operator"or"word"

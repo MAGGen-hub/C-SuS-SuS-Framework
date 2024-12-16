@@ -2,7 +2,6 @@ local match,format,insert,remove,unpack,error,tostring,setmetatable,native_load,
 
 Control:load_lib"code.cssc.runtime"
 local l,pht,tb = Control.Level,{},Control.Cdata.skip_tb
-local used
 local mt=setmetatable({},{__index=function(s,i)return i end})
 local typeof=Control:load_lib"code.cssc.typeof"
 local def_arg_runtime_func = function(data)
@@ -93,7 +92,7 @@ Control.Event.reg("lvl_close",function(lvl)-- def_arg injector
             end
         end
         if not obj then return end --obj works as marker that something was found
-        if not used then used = __TRUE__ Control.Runtime.reg("__cssc__def_arg","func.def_arg")end
+        Control.Runtime.reg("__cssc__def_arg","func.def_arg")
         remove(name)
         for i=#name,1,-1 do Control.inject(nil, unpack(remove(name)))end
         Control.inject(nil,"=",__OPERATOR__,Control.Cdata.opts["="][1])
@@ -108,5 +107,4 @@ Control.Event.reg("lvl_close",function(lvl)-- def_arg injector
         Control.inject(nil,"",__OPERATOR__,0)--zero priority -> statement_end
     end
 end,"DA_lc",__TRUE__)
-insert(Control.Clear,function()used = nil end)
 --return __TRUE__

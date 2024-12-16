@@ -3,31 +3,30 @@ local match,insert,unpack,pairs,t_swap = ENV(__ENV_MATCH__,__ENV_INSERT__,__ENV_
 Control:load_lib"code.cssc.runtime"
 Control:load_lib"code.cssc.op_stack"
 local prohibited_area = t_swap{"(","{","[","for","while","if","elseif","until"}
-local cond ={["&&"]="and",["||"]="or"}
-local bitw
+local bitw = {}
+local bt = {}
 
-local b_func={}
-local s=1
 local tb=Control.Cdata.skip_tb
-local used
 local stx=[[O
 + - * / % .. ^ ?
 && ||
 ]]--TODO: add support 
 if Control.Operators["~"] then stx=stx.."| & >> <<\n" 
-    bitw={["|"]="__cssc__bit_bor",["&"]="__cssc__bit_band",[">>"]="__cssc__bit_shr",["<<"]="__cssc__bit_shl"} --last one:questionable_addition
+    bt=t_swap{shl='<<',shr='>>',bxor='~',bor='|',band='&',idiv='//'}
+    bitw=t_swap{__cssc__bit_bor="|",__cssc__bit_band="&",__cssc__bit_shr=">>",__cssc__bit_shl="<<"}
 end--TODO: temporal solution! rework!
+bt['?']="op.qad"
+bitw['?']="__cssc_op_qad"
 Control.Runtime.build("op.qad",function(a,b)
     return a~=nil and a or b
 end)
 
-
 Control:load_lib"code.syntax_loader"(stx,{O=function(...)
     for k, v, t,p in pairs{...}do
-        t=s==2 and cond[v] or v
-        p=s==3 and bitw[v] or v=="?" and "__cssc__op_qad"
+        t=({["&&"]="and",["||"]="or"})[v] or v
+        p=bitw[v]
         Control.Operators[v.."="]=function()
-            if  v=="?" and not used then used =__TRUE__ Control.Runtime.reg("__cssc__op_qad","op.qad")end
+            if bt[v] then Control.Runtime.reg(p,(v~="?"and"bit."or"")..bt[v])end
             local lvl=Control.Level[#Control.Level]
             if prohibited_area[lvl.type] or #(lvl.OP_st or"")>0 then
                 Control.error("Attempt to use additional asignment in prohibited area!")
@@ -36,7 +35,7 @@ Control:load_lib"code.syntax_loader"(stx,{O=function(...)
             local cur_i,cur_d = #Control.Cdata
             Control.inject(nil,"=",__OPERATOR__,Control.Cdata.opts["="][1])--insert assignment
 
-            Control.split_seq(nil,#v+1)--clear queue
+            Control.Text.split_seq(nil,#v+1)--clear queue
 
             Control.Event.run(__OPERATOR__,v.."=",__OPERATOR__,__TRUE__)--send events to fin opts in OP_st
             Control.Event.run("all",v.."=",__OPERATOR__,__TRUE__)
@@ -81,7 +80,5 @@ Control:load_lib"code.syntax_loader"(stx,{O=function(...)
             end)
         end
     end
-    s=s+1
 end})
-insert(Control.Clear,function()used=nil end)
 --return __TRUE__

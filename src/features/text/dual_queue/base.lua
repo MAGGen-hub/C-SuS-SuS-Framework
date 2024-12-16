@@ -7,8 +7,9 @@ Control.Words={}
 Control.Result[1]=""
 Control.max_op_len=3
 Control.line=1
+Control.Text={}
 
-Control.split_seq=function(data,i,seq)--split_seq:function to split operator/word quences
+Control.Text.split_seq=function(data,i,seq)--split_seq:function to split operator/word quences
 	seq=seq and"word"or"operator"
 	if data then
 		data[#data+1]=i and sub(Control[seq],1,i)or Control[seq]

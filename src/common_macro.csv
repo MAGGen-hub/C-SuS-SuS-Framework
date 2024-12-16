@@ -2,8 +2,9 @@ Name,Value,Desc
 
 __MAIN_CYCLE__,0,Tells iterator that it was called from main cycle.
 __SINGLECALL__,false,One call function with return
-__RECALLABLE__,1,Recallable loader function
+__RECALLABLE__,1,Function that can be called multiple times
 __RESULTABLE__,2,Function with regetable results
+__RELOADABLE__,3,Function that can be loaded multiple times
 
 __SYMBOL__,1,Undefined punctuation
 __OPERATOR__,2,Defined punctuation

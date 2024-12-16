@@ -25,12 +25,12 @@ insert(Control.Struct,2,function()--this stuff must run before lua_struct and af
 	local c =#Control.operator<1 and match(Control.word,"^0([OoBb])%d")
 	if c then
 		local num_data,f = {},{0 ..c.."%d","PpEe"}
-		if Control.get_num_prt(num_data,f)then fin_num(num_data,c)return true end
+		if Control.Text.get_num_prt(num_data,f)then fin_num(num_data,c)return true end
 		Control.Iterator()
 		if Control.operator=="."then
 			num_data[#num_data+1]="."
 			f[1]="%d"
-			Control.get_num_prt(num_data,f)
+			Control.Text.get_num_prt(num_data,f)
 		end
 		fin_num(num_data,c)
 		return true

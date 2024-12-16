@@ -15,7 +15,7 @@ Control.Operators["->"]=function(Control)
 		end
 		ei,br,cor=ei+1,1,ei>0 and s~=3 and match(Control.Result[ei],"^[=%(]")
 	end
-	if not cor then Control.error("Corrupted lambda arguments at line %d !",Control.line)Control.split_seq(nil,2) return end
+	if not cor then Control.error("Corrupted lambda arguments at line %d !",Control.line)Control.Text.split_seq(nil,2) return end
 	
 	--Control.inject(ei,"" @@DEBUG .."--[[cl mrk]]"
 	--,2,Control.Cdata.opts[":"][1])--call mark
@@ -32,7 +32,7 @@ Control.Operators["->"]=function(Control)
 
 	Control.Level.open(fk,nil,ei)--open new function level (auto end set)
 	Control.Level[#Control.Level].DA_np=nil --prevent DEF ARGS
-	Control.split_seq(nil,2)-- remove ->/=> from Control.operator
+	Control.Text.split_seq(nil,2)-- remove ->/=> from Control.operator
 end
 Control.Operators["=>"]=Control.Operators["->"]
 --return 1

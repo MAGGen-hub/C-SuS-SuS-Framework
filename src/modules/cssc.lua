@@ -65,8 +65,9 @@ insert(Control.PostRun,function()
 	Control.Level.fin()
 end)--fin level
 
-Control.cssc_load=function(x,name,mode,env)
-	x=x==Control and Control.Return()or x
+Control.User.info="C SuS SuS Compiller object"
+Control.User.load=function(x,name,mode,env)
+	x=x==Control.User and Control.Return()or x
 	env=Control.Runtime and Control.Runtime.mk_env(env) or env --Runtime Env support
 	return native_load(x,name,mode,env)
 end

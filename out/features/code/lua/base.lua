@@ -88,7 +88,7 @@ lvl["do"][3]=1 --do can be standalone level and init block on it's own
 opt["not"]={nil,opt["not"][1]}--unary opts fix
 opt["#"]={nil,opt["#"][1]}
 
-local get_number_part=function(nd,f) --function that collect number parts into num_data. 
+Control.Text.get_num_prt = function(nd,f) --function that collect number parts into num_data. 
 	local ex                            --Returns 1 if end of number found or nil if floating point posible
 	nd[#nd+1],ex,Control.word=match(Control.word,format("^(%s*([%s]?%%d*))(.*)",unpack(f)))--get number part
 	Control.operator="" -- dot-able number protection (reset operator)
@@ -104,6 +104,5 @@ local get_number_part=function(nd,f) --function that collect number parts into n
 		return 1
 	end --unfinished exponenta #ex==1
 end
-Control.get_num_prt=get_number_part
 
 return 1,lvl,opt,kwrd--(leveling_hash,operator_hash<with_priority>,keywrod_hash)

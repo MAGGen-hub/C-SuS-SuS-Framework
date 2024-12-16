@@ -1,8 +1,8 @@
-local match,format,insert,concat,unpack,pairs,error,setmetatable = ENV(2,3,7,8,10,14,15,19)
+local match,format,insert,concat,unpack,pairs,error,setmetatable,tostring = ENV(2,3,7,8,10,14,15,19,16)
 local path,dt=...
 --api to inject locals form Control table right into code
 local p,clr
-p={path=path or "__cssc_beta__runtime", locals={}, modules={}, 
+p={path=path or "__cssc_beta__runtime", locals={}, modules={}, loc_names={},
     data=dt or setmetatable({},{__call=function(self,...)
         local t={}
         for _,v in pairs{...}do
@@ -11,6 +11,8 @@ p={path=path or "__cssc_beta__runtime", locals={}, modules={},
         return unpack(t)
     end}),
     reg = function(l_name,m_name) --local name/module name
+        if p.loc_names[l_name] then return end
+        p.loc_names[l_name]=1
         insert(p.locals,l_name)
         insert(p.modules,"'"..m_name.."'")
     end,
@@ -21,7 +23,7 @@ p={path=path or "__cssc_beta__runtime", locals={}, modules={},
     mk_env=function(tb)
         tb=tb or {}
         if #p.locals>0 then
-            if tb[p.path] then Control.warn(" CSSC environment var '%s' already exist in '%s'. Override performed.",p.path,tb)end
+            if tb[p.path] then Control.warn(" CSSC environment var '%s' already exist in '%s'. Override performed.",p.path,tostring(tb))end
             tb[p.path]=p.data 
         end
         return tb
@@ -36,6 +38,7 @@ end)
 clr = function()
     p.locals={}
     p.modules={}
+    p.loc_names={}
     p.is_done=false
 end
 Control.Runtime=p
