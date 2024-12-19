@@ -52,7 +52,6 @@ Event.reg(2,function(obj)
 end,"DA_op",1)
 
 Event.reg("lvl_close",function(lvl)-- def_arg injector
-    --print("DA lc")
     if lvl.DA_d then --level had default_args
         local da,arr,name,pr,val,obj,tej,ac=lvl.DA_d,{},{},Cdata.opts[","][1]
         for i=da.c_a,1,-1 do --parce args
