@@ -12,31 +12,27 @@ local IS_func=function(obj,comp)
 end
 local tab,used={{" ",__SPACE__},{"__cssc__kw_is",__WORD__}}
 
-local tb = Control.Cdata.skip_tb
+local tb = Cdata.skip_tb
 local check = t_swap{__OPERATOR__,__OPEN_BREAKET__,__KEYWORD__}
 local after = t_swap{__KEYWORD__,__CLOSE_BREAKET__}
-Control.Runtime.build("kwrd.is",IS_func)
-Control.Words["is"]=function()
-    Control.Runtime.reg("__cssc__kw_is","kwrd.is")
+Runtime.build("kwrd.is",IS_func)
+Words["is"]=function()
+    Runtime.reg("__cssc__kw_is","kwrd.is")
     --if not used then Control.Runtime.reg("__cssc__kw_is","kwrd.is") used=__TRUE__ end
 
-    local i,d=Control.Cdata.tb_while(tb)
-    if check[d[1]] then Control.error("Unexpected 'is' after '%s'!",Control.Result[i])end--error check before
+    local i,d=Cdata.tb_while(tb)
+    if check[d[1]] then Control.error("Unexpected 'is' after '%s'!",Result[i])end--error check before
 
-    Control.inject(nil,",",__OPERATOR__,Control.Cdata.opts["^"][1])
-    Control.Text.split_seq(nil,2,__TRUE__)
-    Control.Event.run(__OPERATOR__,"is",__OPERATOR__,__TRUE__)--send events to fin opts in OP_st
-    Control.Event.run("all","is",__OPERATOR__,__TRUE__)
+    Control.inject(nil,",",__OPERATOR__,Cdata.opts["^"][1])
+    Text.split_seq(nil,2,__TRUE__)
+    Event.run(__OPERATOR__,"is",__OPERATOR__,__TRUE__)--send events to fin opts in OP_st
+    Event.run("all","is",__OPERATOR__,__TRUE__)
 
-    Control.Event.reg("all",function(obj,tp)--error check after
-        if after[tp] or tp==__OPERATOR__ and not Control.Cdata[#Control.Cdata][3] then Control.error("Unexpected '%s' after 'is'!",obj) end
+    Event.reg("all",function(obj,tp)--error check after
+        if after[tp] or tp==__OPERATOR__ and not Cdata[#Cdata][3] then Control.error("Unexpected '%s' after 'is'!",obj) end
         return not tb[tp] and __TRUE__ 
     end)
 
-    Control.configure_operator(tab,Control.Cdata.opts["^"][1])
-    --local st=Control.Level[#Control.Level].OP_st
-    --st[#st][2]=st[#st][2]-1
-
+    Control.configure_operator(tab,Cdata.opts["^"][1])
 end
---insert(Control.Clear,function()used=nil end)
 --return __TRUE__

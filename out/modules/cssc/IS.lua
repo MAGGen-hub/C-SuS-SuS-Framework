@@ -12,31 +12,27 @@ local IS_func=function(obj,comp)
 end
 local tab,used={{" ",5},{"__cssc__kw_is",3}}
 
-local tb = Control.Cdata.skip_tb
+local tb = Cdata.skip_tb
 local check = t_swap{2,9,4}
 local after = t_swap{4,10}
-Control.Runtime.build("kwrd.is",IS_func)
-Control.Words["is"]=function()
-    Control.Runtime.reg("__cssc__kw_is","kwrd.is")
+Runtime.build("kwrd.is",IS_func)
+Words["is"]=function()
+    Runtime.reg("__cssc__kw_is","kwrd.is")
     --if not used then Control.Runtime.reg("__cssc__kw_is","kwrd.is") used=1 end
 
-    local i,d=Control.Cdata.tb_while(tb)
-    if check[d[1]] then Control.error("Unexpected 'is' after '%s'!",Control.Result[i])end--error check before
+    local i,d=Cdata.tb_while(tb)
+    if check[d[1]] then Control.error("Unexpected 'is' after '%s'!",Result[i])end--error check before
 
-    Control.inject(nil,",",2,Control.Cdata.opts["^"][1])
-    Control.Text.split_seq(nil,2,1)
-    Control.Event.run(2,"is",2,1)--send events to fin opts in OP_st
-    Control.Event.run("all","is",2,1)
+    Control.inject(nil,",",2,Cdata.opts["^"][1])
+    Text.split_seq(nil,2,1)
+    Event.run(2,"is",2,1)--send events to fin opts in OP_st
+    Event.run("all","is",2,1)
 
-    Control.Event.reg("all",function(obj,tp)--error check after
-        if after[tp] or tp==2 and not Control.Cdata[#Control.Cdata][3] then Control.error("Unexpected '%s' after 'is'!",obj) end
+    Event.reg("all",function(obj,tp)--error check after
+        if after[tp] or tp==2 and not Cdata[#Cdata][3] then Control.error("Unexpected '%s' after 'is'!",obj) end
         return not tb[tp] and 1 
     end)
 
-    Control.configure_operator(tab,Control.Cdata.opts["^"][1])
-    --local st=Control.Level[#Control.Level].OP_st
-    --st[#st][2]=st[#st][2]-1
-
+    Control.configure_operator(tab,Cdata.opts["^"][1])
 end
---insert(Control.Clear,function()used=nil end)
 --return 1
