@@ -383,7 +383,7 @@ io.read()
 
 print("Вывод скрипта:")
 cssc_rez,cssc_err = comp1:load("demo_func",nil,setmetatable({},{__index=_G}))
-print("Ошибка при компиляции:",cssc_err)
+print("Ошибка при компиляции:",cssc_err,cssc_rez)
 print("Вывод print при работе demo:")
 print("Результат работы скрипта:",(cssc_rez or function()end)())
 pp(comp1.data.error)

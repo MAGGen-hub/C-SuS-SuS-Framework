@@ -1,11 +1,11 @@
 local gmatch,insert=ENV(__ENV_GMATCH__,__ENV_INSERT__)
 local seq=...
 -- default text system interator
-insert(Control.PreRun,function()
-	local s=gmatch(Control.src,seq or"()([%s!-/:-@[-^{-~`]*)([%P_]*)")--default text iterator
-	Control.Iterator=function(m)
-		if m and(#(Control.operator or'')>0 or#(Control.word or'')>0)then return end --blocker for main cycle (m) can be anything
-		Control.index,Control.operator,Control.word=s()
-		return not Control.index
+insert(C.PreRun,function()
+	local s=gmatch(C.src,seq or"()([%s!-/:-@[-^{-~`]*)([%P_]*)")--default text iterator
+	C.Iterator=function(m)
+		if m and(#(C.operator or'')>0 or#(C.word or'')>0)then return end --blocker for main cycle (m) can be anything
+		C.index,C.operator,C.word=s()
+		return not C.index
 	end
 end)

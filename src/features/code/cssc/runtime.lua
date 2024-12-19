@@ -29,9 +29,9 @@ p={path=path or "____PROJECT_NAME____runtime", locals={}, modules={}, loc_names=
         return tb
     end
 }
-insert(Control.PostRun,function()
+insert(PostRun,function()
     if not p.is_done and #p.locals>0 then
-        insert(Control.Result,1,"local "..concat(p.locals,",").."="..p.path.."("..concat(p.modules,",")..");")
+        insert(Result,1,"local "..concat(p.locals,",").."="..p.path.."("..concat(p.modules,",")..");")
     end
     p.is_done=true
 end)
@@ -41,5 +41,5 @@ clr = function()
     p.loc_names={}
     p.is_done=false
 end
-Control.Runtime=p
-insert(Control.Clear,clr)
+C.Runtime=p
+insert(Clear,clr)

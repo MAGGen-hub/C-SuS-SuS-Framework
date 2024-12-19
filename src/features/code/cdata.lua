@@ -1,15 +1,15 @@
 --CODE DATA API 
 local insert,remove,t_swap=ENV(__ENV_INSERT__,__ENV_REMOVE__,__ENV_T_SWAP__)
-local opts_hash,level_hash,keywords_hash=...
+--local opts_hash,level_hash,keywords_hash=...
 --API to save code data to specific table
 local check,c,clr=t_swap{__OPERATOR__,__KEYWORD__,__OPEN_BREAKET__}
 clr=function() for i=1,#c do c[i]=nil end c[1]={__OPERATOR__,0}end
-c={opts=opts_hash,lvl=level_hash,kwrd=keywords_hash,
+c={--opts=opts_hash,lvl=level_hash,kwrd=keywords_hash,
     run=function(obj,tp)--to call from core
         local lh,rez=c.lvl[obj]
         --if obj=="(" then print(lh,rez) end
         if lh and lh[2] then --object with lvl props
-            rez=Control.Level[#Control.Level] --TODO: temporal solution! REWORK!!!
+            rez=Level[#Level] --TODO: temporal solution! REWORK!!!
             rez ={tp,rez.ends[obj] and rez.index}
         elseif tp==__OPERATOR__ then
             local pd,lt,un = c.opts[obj],c[#c][1]--priority_data,last_type,is_unary
@@ -46,5 +46,6 @@ c={opts=opts_hash,lvl=level_hash,kwrd=keywords_hash,
     end,
      {__OPERATOR__,0}
 }
-Control.Cdata=c
-insert(Control.Clear,clr)
+c.opts,c.lvl,c.kwrd=... --opts_hash,level_hash,keywords_hash
+C.Cdata=c
+insert(Clear,clr)

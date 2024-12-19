@@ -21,7 +21,6 @@ if arg then
 end
 C:load_lib"code.cssc.runtime"
 C:load_lib"code.cssc.op_stack"
-
 C:load_lib"code.syntax_loader"(stx,{O=function(...)--reg syntax
     for k,v,tab,has_un in pairs{...}do
         has_un=v=="~"

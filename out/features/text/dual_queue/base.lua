@@ -1,23 +1,21 @@
 local sub,insert,concat=ENV(6,7,8)
 --base API for text/code related data
-Control.Operators={}
-Control.operator=""
-Control.word=""
-Control.Words={}
-Control.Result[1]=""
-Control.max_op_len=3
-Control.line=1
-Control.Text={}
-
-Control.Text.split_seq=function(data,i,seq)--split_seq:function to split operator/word quences
+C.Operators={}
+C.operator=""
+C.word=""
+C.Words={}
+C.Result[1]=""
+C.max_op_len=3
+C.line=1
+C.Text={split_seq=function(data,i,seq)--split_seq:function to split operator/word quences
 	seq=seq and"word"or"operator"
 	if data then
-		data[#data+1]=i and sub(Control[seq],1,i)or Control[seq]
+		data[#data+1]=i and sub(C[seq],1,i)or C[seq]
 	end
-	Control[seq]=i and sub(Control[seq],i+1)or""
-	Control.index=Control.index+(i or 0)
+	C[seq]=i and sub(C[seq],i+1)or""
+	C.index=C.index+(i or 0)
 	return i
-end
+end}
 
-Control.Return=function()return concat(Control.Result)end
-insert(Control.Clear,function()Control.Result={""}Control.operator=""Control.word=""end)
+C.Return=function() return concat(C.Result)end --C.Result : C - required, because concat can't pull Result from _ENV in lua5.1 for some reason
+insert(Clear,function()Result={""}C.operator=""C.word=""end)

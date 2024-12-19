@@ -1,12 +1,10 @@
 local sub,insert,remove,pairs=ENV(__ENV_SUB__,__ENV_INSERT__,__ENV_REMOVE__,__ENV_PAIRS__)
-local level_hash=...
 --LEVELING SYSTEM
---Control:load_lib"common.event"
 local a,clr,l={["main"]=1}
 clr=function()for i=1,#l do l[i]=nil end l[1]={type="main",index=1,ends=a}end
 --level_hash[a]={a}--setup main level finalizer
 l={{type="main",index=1,ends=a},
-	data=level_hash,
+	data=..., --first argument must be level hash
 	fin=function()
 		if#l<2 then l.close("main",nil,a)
 		else Control.error("Can't close 'main' level! Found (%d) unfinished levels!",#l-1)end
@@ -16,7 +14,7 @@ l={{type="main",index=1,ends=a},
 		local lvl,e,r=remove(l)
 		if f~=a and#l<1 then Control.error("Attempt to close 'main'(%d) level with '%s'!",#l+1,obj) insert(l,lvl) return end
 		e=lvl.ends or f--setup level ends/fins
-		if e[obj]then Control.Event.run("lvl_close",lvl,obj)return --Level end found! Invoke close event and return!
+		if e[obj]then Event.run("lvl_close",lvl,obj)return --Level end found! Invoke close event and return!
 		elseif nc then return end -- level is standalone [like "do" kwrd] and can be opened without closeing prewious
 		--Unexpected end! Push error
 		r="'"for k in pairs(e)do r=r..k.."' or '"end r=sub(r,1,-6)
@@ -24,8 +22,8 @@ l={{type="main",index=1,ends=a},
 	end,
 	open=function(obj,ends,i)
 		if#l<1 then Control.error("Attempt to open new level '%s' after closing 'main'!",obj)return end
-		local lvl={type=obj,index=i or #Control.Result,ends=ends or(l.data[obj]or{})[1]}
-		Control.Event.run("lvl_open",lvl)
+		local lvl={type=obj,index=i or #Result,ends=ends or(l.data[obj]or{})[1]}
+		Event.run("lvl_open",lvl)
 		insert(l,lvl)
 	end,
 	ctrl=function(obj)
@@ -34,7 +32,7 @@ l={{type="main",index=1,ends=a},
 		if not t and l[#l].ends[obj]then l.close(obj)end --custom ends
 	end
 }
-Control.Level=l
+C.Level=l
 clr()
 
-insert(Control.Clear,clr)
+insert(Clear,clr)

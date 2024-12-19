@@ -5,7 +5,7 @@
 local match,format,unpack,pairs,tonumber = ENV(2,3,10,14,17)
 local O,W=...-- O - Control.Operators or other table; W - Control.Words or other table (depends on current text parceing system)
 --BASE LUA SYNTAX STRING (keywords/operators/breakets/values)
-local make_react,lvl,kw,kwrd,opt,t,p,lua51=Control:load_lib"text.dual_queue.make_react",{},{},{},{},{},1,
+local make_react,lvl,kw,kwrd,opt,t,p,lua51=C:load_lib"text.dual_queue.make_react",{},{},{},{},{},1,
 [[K
 end
 else 1
@@ -51,8 +51,8 @@ not # -
 . :
 ]]-- [ ( { "
 --INSERT VERSION DIFF
-Control:load_lib"text.dual_queue.base"
-Control:load_lib"code.syntax_loader"(lua51,{
+C:load_lib"text.dual_queue.base"
+C:load_lib"code.syntax_loader"(lua51,{
      K=function(k,...)--keyword parce
         kw[#kw+1]=k
         t=lvl[k]or{}
@@ -88,18 +88,18 @@ lvl["do"][3]=1 --do can be standalone level and init block on it's own
 opt["not"]={nil,opt["not"][1]}--unary opts fix
 opt["#"]={nil,opt["#"][1]}
 
-Control.Text.get_num_prt = function(nd,f) --function that collect number parts into num_data. 
+Text.get_num_prt = function(nd,f) --function that collect number parts into num_data. 
 	local ex                            --Returns 1 if end of number found or nil if floating point posible
-	nd[#nd+1],ex,Control.word=match(Control.word,format("^(%s*([%s]?%%d*))(.*)",unpack(f)))--get number part
-	Control.operator="" -- dot-able number protection (reset operator)
-	if#Control.word>0 or#ex>1 then return 1 end--finished number or finished exponenta
+	nd[#nd+1],ex,C.word=match(C.word,format("^(%s*([%s]?%%d*))(.*)",unpack(f)))--get number part
+	C.operator="" -- dot-able number protection (reset operator)
+	if#C.word>0 or#ex>1 then return 1 end--finished number or finished exponenta
 	if#ex>0 then--unfinished exponenta #ex==1
-		Control.Iterator()-- update op_word_seq
-		ex=match(Control.operator or"","^[+-]$")
+		Iterator()-- update op_word_seq
+		ex=match(C.operator or"","^[+-]$")
 		if ex then
 			nd[#nd+1]=ex
-			nd[#nd+1],Control.word=match(Control.word,"^(%d*)(.*)")
-			Control.operator=""
+			nd[#nd+1],C.word=match(C.word,"^(%d*)(.*)")
+			C.operator=""
 		end --TODO: else push_error() end -> incorrect exponenta prohibited by lua
 		return 1
 	end --unfinished exponenta #ex==1

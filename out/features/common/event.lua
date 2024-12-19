@@ -20,5 +20,5 @@ run=function(name,...)--run all registered functions with args
 	end
 end}
 clr()--make temp event table
-Control.Event=e
-insert(Control.Clear,clr)
+C.Event=e
+insert(Clear,clr)
