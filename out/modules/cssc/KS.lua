@@ -1,4 +1,4 @@
-local match,sub,insert,pairs=ENV(2,6,7,14)
+local match,sub,insert,pairs,t_swap=ENV(2,6,7,14,24)
 
 local stx,_,arg = [[O
 || or
@@ -7,19 +7,20 @@ local stx,_,arg = [[O
 @ local
 $ return
 ]],...
+arg=t_swap(arg or{})
 
-for _,v in pairs(arg or{})do
-	if v=="sc_end" then --include semicolon to end conversion basic ; can be placed with \;
+--for _,v in pairs(arg or{})do
+	if arg.sc_end then --include semicolon to end conversion basic ; can be placed with \;
 		stx=stx.."; end\n\\; ;\n"
 	end
-	if v=="pl_cond" then --platform condition... the most cursed feature... so probably will be removed in future
+	if arg.pl_cond then --platform condition... the most cursed feature... so probably will be removed in future
 		stx=stx..[[? then
 /| if
 :| elseif
 \| else
 ]]
 	end
-end
+--end
 --specific make react with space addition
 local make_react=function(s,i,j) -- s -> replacer string, i - type of reaction, t - type of sequnece, j - local length
 	return function()

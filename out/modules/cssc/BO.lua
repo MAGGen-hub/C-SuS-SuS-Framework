@@ -11,7 +11,6 @@ t_swap{shl='<<',shr='>>',bxor='~',bor='|',band='&',idiv='//'},t_swap{2,9,4},"__c
 native_load([[local p,n,t,g,e,F,f={},"number",... f=function(a,b)local ta,tb=t(a)==n, t(b)==n if ta and tb then return F(a/b)end e("attempt to perform ariphmetic on a "..(ta and t(b) or t(a)).." value",2)end
 return function(a,b)return((g(a)or p).__idiv or(g(b)or p).__idiv or f)(a,b)end]],"OP: '//'",nil,nil)(type,getmetatable,error,floor),...
 
-
 if not bit32 then Control.warn("Unable to load bitwize operators feature! Bit/Bit32 libruary not found!")return end
 local direct--TODO:temporal solution rework
 if arg then

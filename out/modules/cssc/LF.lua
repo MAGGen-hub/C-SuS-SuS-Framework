@@ -7,17 +7,17 @@ Operators["->"]=function()
 		cor = ei and match(Result[Cdata.tb_while(tb,ei-1)]or"","^[=%(,]")--coma is acceptable here 
 	else--breaketless args, probably will be removed in future
 		while ei>0 and(tb[ed[1]] or ed[1]==s or s~=3 and ((ed[2]or-1)==Cdata.opts[","][1] and match(Result[ei],"^%,")))do
-			ei,s=ei-1,s*(tb[ed[1]] and-1 or 1)--com skip/swap state 3/2(coma)
+			ei,s=ei-1,s*(tb[ed[1]] and 1 or -1)--com skip/swap state 3/2(coma)
 			ed=Cdata[ei]
 		end
 		ei,br,cor=ei+1,1,ei>0 and s~=3 and match(Result[ei],"^[=%(]")
 	end
 	if not cor then Control.error("Corrupted lambda arguments at line %d !",C.line)Text.split_seq(nil,2) return end
 	
-	Control.inject(nil," ",5)
 	Control.inject(ei,fk,4)--inject function kwrd
+	Control.inject(ei," ",5)--inject space before function
 	if br then --place breakets
-		Control.inject(ei+1,"(",9)--inject open breaket
+		Control.inject(ei+2,"(",9)--inject open breaket
 		Control.inject(nil,")",10,ei+1)--inject closeing breaket
 	end
 	if"-"==sub(C.operator,1,1)then Control.inject(nil,"return",4) Control.inject(nil," ",5) end--inject return kwrd

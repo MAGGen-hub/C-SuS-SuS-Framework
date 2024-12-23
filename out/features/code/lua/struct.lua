@@ -1,5 +1,23 @@
 local match,format,gsub,sub,insert,concat,unpack=
 ENV(2,3,5,6,7,8,10)
+
+Text.get_num_prt = function(nd,f) --function that collect number parts into num_data. 
+	local ex                            --Returns 1 if end of number found or nil if floating point posible
+	nd[#nd+1],ex,C.word=match(C.word,format("^(%s*([%s]?%%d*))(.*)",unpack(f)))--get number part
+	C.operator="" -- dot-able number protection (reset operator)
+	if#C.word>0 or#ex>1 then return 1 end--finished number or finished exponenta
+	if#ex>0 then--unfinished exponenta #ex==1
+		Iterator()-- update op_word_seq
+		ex=match(C.operator or"","^[+-]$")
+		if ex then
+			nd[#nd+1]=ex
+			nd[#nd+1],C.word=match(C.word,"^(%d*)(.*)")
+			C.operator=""
+		end --TODO: else push_error() end -> incorrect exponenta prohibited by lua
+		return 1
+	end --unfinished exponenta #ex==1
+end
+
 --comment/string/number detector
 --local get_number_part=Control.Text.get_num_prt
 local get_number,split_seq=function()--get_number:function to locate numbers with floating point;

@@ -72,7 +72,7 @@ User.load=function(x,name,mode,env)
 	return native_load(x,name,mode,env)
 end
 
-return {--module aliases
+return {--module aliases (and names)
 	backport_operators="BO",
 	back_opts="BO",
 	bitwizes="BO",
@@ -88,7 +88,8 @@ return {--module aliases
 	lambda_funcs="LF",
 	nil_forgiving="NC",
 	nil_checking="NC",
-	number_formats="NF"
+	number_formats="NF",
+	number_concat_bug_fix="ncbf"
 }
 
 
