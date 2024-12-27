@@ -9,7 +9,7 @@ Event.reg("lvl_close",function(lvl)
     if lvl.OP_st then
         local i = #Cdata
         for k=#lvl.OP_st,1,-1 do
-            Control.inject(i,")",__CLOSE_BREAKET__,lvl.OP_st[k][4])--fin all unfinished
+            Cssc.inject(i,")",__CLOSE_BREAKET__,lvl.OP_st[k][4])--fin all unfinished
         end
     end
 end,"OP_st_f",__TRUE__)
@@ -23,12 +23,13 @@ Event.reg(__OPERATOR__,function(obj,tp)
         while #st>0 and cdt[2] <= st[#st][2] do--priority of CSSC operator is highter or equal -> inject closing breaket
             --print(obj,cdt[2],st[#st][2])
             cst=remove(st)--del last
-            Control.inject(#Cdata,")",__CLOSE_BREAKET__,cst[4])--insert breaket before current operator
+            Cssc.inject(#Cdata,")",__CLOSE_BREAKET__,cst[4])--insert breaket before current operator
         end
     end
 end,"OP_st_d",__TRUE__)
 
-Control.configure_operator = function(pre_tab,priority, is_unary,skip_fb,now_end,id)--function to inject common operators fast
+--control.configure_operator
+Cssc.op_conf = function(pre_tab,priority, is_unary,skip_fb,now_end,id)--function to inject common operators fast
     --init locals
     local lvl,i,cdt,b,st,sp,last =Level[#Level],id or #Cdata --level; index; breaket; curent_cdata,stack_tab,start_pos
     cdt,st,pre_tab=Cdata[i],lvl.OP_st or{},pre_tab or{}
@@ -51,17 +52,17 @@ Control.configure_operator = function(pre_tab,priority, is_unary,skip_fb,now_end
     i=i+1 --increment i (index correction)
     --iject data before
     if not skip_fb then
-        Control.inject(i,"(",__OPEN_BREAKET__)--insert open breaket
+        Cssc.inject(i,"(",__OPEN_BREAKET__)--insert open breaket
         if #pre_tab>0 then
-            Control.inject(i,"" --@@DEBUG .."--[[cl mrk]]"
+            Cssc.inject(i,"" --@@DEBUG .."--[[cl mrk]]"
             ,__OPERATOR__,Cdata.opts[":"][1])--call mark
         end
         for k=#pre_tab,1,-1 do --insert caller function/construct if exist
-            Control.inject(i,unpack(pre_tab[k]))
+            Cssc.inject(i,unpack(pre_tab[k]))
         end
     end
     if now_end then--inject fin breaket imidiatly
-        Control.inject(nil,")",__CLOSE_BREAKET__)
+        Cssc.inject(")",__CLOSE_BREAKET__)
         return i-1,last
     end
     insert(st,{#Cdata,priority,i,i+#pre_tab})--new element in stack to finalize

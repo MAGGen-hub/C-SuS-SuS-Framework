@@ -330,6 +330,7 @@ local compilled=comp1:run(lzss_src)--compile basic lzss
 print(compilled)
 
 require("compat53")--for lzss load string.pack/unpack methods (lua-mc not uses them)
+print("DATA",comp1:load("basic_lzss",nil,setmetatable({},{__index=_G})))
 local lzss_basic = comp1:load("basic_lzss",nil,setmetatable({},{__index=_G}))()--specific _ENV with _G protected
 
 assert(lzss_basic,"Unable to compile lzss src")

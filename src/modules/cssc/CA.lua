@@ -1,7 +1,6 @@
 local match,insert,unpack,pairs,t_swap = ENV(__ENV_MATCH__,__ENV_INSERT__,__ENV_UNPACK__,__ENV_PAIRS__,__ENV_T_SWAP__)
 --C/C++ additional asignment operators
-C:load_lib"code.cssc.runtime"
-C:load_lib"code.cssc.op_stack"
+C:load_libs"code.cssc""runtime""op_stack"
 local prohibited_area,bitw,bt,tb,stx = t_swap{"(","{","[","for","while","if","elseif","until"},{},{},Cdata.skip_tb,[[O
 + - * / % .. ^ ?
 && ||
@@ -27,7 +26,7 @@ C:load_lib"code.syntax_loader"(stx,{O=function(...)
                 Control.error("Attempt to use additional asignment in prohibited area!")
             end
             --action
-            Control.inject(nil,"=",__OPERATOR__,Cdata.opts["="][1])--insert assignment
+            Cssc.inject("=",__OPERATOR__,Cdata.opts["="][1])--insert assignment
 
             Text.split_seq(nil,#v+1)--clear queue
 
@@ -35,7 +34,7 @@ C:load_lib"code.syntax_loader"(stx,{O=function(...)
             Event.run("all",v.."=",__OPERATOR__,__TRUE__)
 
 
-            i,lst=Control.configure_operator(nil,Cdata.opts[","][1]+1,false,__TRUE__,false,#Cdata-1)--add ")" to fin on, or stat end
+            i,lst=Cssc.op_conf(nil,Cdata.opts[","][1]+1,false,__TRUE__,false,#Cdata-1)--add ")" to fin on, or stat end
             
             if lst[1]==__OPERATOR__ and lst[2]==Cdata.opts[","][1] then --TODO: Temporal solution! Rework!
                 Control.error("Additional asignment do not support multiple additions in this version of __PROJECT_NAME__!")
@@ -45,22 +44,22 @@ C:load_lib"code.syntax_loader"(stx,{O=function(...)
             end
 
             if p then
-                Control.inject(nil,p,__WORD__)--bitw func call
-                Control.inject(nil,"(",__OPEN_BREAKET__)--open breaket
+                Cssc.inject(p,__WORD__)--bitw func call
+                Cssc.inject("(",__OPEN_BREAKET__)--open breaket
                 cur_d = #Cdata 
             end
 
             for k=i+1,cur_i do --insert local var copy
-                Control.inject(nil,Result[k],unpack(Cdata[k]))
+                Cssc.inject(Result[k],unpack(Cdata[k]))
             end
 
             if not p then --insert operator/coma
                 if match(t,"^[ao]")then Result[#Result]=Result[#Result].." "end --add spaceing
-                Control.inject(nil,t,__OPERATOR__,Cdata.opts[t][1])
-                Control.inject(nil,"(",__OPEN_BREAKET__)
+                Cssc.inject(t,__OPERATOR__,Cdata.opts[t][1])
+                Cssc.inject("(",__OPEN_BREAKET__)
                 cur_d = #Cdata 
             else
-                Control.inject(nil,",",__OPERATOR__,Cdata.opts[","][1]+1)--comma with higher priority --TODO: temporal solution! rework!
+                Cssc.inject(",",__OPERATOR__,Cdata.opts[","][1]+1)--comma with higher priority --TODO: temporal solution! rework!
             end
 
             lvl.OP_st[#lvl.OP_st][3]= cur_d--correct operator start/breaket values

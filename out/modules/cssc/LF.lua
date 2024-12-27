@@ -14,13 +14,13 @@ Operators["->"]=function()
 	end
 	if not cor then Control.error("Corrupted lambda arguments at line %d !",C.line)Text.split_seq(nil,2) return end
 	
-	Control.inject(ei,fk,4)--inject function kwrd
-	Control.inject(ei," ",5)--inject space before function
+	Cssc.inject(ei,fk,4)--inject function kwrd
+	Cssc.inject(ei," ",5)--inject space before function
 	if br then --place breakets
-		Control.inject(ei+2,"(",9)--inject open breaket
-		Control.inject(nil,")",10,ei+1)--inject closeing breaket
+		Cssc.inject(ei+2,"(",9)--inject open breaket
+		Cssc.inject(")",10,ei+1)--inject closeing breaket
 	end
-	if"-"==sub(C.operator,1,1)then Control.inject(nil,"return",4) Control.inject(nil," ",5) end--inject return kwrd
+	if"-"==sub(C.operator,1,1)then Cssc.inject("return",4) Cssc.inject(" ",5) end--inject return kwrd
 
 	Event.run(2,"->",2,1)--Iinform core about insertet operators (1 means cssc_generated)
 	Event.run("all",sub(C.operator,1,1)..">",tp,1)

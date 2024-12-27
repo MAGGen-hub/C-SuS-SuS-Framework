@@ -1,27 +1,41 @@
-local match,insert,remove,unpack,native_load,placeholder_func = ENV(__ENV_MATCH__,__ENV_INSERT__,__ENV_REMOVE__,__ENV_UNPACK__,__ENV_LOAD__,__ENV_PLACEHOLDER_FUNC__)
+local match,insert,remove,unpack,type,native_load,placeholder_func = ENV(__ENV_MATCH__,__ENV_INSERT__,__ENV_REMOVE__,__ENV_UNPACK__,__ENV_TYPE__,__ENV_LOAD__,__ENV_PLACEHOLDER_FUNC__)
 --code parceing system
-C:load_lib"text.dual_queue.base"
-C:load_lib"text.dual_queue.parcer"
-C:load_lib"text.dual_queue.iterator"
-C:load_lib"text.dual_queue.space_handler"
 
---base lua data (structs/operators/keywords)
-local lvl, opt, kwrd = C:load_lib("code.lua.base",Operators,Words)
-C:load_lib"code.lua.struct"
+local lvl, opt, kwrd, ll, cl= C:load_libs"text.dual_queue" --invoke loader and open dirs "text.dual_queue" (as one 'dir')
+		"base"
+		"parcer"
+		"iterator"
+		"space_handler"() -- empty call -> go back to main dir ""
+	.code
+		.lua( --open dir code then open dir lua (separately as two 'dirs')
+			"base",Operators,Words)
+			"struct"()(5,-1) -- empty call -> go back to dir "code"
+ -- call with numbers: Close loader and return unpacked result of libruary numbers (5, ...) in loading order. 
+ --if number is 0 -> full result table will be returned, -1 (or any other negative val) -> returns loader
 
---load analisys systems
-C:load_lib("code.cdata",opt,lvl,placeholder_func)
-C:load_lib("common.event")
-C:load_lib("common.level",lvl)
+	ll(--continue loading
+		"cdata",opt,lvl,placeholder_func)()-- empty call -> go back to main dir ""
+	.common --open dir "common"
+		"event"(
+	    "level",lvl)
+ll=nil -- destroy loader so GC can remove it
+
+-- in Lua5.1 weird "Ambigoius syntax error" exist that forces me to 
+--		"event"( --it's very important to place "(" right after '"event"' without any `\n`. Or else error will happen! Same for other "("
+--		"level",lvl)
+
+-- single lib loading example:
+-- C:load_lib"text.dual_queue.base"
 
 --code editing basic api
-C.inject = function(id,obj,type,...)
-	if id then insert(Result,id,obj) else insert(Result,obj)end
-	Cdata.reg(type,id,...)
-end
-C.eject = function(id)
-	return {remove(Result,id),unpack(remove(Cdata,id))}
-end
+cl={inject = function(id,obj,tp,...)
+		if"string"~=type(id)then insert(Result,id,obj) Cdata.reg(tp,id,...) --id exist
+		else insert(Result,id) Cdata.reg(obj,nil,tp,...)end --id is #Result
+	end,
+	eject = function(id)
+		return {remove(Result,id),unpack(remove(Cdata,id))}
+	end}
+C.Cssc=cl
 
 --important lua code markers
 local meta_reg = C:load_lib("code.lua.meta_opt",
@@ -29,7 +43,7 @@ local meta_reg = C:load_lib("code.lua.meta_opt",
 		--temporaly remove last text element
 		local temp = remove(Result)
 		--insert markers
-		Control.inject(nil,"" --@@DEBUG .."--[["..(mark>0 and"cl"or"st").." mrk]]"
+		cl.inject("" --@@DEBUG .."--[["..(mark>0 and"cl"or"st").." mrk]]"
 		,__OPERATOR__,mark>0 and opt[":"][1] or 0)
 
 		--init events
@@ -59,7 +73,7 @@ C.Core=function(tp,obj)--type_of_text_object,object_it_self
 end
 
 insert(PostRun,function()
-	Control.inject(nil,"",__OPERATOR__,0)
+	cl.inject("",__OPERATOR__,0)
 	Event.run(__OPERATOR__,"",__OPERATOR__)
 	Event.run("all","",__OPERATOR__)
 	Level.fin()

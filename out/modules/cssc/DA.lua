@@ -1,7 +1,6 @@
 local match,format,insert,remove,unpack,error,tostring,setmetatable,native_load,placeholder_func,t_swap=ENV(2,3,7,9,10,15,16,19,21,23,24)
 
-C:load_lib"code.cssc.runtime"
-local l,pht,tb,mt,typeof,err_text = Level,{},Cdata.skip_tb,setmetatable({},{__index=function(s,i)return i end}),C:load_lib"code.cssc.typeof","Unexpected '%s' in function argument type definition! Function argument type must be set using single name or string!"
+local l,pht,tb,mt,typeof,err_text = Level,{},Cdata.skip_tb,setmetatable({},{__index=function(s,i)return i end}),C:load_libs"code.cssc""runtime""typeof"(2),"Unexpected '%s' in function argument type definition! Function argument type must be set using single name or string!"
 
 Runtime.build("func.def_arg",function(data)
     local res,val,tp,def,ch={}
@@ -62,7 +61,7 @@ Event.reg("lvl_close",function(lvl)-- def_arg injector
                 --if val[3]-(val[2]or val[1])<1 then Control.error("Expected default argument after '%s'",Control.Result[val[2]or val[1]])end
                 
                 for j=val[3]or#Result-1,val[1]or val[2],-1 do --to minimum value
-                    obj=Control.eject(j)
+                    obj=Cssc.eject(j)
                     if j==val[2] or j==val[1] then 
                         insert(arr,{",",2,pr}) --comma replace
                     elseif val[2]and j>val[2] then--def_arg
@@ -90,17 +89,17 @@ Event.reg("lvl_close",function(lvl)-- def_arg injector
         if not obj then return end --obj works as marker that something was found
         Runtime.reg("__cssc__def_arg","func.def_arg")
         remove(name)
-        for i=#name,1,-1 do Control.inject(nil, unpack(remove(name)))end
-        Control.inject(nil,"=",2,Cdata.opts["="][1])
-        Control.inject(nil,"__cssc__def_arg",3)--TODO: replace with api function
-        Control.inject(nil,"{",9)
+        for i=#name,1,-1 do Cssc.inject(unpack(remove(name)))end
+        Cssc.inject("=",2,Cdata.opts["="][1])
+        Cssc.inject("__cssc__def_arg",3)--TODO: replace with api function
+        Cssc.inject("{",9)
         val=#Result
         remove(arr)--remove last comma
         for i=#arr,1,-1 do --inject args ([1]="," - is coma, so not needed)
-            Control.inject(nil, unpack(remove(arr)))--TODO: mark internal contents as CSSC-data for other funcs to ignore
+            Cssc.inject( unpack(remove(arr)))--TODO: mark internal contents as CSSC-data for other funcs to ignore
         end
-        Control.inject(nil,"}",10,val)
-        Control.inject(nil,"",2,0)--zero priority -> statement_end
+        Cssc.inject("}",10,val)
+        Cssc.inject("",2,0)--zero priority -> statement_end
     end
 end,"DA_lc",1)
 --return 1

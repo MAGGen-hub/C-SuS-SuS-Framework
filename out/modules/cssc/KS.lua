@@ -24,12 +24,12 @@ arg=t_swap(arg or{})
 --specific make react with space addition
 local make_react=function(s,i,j) -- s -> replacer string, i - type of reaction, t - type of sequnece, j - local length
 	return function()
-		Control.inject(nil," ",5)
+		Cssc.inject(" ",5)
 		C.operator=sub(C.operator,j+1)
 		C.index=C.index+j
 		insert(Result,s)
 		Core(i,s)
-		Control.inject(nil," ",5)
+		Cssc.inject(" ",5)
 	end
 end
 C:load_lib"code.syntax_loader"(stx,{O=function(k,v)

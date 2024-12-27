@@ -1,7 +1,6 @@
 local match,insert,unpack,pairs,t_swap = ENV(2,7,10,14,24)
 --C/C++ additional asignment operators
-C:load_lib"code.cssc.runtime"
-C:load_lib"code.cssc.op_stack"
+C:load_libs"code.cssc""runtime""op_stack"
 local prohibited_area,bitw,bt,tb,stx = t_swap{"(","{","[","for","while","if","elseif","until"},{},{},Cdata.skip_tb,[[O
 + - * / % .. ^ ?
 && ||
@@ -27,7 +26,7 @@ C:load_lib"code.syntax_loader"(stx,{O=function(...)
                 Control.error("Attempt to use additional asignment in prohibited area!")
             end
             --action
-            Control.inject(nil,"=",2,Cdata.opts["="][1])--insert assignment
+            Cssc.inject("=",2,Cdata.opts["="][1])--insert assignment
 
             Text.split_seq(nil,#v+1)--clear queue
 
@@ -35,7 +34,7 @@ C:load_lib"code.syntax_loader"(stx,{O=function(...)
             Event.run("all",v.."=",2,1)
 
 
-            i,lst=Control.configure_operator(nil,Cdata.opts[","][1]+1,false,1,false,#Cdata-1)--add ")" to fin on, or stat end
+            i,lst=Cssc.op_conf(nil,Cdata.opts[","][1]+1,false,1,false,#Cdata-1)--add ")" to fin on, or stat end
             
             if lst[1]==2 and lst[2]==Cdata.opts[","][1] then --TODO: Temporal solution! Rework!
                 Control.error("Additional asignment do not support multiple additions in this version of cssc_beta!")
@@ -45,22 +44,22 @@ C:load_lib"code.syntax_loader"(stx,{O=function(...)
             end
 
             if p then
-                Control.inject(nil,p,3)--bitw func call
-                Control.inject(nil,"(",9)--open breaket
+                Cssc.inject(p,3)--bitw func call
+                Cssc.inject("(",9)--open breaket
                 cur_d = #Cdata 
             end
 
             for k=i+1,cur_i do --insert local var copy
-                Control.inject(nil,Result[k],unpack(Cdata[k]))
+                Cssc.inject(Result[k],unpack(Cdata[k]))
             end
 
             if not p then --insert operator/coma
                 if match(t,"^[ao]")then Result[#Result]=Result[#Result].." "end --add spaceing
-                Control.inject(nil,t,2,Cdata.opts[t][1])
-                Control.inject(nil,"(",9)
+                Cssc.inject(t,2,Cdata.opts[t][1])
+                Cssc.inject("(",9)
                 cur_d = #Cdata 
             else
-                Control.inject(nil,",",2,Cdata.opts[","][1]+1)--comma with higher priority --TODO: temporal solution! rework!
+                Cssc.inject(",",2,Cdata.opts[","][1]+1)--comma with higher priority --TODO: temporal solution! rework!
             end
 
             lvl.OP_st[#lvl.OP_st][3]= cur_d--correct operator start/breaket values

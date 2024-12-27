@@ -7,7 +7,7 @@ end
 --TAB RUN helping function to execute all funcs in table
 local tab_run=function(Control,tab,br)for k,v in pairs(Control[tab])do if v(Control)and br then break end end end
 --LOCALS
-local Configs,_arg,load_lib,continue,clear,make,run,read_control_string,load_control_string=
+local Configs,_arg,load_lib,load_libs,clear,make,run,read_control_string,load_control_string=
 {cssc_basic="sys.err,cssc={NF,KS,LF,BO,CA}",--configs
  cssc_user="sys.err,cssc={NF,KS(sc_end),LF,DA,BO,CA,NC,IS}",
  cssc_full="sys.err,cssc={NF,KS(sc_end,pl_cond),LF,DA,BO,CA,NC,IS}"},
@@ -27,8 +27,22 @@ function(Control,path,...)--arg_check(Control)--LOAD_LIB function
 	end
 	return unpack(arg)--__FIRST LOAD return
 end
-
---continue=function(Obj,x,...)arg_check(Obj)end --TODO: Future feature
+do --advanced lib loader (cursed a litle, but useful)
+	local mt mt = {
+		__index=function(s,p)insert(s.p,p)return s end,--
+		__call=function(s,lib,...)
+			if s==mt then return setmetatable({r={},p={lib},C=...},mt) end--constructor
+			if type(lib)=="string"then insert(s.r,{load_lib(s.C,concat(s.p,".").."."..lib,...)}) return s end --loader
+			if type(lib)=="number" then local r,i = {},1
+				for _,v in pairs{lib,...}do for _,v1 in pairs(s.r[v]or{(v<0 and s)or(v<1 and s.r)or nil})do r[i]=v1 i=i+1 end end
+				return unpack(r) --return results 
+			end 
+			remove(s.p)
+			return s
+		end
+	}
+	load_libs=function(Control,path)local s=mt.__call(mt,path,Control) return s end
+end
 
 clear=function(Obj)arg_check(Obj)tab_run(Obj.data,"Clear")end--clear
 
@@ -68,7 +82,7 @@ make=function(ctrl_str)
 	--PROCESSING OBJECT
 	Control={
 		--MAIN FUNCTIONS
-		load_lib=load_lib,--clear=clear,continue=continue,ctrl=ctrl_str,
+		load_lib=load_lib,load_libs=load_libs,--clear=clear,continue=continue,ctrl=ctrl_str,
 		--MAIN OBJECTS TO WORK WITH
 		PostLoad={},PreRun={},PostRun={},Struct={},Loaded={},Clear={},Result={},
 		--SYSTEM PLACEHOLDERS

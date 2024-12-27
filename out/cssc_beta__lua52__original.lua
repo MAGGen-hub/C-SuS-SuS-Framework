@@ -31,7 +31,10 @@ local setmetatable = A(setmetatable,E)
 local pcall        = A(pcall,E)
 local _ --WASTE (dev null)
 --Bit32 libruary prepare section
-local bit32        = (bitop and bitop.bit or bitop.bit32)or bit32 or pcall(require,"bit32")and require"bit32"or print"Warning! Bit32/bitop libruary not found! Bitwize operators module disabled!"and nil
+local bit32 = pcall(require,"bit")and require"bit" --attempt to get bitop.dll (bit64)
+or pcall(require,"bit32")and require"bit32" --attempt to get bit32.dll as replacement
+or pcall(require,"bitop")and (require"bitop".bit or require"bitop".bit32) --emergency solution: bitop.lua
+or print and print"Warning! Bit32/bitop libruary not found! Bitwize operators module disabled!"and nil --loading alarm
 if bit32 then
     local b = {}
     for k,v in pairs(bit32)do b[k]=v end
@@ -43,6 +46,7 @@ end
 
 -- Lua5.2 load mimicry
 local native_load = A(load,E)
+local native_loadfile = A(loadfile,E)
 
 A,E=nil
 local cssc_beta = {}
@@ -78,7 +82,7 @@ end
 --TAB RUN helping function to execute all funcs in table
 local tab_run=function(Control,tab,br)for k,v in pairs(Control[tab])do if v(Control)and br then break end end end
 --LOCALS
-local Configs,_arg,load_lib,continue,clear,make,run,read_control_string,load_control_string=
+local Configs,_arg,load_lib,load_libs,clear,make,run,read_control_string,load_control_string=
 {cssc_basic="sys.err,cssc={NF,KS,LF,BO,CA}",--configs
  cssc_user="sys.err,cssc={NF,KS(sc_end),LF,DA,BO,CA,NC,IS}",
  cssc_full="sys.err,cssc={NF,KS(sc_end,pl_cond),LF,DA,BO,CA,NC,IS}"},
@@ -98,8 +102,22 @@ function(Control,path,...)--arg_check(Control)--LOAD_LIB function
 	end
 	return unpack(arg)--__FIRST LOAD return
 end
-
---continue=function(Obj,x,...)arg_check(Obj)end --TODO: Future feature
+do --advanced lib loader (cursed a litle, but useful)
+	local mt mt = {
+		__index=function(s,p)insert(s.p,p)return s end,--
+		__call=function(s,lib,...)
+			if s==mt then return setmetatable({r={},p={lib},C=...},mt) end--constructor
+			if type(lib)=="string"then insert(s.r,{load_lib(s.C,concat(s.p,".").."."..lib,...)}) return s end --loader
+			if type(lib)=="number" then local r,i = {},1
+				for _,v in pairs{lib,...}do for _,v1 in pairs(s.r[v]or{(v<0 and s)or(v<1 and s.r)or nil})do r[i]=v1 i=i+1 end end
+				return unpack(r) --return results 
+			end 
+			remove(s.p)
+			return s
+		end
+	}
+	load_libs=function(Control,path)local s=mt.__call(mt,path,Control) return s end
+end
 
 clear=function(Obj)arg_check(Obj)tab_run(Obj.data,"Clear")end--clear
 
@@ -139,7 +157,7 @@ make=function(ctrl_str)
 	--PROCESSING OBJECT
 	Control={
 		--MAIN FUNCTIONS
-		load_lib=load_lib,--clear=clear,continue=continue,ctrl=ctrl_str,
+		load_lib=load_lib,load_libs=load_libs,--clear=clear,continue=continue,ctrl=ctrl_str,
 		--MAIN OBJECTS TO WORK WITH
 		PostLoad={},PreRun={},PostRun={},Struct={},Loaded={},Clear={},Result={},
 		--SYSTEM PLACEHOLDERS

@@ -1,7 +1,6 @@
 local sub,insert,pairs,setmetatable,t_swap=ENV(__ENV_SUB__,__ENV_INSERT__,__ENV_PAIRS__,__ENV_SETMETATABLE__,__ENV_T_SWAP__)
 --nil check (nil forgiving operator feature)
-C:load_lib"code.cssc.runtime"
-C:load_lib"code.cssc.op_stack"
+
 local stx,phf,tb,check = [[O
 ?. ?: ?( ?{ ?[ ?" ?'
 ]], --all posible operators in current version
@@ -14,10 +13,7 @@ local runtime_meta,runtime_dual_meta=setmetatable({},{__call=function()end,__new
 local runtime_func,runtime_dual_func=function(obj) return obj==nil and runtime_meta or obj end,
 function(obj) return obj==nil and runtime_dual_meta or setmetatable({},{__index=function(self,i)return obj[i] or phf end}) end
 
-Runtime.build("nilF.dual",runtime_dual_func)
-Runtime.build("nilF.basic",runtime_func)
-
-C:load_lib"code.syntax_loader"(stx,{O=function(...)
+C:load_libs"code".cssc"runtime""op_stack"()"syntax_loader"(3)(stx,{O=function(...)
     for k,v in pairs{...}do
         Operators[v]=function() --shadow operator
             local tp,i,d = sub(v,2)
@@ -30,13 +26,15 @@ C:load_lib"code.syntax_loader"(stx,{O=function(...)
             Event.run("all","?x",__OPERATOR__,__TRUE__)
             if tp==":" then --dual operatiom -> index -> call
                 Runtime.reg("__cssc__op_d_nc","nilF.dual")
-                Control.configure_operator({{" ",__SPACE__},{"__cssc__op_d_nc",__WORD__}},Cdata.opts["."][1],false,false,true)
+                Cssc.op_conf({{" ",__SPACE__},{"__cssc__op_d_nc",__WORD__}},Cdata.opts["."][1],false,false,true)
             else
                 Runtime.reg("__cssc__op_nc","nilF.basic")
-                Control.configure_operator({{" ",__SPACE__},{"__cssc__op_nc",__WORD__}},Cdata.opts["."][1],false,false,true)
+                Cssc.op_conf({{" ",__SPACE__},{"__cssc__op_nc",__WORD__}},Cdata.opts["."][1],false,false,true)
             end
             Text.split_seq(nil,1)--del "?"
         end
     end
 end})
+Runtime.build("nilF.dual",runtime_dual_func)
+Runtime.build("nilF.basic",runtime_func)
 --return __TRUE__
