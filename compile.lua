@@ -78,7 +78,6 @@ local compile = {
 	lua54   = false,
 	Lua_Jit  = false} --Lua-Jit
 
-
 --lzss archiver function to decrase code size
 local compile_lzss = {--WARNING!: temporaly unavaliable. 
 	pre_compress = false, -- Replace common stuff with bytes before compressing
@@ -105,15 +104,14 @@ local function get_src(src)
 end
 local function set_out(out,data)
 	local file,err = fs.open(out,"w")
-	print(out)
 	file.write(data)
 	file.close()
 end
 
+--[=[
 string.gifsub = function(text,condition,pattern,replacement)
 	return condition and text:gsub(pattern,replacement) or text
 end
---[=[
 local compile_dir
 compile_dir = function(src,path,subdir,md)
 	path=path.."={"
@@ -157,16 +155,47 @@ compile_dir = function(src_dir,out_dir,sub_dir)
 			local src = get_src(obj)--file
 			src=compile_macros(nil,src)
 			set_out(fs.combine(new_dir,v),src)
+			--print("Compile:",fs.combine(new_dir,v))
 		end
 	end
-
 end
+local minify_dir,minifier
+minify_dir = function(src_dir)
+	for k,v in pairs(fs.list(src_dir))do
+		local obj = fs.combine(src_dir,v)
+		if fs.isDir(obj) then minify_dir(obj)
+		else
+			local src = get_src(obj)
+			src=minifier(src)
+			set_out(obj,src)
+			--print("Minify:",obj)
+		end
+	end
+end
+local size_dir
+size_dir = function(src_dir)
+	local sz=0
+	for k,v in pairs(fs.list(src_dir))do
+		local obj = fs.combine(src_dir,v)
+		if fs.isDir(obj) then sz=sz + size_dir(obj)
+		else
+			local src = get_src(obj)
+			sz=sz+#src
+		end
+	end
+	return sz
+end
+
+
+
 --COMPILE:
 
 --MAKE_FEATURES
 compile_dir(features_src,out_dir,"features")
 --MAKE_MODULES
 compile_dir(modules_src,out_dir,"modules")
+
+
 for code_name,enabled in pairs(compile) do
 	if enabled then
 		--GET CODE
@@ -185,8 +214,77 @@ for code_name,enabled in pairs(compile) do
 		set_out(fs.combine(out_dir,table.concat({project_name,code_name,"original"},"__")..".lua"),code)
 	end
 end
-
 --CLEAR STRING METATABLE
-string.gifsub = nil
+--string.gifsub = nil
 --WARNING: debug feature! disable if unwanted
 shell.run("/cssc_final/out/cssc_beta__craft_os__original.lua")
+
+--MINIFY_DIR
+local comp1=cssc_beta.make"minify"
+minifier=function(s)
+	local tmp=function(s)return 
+		function(a,b) if a..b~="A(,E)" and not b:sub(1,1):match"[%w_]" and not a:sub(2,2):match"[%w_]" then 
+			return a..s..b 
+		end end 
+	end
+	local tmP=function(s)return 
+		function(a,b) if a~="T."and a~="S." and not a:sub(2,2):match"[%w_]" and not b:match"[%w_]" then 
+				return a..s..b 
+		end end 
+	end
+	return s
+	:gsub("(..)gmatch(.)",tmP"SG")-- gmatch -> SG
+	:gsub("(..)match(.)" ,tmP"Sm")-- match  -> Sm
+	:gsub("(..)format(.)",tmP"SF")-- format -> SF
+	:gsub("(..)find(.)"  ,tmP"Sf")-- find   -> Sf
+	:gsub("(..)gsub(.)"  ,tmP"Sg")-- match  -> Sg
+	:gsub("(..)sub(.)"   ,tmP"Ss")-- match  -> Ss
+
+	:gsub("(..)insert(.)",tmP"Ti")-- insert -> Ti
+	:gsub("(..)concat(.)",tmP"Tc")-- concat -> Tc
+	:gsub("(..)remove(.)",tmP"Tr")-- remove -> Tr
+	:gsub("(..)unpack(.)",tmP"Tu")-- unpack -> Tu
+
+	:gsub("(..)type(...)"        ,tmp"Gt")-- type         -> Gt
+	:gsub("(..)pairs(...)"       ,tmp"Gp")-- pairs        -> Gp
+	:gsub("(..)error(...)"       ,tmp"Ge")-- error        -> Ge
+	:gsub("(..)tostring(...)"    ,tmp"Gs")-- tostring     -> Gs
+	:gsub("(..)tonumber(...)"    ,tmp"Gn")-- tonumber     -> Gn
+	:gsub("(..)getmetatable(...)",tmp"GG")-- getmetatable -> GG
+	:gsub("(..)setmetatable(...)",tmp"GS")-- setmetatable -> GS
+	:gsub("(..)pcall(...)"       ,tmp"GP")-- pcall        -> Gp
+	:gsub("native_loadfile"         ,"Gf")-- pcall        -> Gp
+	:gsub("native_load"             ,"Gl")-- pcall        -> Gp
+
+	:gsub("t_copy"  ,"TC") -- t_copy   -> TC --table lib additions
+	:gsub("t_swap"  ,"TS") -- t_swap   -> TS
+
+	:gsub("env_load"        ,"Cl") -- env_load -> Cl --CSSC framework
+	:gsub("placeholder_func","Cp")
+
+	:gsub("A%(T%.unpack or Tu,E%)","A(T.unpack or unpack,E)") --fix
+	:gsub("A%(Tu,E%)","A(unpack,E)") --fix
+end
+minify_dir(out_dir)--advanced local minify
+minifier= function(s)return comp1:run(s)end
+minify_dir(out_dir)--basic space/comments minify
+
+--GET_SIZE
+local f_size = size_dir(out_dir,"features")
+local m_size = size_dir(out_dir,"modules")
+local size = (f_size + m_size) / 1024
+print(string.format ("Libs size: %3.3f Kbs - %1.3f%% of 2Mbs",size,size/(1024*2)*100))
+for code_name,enabled in pairs(compile) do
+	if enabled then
+		local name = table.concat({project_name,code_name,"original"},"__")..".lua"
+		local size = fs.getSize(fs.combine(out_dir,name))/1024
+		print(string.format ("%-35s size: %3.3f Kbs  - %1.3f%% of 2Mbs",name,size,size/(1024*2)*100))
+	end
+end
+
+
+shell.run("/cssc_final/out/cssc_beta__craft_os__original.lua")
+
+
+
+

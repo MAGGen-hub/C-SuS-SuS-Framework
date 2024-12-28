@@ -44,7 +44,7 @@ C:load_lib"code.syntax_loader"(stx,{O=function(...)
             end
 
             if p then
-                Cssc.inject(p,__WORD__)--bitw func call
+                Cssc.inject(p,__WORD__)--bit func call
                 Cssc.inject("(",__OPEN_BREAKET__)--open breaket
                 cur_d = #Cdata 
             end

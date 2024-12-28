@@ -9,8 +9,8 @@ local tab_run=function(Control,tab,br)for k,v in pairs(Control[tab])do if v(Cont
 --LOCALS
 local Configs,_arg,load_lib,load_libs,clear,make,run,read_control_string,load_control_string=
 {cssc_basic="sys.err,cssc={NF,KS,LF,BO,CA}",--configs
- cssc_user="sys.err,cssc={NF,KS(sc_end),LF,DA,BO,CA,NC,IS}",
- cssc_full="sys.err,cssc={NF,KS(sc_end,pl_cond),LF,DA,BO,CA,NC,IS}"},
+ cssc_user="sys.err,cssc={NF,KS(sc_end),LF,DA,BO,CA,NC,IS,ncbf}",
+ cssc_full="sys.err,cssc={NF,KS(sc_end,pl_cond),LF,DA,BO,CA,NC,IS,ncbf}"},
 {'arg'},--constrol_string_arg_accessor
 function(Control,path,...)--arg_check(Control)--LOAD_LIB function
 	local ld,arg,tp=Control.Loaded[">"..path],{}
@@ -164,6 +164,5 @@ load_control_string=function(Control,main,subm,path,cur_sc)--RECURSIVE FUNC: loa
 end
 
 __PROJECT_NAME__={make=make,Configs=Configs,creator="M.A.G.Gen.",version='__VERSION__'}
-@@DEBUG __PROJECT_NAME__.continue=continue --curently in testing 
 @@DEBUG _G.__PROJECT_NAME__=__PROJECT_NAME__
 return __PROJECT_NAME__

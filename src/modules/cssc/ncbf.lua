@@ -1,2 +1,2 @@
-local react = C:load_lib"text.dual_queue.make_react"("..",__OPERATOR__)
-Operators[".."]=function() _G.print(Cdata[#Cdata-1][1])if __NUMBER__==Cdata[#Cdata][1]then Cssc.inject(" ",__SPACE__)end react()end
+local r = C:load_lib"text.dual_queue.make_react"("..",__OPERATOR__)
+Operators[".."]=function()if __NUMBER__==Cdata[#Cdata][1]then Cssc.inject(" ",__SPACE__)end r()end

@@ -216,7 +216,7 @@ local test_matrix = {
 package.path=package.path..";../?.lua"--add previous directory to require check
 local bitop = require("lib/bitop")
 
-local bitop_force_load=true
+local bitop_force_load=false
 if bitop_force_load then
     local req = require 
     require = function(s,...)if s=="bit" or s=="bit32"then return nil end return req(s,...)end
