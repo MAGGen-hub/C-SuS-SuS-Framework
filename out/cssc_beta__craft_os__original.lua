@@ -43,7 +43,7 @@ make=function(ctrl_str)if"string"~=Gt(ctrl_str)then Ge(SF("Bad argument #2 (expe
 local m,i,C,Obj,r={__type="cssf_unit",__name="cssf_unit"},1
 r={__call=function(S,s,...)if#S>999 then Tr(S,1)end
 Ti(S,SF("%-16s : "..s,SF("[%0.3d] [%s]",i,S._),...))i=i+1
-end}C={load_lib=Cl,load_libs=CL,PostLoad={},PreRun={},PostRun={},Struct={},Loaded={},Clear={},Result={},Ge=GS({_=" Error "},r),log=GS({_="  Log  "},r),warn=GS({_="Warning"},r),Core=placeholedr_func,Iterator=Gl"return 1",}Obj=GS({data=C,run=run,info="C SuS SuS Framework object"},m)C.User=Obj
+end}C={load_lib=Cl,load_libs=CL,PostLoad={},PreRun={},PostRun={},Struct={},Loaded={},Clear={},Result={},error=GS({_=" Error "},r),log=GS({_="  Log  "},r),warn=GS({_="Warning"},r),Core=placeholedr_func,Iterator=Gl"return 1",}Obj=GS({data=C,run=run,info="C SuS SuS Framework object"},m)C.User=Obj
 Cs(C,CS(ctrl_str))Cr(C,"PostLoad")return Obj
 end
 CS=function(s)local c,t,l,e,m={"config",[_arg]={}}m={__index=function(s,i)s=s==c and GS({c[1],[_arg]={}},m)or s s[#s+1]=i return s end,__call=function(s,...)local l={...}for i=1,#l do l[i]="table"==Gt(l[i])and l[i][_arg]and Tc(l[i],".")or l[i]end

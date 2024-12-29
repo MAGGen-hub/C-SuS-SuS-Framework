@@ -18,7 +18,7 @@ cdt=Cdata[i]end
 last=cdt
 else
 _,last=Cdata.tb_while(tb,i-1)end
-if i<sp then Control.Ge("OP_STACK Unexpected Ge!")end
+if i<sp then Control.error("OP_STACK Unexpected Ge!")end
 i=i+1
 if not skip_fb then
 Cssc.inject(i,"(",9)if#pre_tab>0 then

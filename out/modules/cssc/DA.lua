@@ -4,8 +4,8 @@ T=D[i+2]if T then
 V=t(v)T=T==1 and{[t(d)]=1}or TS{(Gl("return "..T,"DA_type_loader",nil,m)or Cp)()}T=not T[V]and Ge(SF("bad argument #%d (%s expected, got %s)",D[i],D[i+2],V),2)end
 Ti(r,v)end
 end
-return Tu(r)end)Event.reg("lvl_open",function(l)if l.Gt=="function"then l.DA_np=1 end
-if l.Gt=="("and Level[#Level].DA_np then l.DA_d={c_a=1}end
+return Tu(r)end)Event.reg("lvl_open",function(l)if l.type=="function"then l.DA_np=1 end
+if l.type=="("and Level[#Level].DA_np then l.DA_d={c_a=1}end
 Level[#Level].DA_np=nil
 end,"DA_lo",1)Event.reg(2,function(o)local d,i,e=Level[#Level].DA_d
 if d then i=d.c_a
@@ -17,7 +17,7 @@ elseif o=="="then d[i]=d[i]or{[4]=Result[Cdata.tb_while(S,#Cdata-1)]}e,d[i][2]=d
 elseif o==","then d.c_a=d.c_a+1(d[i]or p)[3]=#Cdata-1
 elseif not d[i]or not d[i][2]then e=1 end
 if e then
-C.Ge("Unexpected '%s' operator in function arguments defenition.",o)Level[#Level].DA_d=nil
+C.eor("Unexpected '%s' operator in function arguments defenition.",o)Level[#Level].DA_d=nil
 end
 end
 end,"DA_op",1)Event.reg("lvl_close",function(lvl)if lvl.DA_d then
@@ -33,13 +33,13 @@ Ti(b,c)elseif D[2]and j>D[2]then
 Ti(b,o)a=not S[o[2]]and a+1 or a
 elseif not S[o[2]]then
 if not(o[2]==3 or o[2]==7 or Sm(o[1],"^nil"))or s then
-C.Ge(E,o[1])else
+C.eor(E,o[1])else
 if o[2]==3 then o={"'"..Sm(o[1],"%S*").."'",7}end
 Ti(b,o)s=1
 end
 end
 end
-if D[2]and a<1 then C.Ge("Expected default argument after '%s'",D[2]and"="or":")end
+if D[2]and a<1 then C.eor("Expected default argument after '%s'",D[2]and"="or":")end
 a=not s and D[1]if a or not D[1]then
 Tr(a and b or p)Ti(b,{a and"1"or"nil",8})Ti(b,c)end
 Ti(b,{D[4],3})Ti(b,c)Ti(b,{Gs(i),8})Ti(b,c)end

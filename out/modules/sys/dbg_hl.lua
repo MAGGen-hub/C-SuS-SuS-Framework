@@ -1,7 +1,7 @@
 local Sm,Sg,Ss,Ti,Tc,Gp=ENV(2,5,6,7,8,13)local colors,rep,print,term=_G.colors,_G.string.rep,_G.print,_G.term
 local mod,arg=...
 if"string"~=Gt(_G._HOST)or not Sm(_G._HOST,"^ComputerCraft")then
-Control.Ge("Attempt to load debug hilighting module outside of CraftOS environment!")return
+Control.error("Attempt to load debug hilighting module outside of CraftOS environment!")return
 end
 local rep=string.rep
 local blit_ctrl={space={colors.toBlit(colors.white)," "},[3]={colors.toBlit(colors.white)," "},[4]={colors.toBlit(colors.yellow)," "},[2]={colors.toBlit(colors.lightBlue)," "},[1]={colors.toBlit(colors.lightBlue)," "},[11]={colors.toBlit(colors.green)," "},[8]={colors.toBlit(colors.cyan)," "},[9]={colors.toBlit(colors.magenta)," "},[10]={colors.toBlit(colors.magenta)," "},[6]={colors.toBlit(colors.lime)," "},[7]={colors.toBlit(colors.red)," "},[12]={colors.toBlit(colors.purple)," "},}Control.BlitBack={}Control.BlitFront={}local burn_blit=function(tp,len)tp=blit_ctrl[tp]or{" "," "}len=len or#Control.Result[#Control.Result]Control.BlitFront[#Control.BlitFront+1]=rep(tp[1],len)Control.BlitBack[#Control.BlitBack+1]=rep(tp[2],len)end

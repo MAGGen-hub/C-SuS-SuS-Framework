@@ -6,7 +6,7 @@
 -- l* -> local variables (important)
 -- 
 local tmp=function(s)return 
-    function(a,b) if a..b~="A(,E)" and not b:sub(1,1):match"[%w_]" and not a:sub(2,2):match"[%w_]" then 
+    function(a,b) if a..b~="A(,E)" and not b:sub(1,1):match"[%w_]" and not a:sub(2,2):match"[%w_%.]" then 
         return a..s..b 
     end end 
 end
@@ -14,11 +14,6 @@ local tmP=function(s)return
     function(a,b) if a~="T."and a~="S." and not a:sub(2,2):match"[%w_]" and not b:match"[%w_]" then 
             return a..s..b 
     end end 
-end
-local tmError=function(a,b) 
-    if a..b~="A(,E)" and b~="=se" and a:sub(2,2)~="." then 
-        return a.."Ge"..b 
-    end 
 end
 
 local base_module = {
@@ -37,6 +32,7 @@ local base_module = {
     "load_control_string"   ,                   "Cs",--loaders/readers/runners
     "read_control_string"   ,                   "CS",
     "tab_run"               ,                   "Cr",
+    "Ge=GS"                 ,             "error=GS", --error object fix in new_base.lua
 }
 
 return {
@@ -54,6 +50,8 @@ return {
         "(..)remove(.)",tmP"Tr",-- remove -> Tr
         "(..)unpack(.)",tmP"Tu",-- unpack -> Tu
     
+        'type="main"',    '__KEEP_TM__', --for /features/common/level.lua and it's type object
+        'type=obj',       '__KEEP_TO__',
         "(..)type(...)"        ,tmp"Gt",-- type         -> Gt
         "(..)pairs(...)"       ,tmp"Gp",-- pairs        -> Gp
         "(..)error(...)"       ,tmp"Ge",-- error        -> Ge
@@ -64,6 +62,8 @@ return {
         "(..)pcall(...)"       ,tmp"GP",-- pcall        -> Gp
         "native_loadfile"      ,   "Gf",-- pcall        -> Gp
         "native_load"          ,   "Gl",-- pcall        -> Gp
+        '__KEEP_TM__',    'type="main"',
+        '__KEEP_TO__',       'type=obj',
     
         "t_copy"  ,"TC",-- t_copy   -> TC --table lib additions
         "t_swap"  ,"TS",-- t_swap   -> TS
@@ -77,11 +77,11 @@ return {
         ["cssc_beta__lua51__original.lua"]=base_module,
         ["cssc_beta__lua52__original.lua"]=base_module,
         ["modules/cssc/NC.lua"]={
-            "runtime_dual_func","lR",
-            "runtime_func"     ,"lr",
-            "runtime_dual_meta","lM",
-            "runtime_meta"     ,"lm",
-            "check"            ,"lc",
+            "runtime_dual_func","R",
+            "runtime_dual_meta","M",
+            "runtime_func"     ,"r",
+            "runtime_meta"     ,"m",
+            "check"            ,"c",
         },
         ["modules/cssc/KS.lua"]={
             "make_react"       ,"r",
@@ -101,26 +101,84 @@ return {
             "data"       , "d",
         },
         ["modules/cssc/DA.lua"]={
-            "placeholder_table" , "p",
-            "strict_type_def"   , "s",
-            "def_arg_meta"      , "m",
-            "default_arg"       , "d",
+            "placeholder_table" ,  "p",
+            "strict_type_def"   ,  "s",
+            "def_arg_meta"      ,  "m",
+            "default_arg"       ,  "d",
+            "skipper_tab"       ,  "S",
+            "type_check"        ,  "T",
+            "build_arr"         ,  "b",
+            "comma_obj"         ,  "c",
+            "value_tp"          ,  "V",
+            "err_text"          ,  "E",
+            "arg_len"           ,  "a",
+            "da_data"           ,  "D",
+            "da_tab"            ,  "d",
+            "l_typeof"          ,  "t",
+            "value"             ,  "v",
+            "name"              ,  "n",
+            "res"               ,  "r",
+            "Lvl"               ,  "l",
+            "([^%w_])err"       ,"%1e",
+            "obj"               ,  "o",
+        },
+        ["modules/cssc/LF.lua"]={
+            "state_ctrl"  , "s",
+            "skipper_tab" , "S",
+            "func_kwrd"   , "f",
+            "index"       , "i",
+            "l_data"      , "d",
+            "is_corrupt"  , "c",
+            "breaket"     , "b",
+        },
+        ["modules/cssc/BO.lua"]={-- i a b k v 
+            "cur_priority"     , "P",
+            "bitwize_opts"     , "B",
+            "inject_table"     , "I",
+            "un_priority"      , "p",
+            "skipper_tab"      , "S",
+            "func_part1"       , "F",
+            "func_part2"       , "f",
+            "idiv_func"        , "x",
+            "make_err"         , "e",
+            "loc_base"         , "l",
+            "run_err"          , "r",
+            "direct"           , "D",
+            "l_opts"           , "O",
+            "has_un"           , "u",
+            "l_data"           , "d",
+            "obj_tp"           , "t",
+            "is_un"            , "U",
+            "check"            , "c",
+            "index"            , "i",
+            "stx"              , "s",
+            "obj"              , "o",
+        },
+        ["modules/cssc/CA.lua"]={
+            "runtime_func_name" , "R",
+            "prohibited_area"   , "P",
+            "bitwize_opts"      , "B",
             "skipper_tab"       , "S",
-            "type_check"        , "T",
-            "build_arr"         , "b",
-            "comma_obj"         , "c",
-            "value_tp"          , "V",
-            "err_text"          , "E",
-            "arg_len"           , "a",
-            "da_data"           , "D",
-            "da_tab"            , "d",
-            "l_typeof"          , "t",
-            "value"             , "v",
-            "name"              , "n",
-            "res"               , "r",
-            "Lvl"               , "l",
-            "err"               , "e",
-            "obj"               , "o",
+            "coma_prior"        , "c",
+            "actual_op"         , "a",
+            "cur_index"         , "I",
+            "cur_data"          , "D",
+            "loc_base"          , "b",
+            "index"             , "i",
+            "last"              , "l",
+            "Lvl"               , "L",
+            "stx"               , "s",
+        },
+        ["modules/cssc/NF.lua"]={
+            "number_data"   , "N",
+            "exponenta"     , "e",
+            "err_text"      , "E",
+            "m_data"        , "d",
+            "float"         , "f",
+            "mode"          , "M",
+            "base"          , "B",
+            "full"          , "F",
+            "nan"           , "n",
         },
     }
 }

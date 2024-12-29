@@ -35,4 +35,3 @@ end
 C:load_lib"code.syntax_loader"(stx,{O=function(k,v)
 	Operators[k]=make_react(v,match(v,"^[aon]") and __OPERATOR__ or __KEYWORD__,#k)
 end})
---return __TRUE__
