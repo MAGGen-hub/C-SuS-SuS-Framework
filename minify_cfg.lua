@@ -15,6 +15,11 @@ local tmP=function(s)return
             return a..s..b 
     end end 
 end
+local tmError=function(a,b) 
+    if a..b~="A(,E)" and b~="=se" and a:sub(2,2)~="." then 
+        return a.."Ge"..b 
+    end 
+end
 
 local base_module = {
 	"A%(T%.unpack or Tu,E%)","A(T.unpack or unpack,E)", --fix unpack
@@ -83,6 +88,39 @@ return {
             "arg"              ,"a",
             "stx"              ,"s",
         },
-        --["modules/cssc/"]={}
+        ["modules/cssc/IS.lua"]={
+            "l_typeof"   , "T",
+            "skipper_tab", "S",
+            "check"      , "c",
+            "after"      , "a",
+            "inject_tab" , "I",
+            "work_mode"  , "w",
+            "obj_tp"     , "t",
+            "rez"        , "r",
+            "id"         , "i",
+            "data"       , "d",
+        },
+        ["modules/cssc/DA.lua"]={
+            "placeholder_table" , "p",
+            "strict_type_def"   , "s",
+            "def_arg_meta"      , "m",
+            "default_arg"       , "d",
+            "skipper_tab"       , "S",
+            "type_check"        , "T",
+            "build_arr"         , "b",
+            "comma_obj"         , "c",
+            "value_tp"          , "V",
+            "err_text"          , "E",
+            "arg_len"           , "a",
+            "da_data"           , "D",
+            "da_tab"            , "d",
+            "l_typeof"          , "t",
+            "value"             , "v",
+            "name"              , "n",
+            "res"               , "r",
+            "Lvl"               , "l",
+            "err"               , "e",
+            "obj"               , "o",
+        },
     }
 }

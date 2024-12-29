@@ -1,20 +1,24 @@
-local opts,match,format,insert,floor,type,pairs,error,getmetatable,pcall,native_load,bit32,t_swap=Cdata.opts,ENV(__ENV_MATCH__,__ENV_FORMAT__,__ENV_INSERT__,__ENV_MATH__,__ENV_TYPE__,__ENV_PAIRS__,__ENV_ERROR__,__ENV_GETMETATABLE__,__ENV_PCALL__,__ENV_LOAD__,__ENV_BIT_LIB__,__ENV_T_SWAP__)
+local l_opts,gsub,match,format,insert,floor,type,pairs,error,getmetatable,pcall,native_load,bit32,t_swap=
+Cdata.opts,ENV(__ENV_GSUB__,__ENV_MATCH__,__ENV_FORMAT__,__ENV_INSERT__,__ENV_MATH__,__ENV_TYPE__,__ENV_PAIRS__,__ENV_ERROR__,__ENV_GETMETATABLE__,__ENV_PCALL__,__ENV_LOAD__,__ENV_BIT_LIB__,__ENV_T_SWAP__)
 floor=floor.floor
 --bitwize operators (lua53 - backport feature) and idiv
-local err = function(a,b) error("attempt to perform ariphmetic on a "..(type(a)~="number" and type(a) or type(b)).." value",3)end
-local err2 = function(a,b) error("attempt to perform ariphmetic on a "..(type(a)~="number" and type(a) or type(b)).." value",2)end
-local stx,pht,p,p_un,tb,bt,check,loc_base,idiv_func =[[O
+local make_err,func_part1,func_part2 = 
+function(i)return function(a,b) error("attempt to perform ariphmetic on a "..(type(a)~="number" and type(a) or type(b)).." value",i)end end,
+'local p,t,f,g,e={},...return function(a,b)return(',')(a,b)end'
+
+--function(a,b) error("attempt to perform ariphmetic on a "..(type(a)~="number" and type(a) or type(b)).." value",3)end
+local run_err,stx,cur_priority,p_un,skipper_tab,bitwize_opts,check,loc_base,idiv_func=make_err(2),[[O
 |
 ~
 &
 << >>
 //
-]],{},opts["<"][1]+1,opts["#"][2],Cdata.skip_tb,
+]],l_opts["<"][1]+1,l_opts["#"][2],Cdata.skip_tb,
 t_swap{shl='<<',shr='>>',bxor='~',bor='|',band='&',idiv='//'},t_swap{__OPERATOR__,__OPEN_BREAKET__,__KEYWORD__},"__cssc__bit_", --priority base, unary priority,bitw funcs
-native_load([[local p,t,f,g,e={},...return function(a,b)return("number"==t(a)and"number"==t(b))and f(a/b)or((g(a)or p).__idiv or(g(b)or p).__idiv or e)(a,b)end]],"OP: '//'",nil,nil)(type,floor,getmetatable,err2)
+native_load(func_part1..[["number"==t(a)and"number"==t(b))and f(a/b)or((g(a)or p).__idiv or(g(b)or p).__idiv or e]]..func_part2,"OP: '//'",nil,nil)(type,floor,getmetatable,make_err(3))
+--[[local p,t,f,g,e={},...return function(a,b)return("number"==t(a)and"number"==t(b))and f(a/b)or((g(a)or p).__idiv or(g(b)or p).__idiv or e)(a,b)end]]
 
-
-if not bit32 then Control.warn("Unable to load bitwize operators feature! Bit/Bit32 libruary not found!")return end
+if not bit32 then C.warn("Unable to load bitwize operators feature! Bit/Bit32 libruary not found!")return end
 local direct--TODO:temporal solution rework
 insert(PreRun,function() direct=t_swap(C.args)["cssc.BO.direct"]and"bitD."or"bit." end)
 C:load_libs"code"
@@ -24,48 +28,50 @@ C:load_libs"code"
     "syntax_loader"(3)(stx,{O=function(...)--reg syntax
     for k,v,tab,has_un in pairs{...}do
         has_un=v=="~"
-        k= v=="//" and opts["*"][1] or p --calc actual priority
-        opts[v]=has_un and{k,p_un}or{k}
-        tab={{" ",__SPACE__},{loc_base..bt[v],__WORD__}}
+        k= v=="//" and l_opts["*"][1] or cur_priority --calc actual priority
+        l_opts[v]=has_un and{k,p_un}or{k}
+        tab={{" ",__SPACE__},{loc_base..bitwize_opts[v],__WORD__}}
         
         has_un=has_un and {{loc_base.."bnot",__WORD__}}
         --local bit_name,bit_func
         --try get metatables from a and b and select function to run (probably it's better to check their type before, but the smaller the function the faster it will be)    
         --if not direct then
-        local func =bit32[bt[v]] and native_load(format([[local p,t,f,g,e={},...return function(a,b)return(("number"~=t(a)or"number"~=t(b))and((g(a)or p).%s or(g(b)or p).%s or e)or f)(a,b)end]],"__"..bt[v],"__"..bt[v],"__"..bt[v],"__"..bt[v])
-        ,"OP: '"..v.."'",nil,nil)(type,bit32[bt[v]],getmetatable,err)or idiv_func --this function creates ultra fast & short pice of runtime working code
-        Runtime.build("bit."..bt[v],func,__TRUE__)
-        Runtime.build("bitD."..bt[v],bit32[bt[v]] or idiv_func ,__TRUE__)
+        
+        --[[local p,t,f,g,e={},...return function(a,b)return(("number"~=t(a)or"number"~=t(b))and((g(a)or p).%s or(g(b)or p).%s or e)or f)(a,b)end]]
+        --this function creates ultra fast & short pice of runtime working code
+        Runtime.build("bit."..bitwize_opts[v],bit32[bitwize_opts[v]] and 
+        native_load(format(func_part1..[[("number"~=t(a)or"number"~=t(b))and((g(a)or p).%s or(g(b)or p).%s or e)or f]]..func_part2,"__"..bitwize_opts[v],"__"..bitwize_opts[v],"__"..bitwize_opts[v],"__"..bitwize_opts[v])
+        ,"OP: '"..v.."'",nil,nil)(type,bit32[bitwize_opts[v]],getmetatable,run_err)or idiv_func,__TRUE__)
+        Runtime.build("bitD."..bitwize_opts[v],bit32[bitwize_opts[v]] or idiv_func ,__TRUE__)
         --end
         
         Operators[v]=function()--operator detected!
-            local id,prew,is_un,i,d = Cdata.tb_while(tb)
-            is_un = has_un and prew[1]==__OPERATOR__ or prew[1]==__OPEN_BREAKET__ --is unary operator
-            i,d=Cdata.tb_while(tb)
+            local id,prew,is_un,i,d = Cdata.tb_while(skipper_tab)
+            is_un = has_un and prew[1]==__OPERATOR__ or prew[1]==__OPEN_BREAKET__ or prew[1]==__KEYWORD__--is unary operator
+            _G.print(is_un)
+            _G.print(prew[1])
+            i,d=Cdata.tb_while(skipper_tab)
 
-            if not is_un and check[d[1]] then Control.error("Unexpected '%s' after '%s'!",v,Result[i])end--error check before
+            if not is_un and check[d[1]] then C.error("Unexpected '%s' after '%s'!",v,Result[i])end--error check before
 
-            Runtime.reg(is_un and loc_base.."bnot" or loc_base..bt[v],direct..(is_un and"bnot"or bt[v]))
-            Cssc.inject(is_un and ""or",",__OPERATOR__,not is_un and k or nil, is_un and p_un or nil)--inject found operator Control.Cdata.opts[","][1]
+            Runtime.reg(is_un and loc_base.."bnot" or loc_base..bitwize_opts[v],direct..(is_un and"bnot"or bitwize_opts[v]))
+            Cssc.inject(is_un and ""or",",__OPERATOR__,not is_un and k or nil, is_un and p_un or nil)--inject found operator Control.Cdata._opts[","][1]
             Text.split_seq(nil,#v)--remove bitwize from queue
-            Event.run(__OPERATOR__,v,__OPERATOR__,__TRUE__)--send events to fin opts in OP_st
+            Event.run(__OPERATOR__,v,__OPERATOR__,__TRUE__)--send events to fin _opts in OP_st
             Event.run("all",v,__OPERATOR__,__TRUE__)
 
             Event.reg("all",function(obj,tp)--error check after
                 --if tp==__KEYWORD__ and not match(Control.Result[#Control.Result],"^function") or  tp==__CLOSE_BREAKET__ or tp==__OPERATOR__ and not Control.Cdata[#Control.Cdata][3] then Control.error("Unexpected '%s' after '%s'!",obj,v) end
-                if tp==__KEYWORD__ and Result[#Result]~="function" or  tp==__CLOSE_BREAKET__ or tp==__OPERATOR__ and not Cdata[#Cdata][3] then Control.error("Unexpected '%s' after '%s'!",obj,v) end
-                return not tb[tp] and __TRUE__ 
+                if tp==__KEYWORD__ and Result[#Result]~="function" or  tp==__CLOSE_BREAKET__ or tp==__OPERATOR__ and not Cdata[#Cdata][3] then C.error("Unexpected '%s' after '%s'!",obj,v) end
+                return not skipper_tab[tp] and __TRUE__ 
             end)
             --reg operator data
             Cssc.op_conf(is_un and has_un or tab,is_un and p_un or k,is_un,nil,nil) --including stat_end
         end
     end
-    p=p+1
+    cur_priority=cur_priority+1
 end})
-if  direct then
-    Runtime.build("bitD.bnot",bit32.bnot,__TRUE__)
-else
-    local func = native_load([[local p,g,f,P,e,t,_={},... return function(a)_,a=P((g(a)or p).__bnot or f,a) return _ and a or e((g(a)or p).__bnot and a or ("attempt to perform bitwise operation on a "..t(a).." value"),2) end]],"__cssc_bit_bnot",nil,nil)(getmetatable,bit32.bnot,pcall,error,type)
-    Runtime.build("bit.bnot",func,__TRUE__)
-end
+Runtime.build("bitD.bnot",bit32.bnot,__TRUE__)
+--local func = native_load([[local p,g,f,P,e,t,_={},... return function(a)_,a=P((g(a)or p).__bnot or f,a) return _ and a or e((g(a)or p).__bnot and a or ("attempt to perform bitwise operation on a "..t(a).." value"),2) end]],"__cssc_bit_bnot",nil,nil)(getmetatable,bit32.bnot,pcall,error,type)
+Runtime.build("bit.bnot",native_load(gsub(func_part1,",b","")..[["number"~=t(a)and((g(a)or p).__bnot or e)or f)(a)end]])(type,bit32.bnot,getmetatable,error),__TRUE__)
 --return __TRUE__
