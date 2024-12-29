@@ -1,11 +1,11 @@
-local Sm,Ti,Tu,Gp,TS=ENV(2,7,10,13,23)C:load_libs"code.cssc""runtime""op_stack"local prohibited_area,bitw,bt,tb,stx=TS{"(","{","[","for","while","if","elseif","until"},{},{},Cdata.skip_tb,[[O
+local Sm,Ti,Tu,Gp,TS=ENV(2,7,10,13,23)C:load_libs"code.cssc""runtime""op_stack"local prohibited_area,bt,tb,stx,loc_base=TS{"(","{","[","for","while","if","elseif","until"},{},Cdata.skip_tb,[[O
 + - * / % .. ^ ?
 && ||
-]]if Operators["~"]then stx=stx.."| & >> <<\n"bt=TS{shl='<<',shr='>>',bxor='~',bor='|',band='&',idiv='//'}bitw=TS{__cssc__bit_bor="|",__cssc__bit_band="&",__cssc__bit_shr=">>",__cssc__bit_shl="<<"}end
-bt['?']="op.qad"bitw['?']="__cssc_op_qad"Runtime.build("op.qad",function(a,b)return a~=nil and a or b
+]],"__cssc__bit_"if Operators["~"]then stx=stx.."| & >> <<\n"bt=TS{shl='<<',shr='>>',bxor='~',bor='|',band='&',idiv='//'}end
+bt['?']="op.qad"Runtime.build("op.qad",function(a,b)return a~=nil and a or b
 end)C:load_lib"code.syntax_loader"(stx,{O=function(...)for k,v,t,p in Gp{...}do
 t=({["&&"]="and",["||"]="or"})[v]or v
-p=bitw[v]Operators[v.."="]=function()if bt[v]then Runtime.reg(p,(v~="?"and"bit."or"")..bt[v])end
+p=v=="?"and"__cssc_op_qad"or bt[v]and loc_base..bt[v]Operators[v.."="]=function()if bt[v]then Runtime.reg(p,(v~="?"and"bit."or"")..bt[v])end
 local lvl,cur_i,cur_d,i,lst=Level[#Level],#Cdata
 if prohibited_area[lvl.Gt]or#(lvl.OP_st or"")>0 then
 Control.Ge("Attempt to use additional asignment in prohibited area!")end

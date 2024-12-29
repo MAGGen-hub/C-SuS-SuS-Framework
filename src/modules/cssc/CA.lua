@@ -1,16 +1,14 @@
 local match,insert,unpack,pairs,t_swap = ENV(__ENV_MATCH__,__ENV_INSERT__,__ENV_UNPACK__,__ENV_PAIRS__,__ENV_T_SWAP__)
 --C/C++ additional asignment operators
 C:load_libs"code.cssc""runtime""op_stack"
-local prohibited_area,bitw,bt,tb,stx = t_swap{"(","{","[","for","while","if","elseif","until"},{},{},Cdata.skip_tb,[[O
+local prohibited_area,bt,tb,stx,loc_base = t_swap{"(","{","[","for","while","if","elseif","until"},{},Cdata.skip_tb,[[O
 + - * / % .. ^ ?
 && ||
-]]
+]],"__cssc__bit_"
 if Operators["~"] then stx=stx.."| & >> <<\n" 
     bt=t_swap{shl='<<',shr='>>',bxor='~',bor='|',band='&',idiv='//'}
-    bitw=t_swap{__cssc__bit_bor="|",__cssc__bit_band="&",__cssc__bit_shr=">>",__cssc__bit_shl="<<"}
 end--TODO: temporal solution! rework!
 bt['?']="op.qad"
-bitw['?']="__cssc_op_qad"
 Runtime.build("op.qad",function(a,b)
     return a~=nil and a or b
 end)
@@ -18,7 +16,7 @@ end)
 C:load_lib"code.syntax_loader"(stx,{O=function(...)
     for k, v, t,p in pairs{...}do
         t=({["&&"]="and",["||"]="or"})[v] or v
-        p=bitw[v]
+        p=v=="?" and"__cssc_op_qad"or bt[v]and loc_base..bt[v]
         Operators[v.."="]=function()
             if bt[v] then Runtime.reg(p,(v~="?"and"bit."or"")..bt[v])end
             local lvl,cur_i,cur_d,i,lst=Level[#Level],#Cdata

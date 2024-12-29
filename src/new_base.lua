@@ -5,7 +5,7 @@ local arg_check=function(Control)
 	end 
 end
 --TAB RUN helping function to execute all funcs in table
-local tab_run=function(Control,tab,br)for k,v in pairs(Control[tab])do if v(Control)and br then break end end end
+local tab_run=function(Control,t,b)for k,v in pairs(Control[t])do if v(Control)and b then break end end end
 --LOCALS
 local Configs,_arg,load_lib,load_libs,clear,make,run,read_control_string,load_control_string=
 {cssc_basic="sys.err,cssc={NF,KS,LF,BO,CA}",--configs

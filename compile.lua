@@ -1,3 +1,4 @@
+-- #region Desctiption
 -- CSSC_LUA-MC_COMPILLER1.1 (L-make)
 -- Required System Parameters:
 --
@@ -21,7 +22,7 @@
 -- os.execute-plugin --for craft os related tests
 --
 -- Required compilling/testing ENV/IDE: CraftOS-pc - latest
-
+-- #endregion
 
 --PROJECT DATA
 local project_name = "cssc_beta"
@@ -54,30 +55,27 @@ local macro={
 	"__UNPACK_MACRO_MINIFIED__",
 }
 
-
 --COMPILE CONFIG
 local config ={
-
---minification function to decrase code size
-  minify={--WARNING!: temporaly unavaliable. 
-	del_spaces	= false, --removes all posible tabs and spaces to make code smaller
-	default_words = false, --turn default variable names (such as operator,word,index) into o,w,i
-	del_comments  = false, -- delete all comments from code
-	control_table = false, --turn control-table into unreadable, but ultra fast mess
-	other		 = false}, --minify other stuff
-
-  debug=true --if true then @@DEBUG macro will be compilled and inserted in code (required some times)
+	--minification function to decrase code size
+	minify={--WARNING!: temporaly unavaliable. 
+		locals_minify = true, --turns local variables and some other stuff into unredable mess but saves a lot of space
+		basic_minify  = true, --remove comments and unnesesary spaces
+	},
+	--compilation function
+	compile = {
+		craft_os = true,  --default C SuS SuS for CraftOS
+		lua51   = true, --optimised for specific Lua version use
+		lua52   = true, 
+		--[==[
+		lua53   = false, 
+		lua54   = false,
+		Lua_Jit  = false]==]
+	}, 
+	debug=true --if true then @@DEBUG macro will be compilled and inserted in code (required some times)
 }
-
---compilation function
-local compile = {
-	craft_os = true,  --default C SuS SuS for CraftOS
-	lua51   = true, --optimised for specific Lua version use
-	lua52   = true, 
-	lua53   = false,
-	lua54   = false,
-	Lua_Jit  = false} --Lua-Jit
-
+-- #region Undone Features
+--[===[ 
 --lzss archiver function to decrase code size
 local compile_lzss = {--WARNING!: temporaly unavaliable. 
 	pre_compress = false, -- Replace common stuff with bytes before compressing
@@ -91,11 +89,12 @@ local run_tests = {--WARNING!: temporaly unavaliable. (other test system setup)
 	lua52   = false,
 	lua53   = false,
 	lua54   = false,
-	Lua_Jit  = false}
+	Lua_Jit  = false}]===]
+-- #endregion
 
 --OUTPUT_FILE_NAME_DEFINE:  <__PROJECT_NAME__>_api<version_number>.<minification_type>.<compile_type>.<extension>
 
---COMPILATOR FUNCS
+-- #region COMPILATOR FUNCS
 local function get_src(src)
 	local file = fs.open(src,"r")
 	local str = file.readAll()
@@ -108,27 +107,6 @@ local function set_out(out,data)
 	file.close()
 end
 
---[=[
-string.gifsub = function(text,condition,pattern,replacement)
-	return condition and text:gsub(pattern,replacement) or text
-end
-local compile_dir
-compile_dir = function(src,path,subdir,md)
-	path=path.."={"
-	for k,v in pairs(fs.list(src))do
-		k=fs.combine(src,v)
-		if fs.isDir(k)then
-			--print(v,md)
-			path=compile_dir(k,path..(md and v=="modules"and"[_modules]"or v),1,md).."},--Close "..v.."\n"
-		else--file
-			k=get_src(k)
-			v=v:sub(1,-5)
-			path=path..(md and v=="init"and"[_init]"or v).."="..(#k>0 and k or"function()end")..",\n"
-			--path=v=="doend"and k..path or path..k
-		end
-	end
-	return path..(subdir and""or"}")
-end]=]
 local compile_macros=function(code_name,code)
 	--COMPILE MACROS
 	if code_name then
@@ -166,7 +144,7 @@ minify_dir = function(src_dir)
 		if fs.isDir(obj) then minify_dir(obj)
 		else
 			local src = get_src(obj)
-			src=minifier(src)
+			src=minifier(src,obj)
 			set_out(obj,src)
 			--print("Minify:",obj)
 		end
@@ -185,8 +163,7 @@ size_dir = function(src_dir)
 	end
 	return sz
 end
-
-
+-- #endregion COMPILATOR FUNCS
 
 --COMPILE:
 
@@ -194,9 +171,8 @@ end
 compile_dir(features_src,out_dir,"features")
 --MAKE_MODULES
 compile_dir(modules_src,out_dir,"modules")
-
-
-for code_name,enabled in pairs(compile) do
+--COMPILE BASE
+for code_name,enabled in pairs(config.compile) do
 	if enabled then
 		--GET CODE
 		local code = table.concat{get_src(protect_src),get_src(base_src)}--,get_src(cores_src),get_src(modules_src)}
@@ -214,77 +190,44 @@ for code_name,enabled in pairs(compile) do
 		set_out(fs.combine(out_dir,table.concat({project_name,code_name,"original"},"__")..".lua"),code)
 	end
 end
---CLEAR STRING METATABLE
---string.gifsub = nil
---WARNING: debug feature! disable if unwanted
+
 shell.run("/cssc_final/out/cssc_beta__craft_os__original.lua")
 
 --MINIFY_DIR
-local comp1=cssc_beta.make"minify"
-minifier=function(s)
-	local tmp=function(s)return 
-		function(a,b) if a..b~="A(,E)" and not b:sub(1,1):match"[%w_]" and not a:sub(2,2):match"[%w_]" then 
-			return a..s..b 
-		end end 
+if config.minify.locals_minify then
+	local minify_cfg,e =load(get_src(fs.combine(work_dir,"minify_cfg.lua")))
+	--[[print(minify_cfg,e)]]
+	minify_cfg=minify_cfg()
+	local for_all,for_each = minify_cfg.for_all,minify_cfg.for_each
+	minifier=function(s,path)
+		for i=1,#for_all,2 do
+			s=s:gsub(for_all[i],for_all[i+1])
+		end
+		path=path:gsub("^"..out_dir.."/","")
+		path = for_each[path]or{}
+		for i=1,#path,2 do
+			s=s:gsub(path[i],path[i+1])
+		end
+		return s
 	end
-	local tmP=function(s)return 
-		function(a,b) if a~="T."and a~="S." and not a:sub(2,2):match"[%w_]" and not b:match"[%w_]" then 
-				return a..s..b 
-		end end 
-	end
-	return s
-	:gsub("(..)gmatch(.)",tmP"SG")-- gmatch -> SG
-	:gsub("(..)match(.)" ,tmP"Sm")-- match  -> Sm
-	:gsub("(..)format(.)",tmP"SF")-- format -> SF
-	:gsub("(..)find(.)"  ,tmP"Sf")-- find   -> Sf
-	:gsub("(..)gsub(.)"  ,tmP"Sg")-- match  -> Sg
-	:gsub("(..)sub(.)"   ,tmP"Ss")-- match  -> Ss
-
-	:gsub("(..)insert(.)",tmP"Ti")-- insert -> Ti
-	:gsub("(..)concat(.)",tmP"Tc")-- concat -> Tc
-	:gsub("(..)remove(.)",tmP"Tr")-- remove -> Tr
-	:gsub("(..)unpack(.)",tmP"Tu")-- unpack -> Tu
-
-	:gsub("(..)type(...)"        ,tmp"Gt")-- type         -> Gt
-	:gsub("(..)pairs(...)"       ,tmp"Gp")-- pairs        -> Gp
-	:gsub("(..)error(...)"       ,tmp"Ge")-- error        -> Ge
-	:gsub("(..)tostring(...)"    ,tmp"Gs")-- tostring     -> Gs
-	:gsub("(..)tonumber(...)"    ,tmp"Gn")-- tonumber     -> Gn
-	:gsub("(..)getmetatable(...)",tmp"GG")-- getmetatable -> GG
-	:gsub("(..)setmetatable(...)",tmp"GS")-- setmetatable -> GS
-	:gsub("(..)pcall(...)"       ,tmp"GP")-- pcall        -> Gp
-	:gsub("native_loadfile"         ,"Gf")-- pcall        -> Gp
-	:gsub("native_load"             ,"Gl")-- pcall        -> Gp
-
-	:gsub("t_copy"  ,"TC") -- t_copy   -> TC --table lib additions
-	:gsub("t_swap"  ,"TS") -- t_swap   -> TS
-
-	:gsub("env_load"        ,"Cl") -- env_load -> Cl --CSSC framework
-	:gsub("placeholder_func","Cp")
-
-	:gsub("A%(T%.unpack or Tu,E%)","A(T.unpack or unpack,E)") --fix
-	:gsub("A%(Tu,E%)","A(unpack,E)") --fix
+	minify_dir(out_dir)--advanced local minify
 end
-minify_dir(out_dir)--advanced local minify
-minifier= function(s)return comp1:run(s)end
-minify_dir(out_dir)--basic space/comments minify
+if config.minify.basic_minify then
+	local comp1 = cssc_beta.make"minify"
+	minifier= function(s)return comp1:run(s)end
+	minify_dir(out_dir)--basic space/comments minify
+end
 
---GET_SIZE
+-- calculate SIZE
 local f_size = size_dir(out_dir,"features")
 local m_size = size_dir(out_dir,"modules")
 local size = (f_size + m_size) / 1024
 print(string.format ("Libs size: %3.3f Kbs - %1.3f%% of 2Mbs",size,size/(1024*2)*100))
-for code_name,enabled in pairs(compile) do
+for code_name,enabled in pairs(config.compile) do
 	if enabled then
 		local name = table.concat({project_name,code_name,"original"},"__")..".lua"
 		local size = fs.getSize(fs.combine(out_dir,name))/1024
 		print(string.format ("%-35s size: %3.3f Kbs  - %1.3f%% of 2Mbs",name,size,size/(1024*2)*100))
 	end
 end
-
-
 shell.run("/cssc_final/out/cssc_beta__craft_os__original.lua")
-
-
-
-

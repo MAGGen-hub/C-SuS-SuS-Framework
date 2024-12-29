@@ -50,7 +50,7 @@ __ENV_T_COPY__,24,
 __ENV_TABLE__,25,
 __ENV_STRING__,26,
 __ENV_MATH__,27,
-__ENV_IO__,28,
+__ENV_IO__,28,Thouse macros are unused (from 28 to 33) but can be enabled in future
 __ENV_OS__,29,
 __ENV_COROUTINE__,30,
 __ENV_DEBUG__,31,
