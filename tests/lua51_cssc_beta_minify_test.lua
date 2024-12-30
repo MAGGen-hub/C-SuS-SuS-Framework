@@ -128,7 +128,7 @@ return M
 package.path=package.path..";../?.lua"--add previous directory to require check
 local lua_mc=require("out/cssc_beta__lua51__original")--load system
 
-local comp1 = lua_mc.make("sys.err,cssc={BO}")--basic compiller
+local comp1 = lua_mc("sys.err,cssc={BO}")--basic compiller
 local compilled=comp1:run(lzss_src)--compile basic lzss
 print(compilled)
 
@@ -142,7 +142,7 @@ local decompressed_lzss_src=lzss_basic.decompress(compressed_lzss_src)
 assert(decompressed_lzss_src == lzss_src,"Error lzss compress/decompress output not equal to input!")
 print("Basic lzss test complete.")
 
-local comp2 = lua_mc.make("minify")
+local comp2 = lua_mc("minify")
 local minified = comp2:run(compilled)
 print(minified)
 local lzss_minif = comp1.load(minified,"minif_lzss",nil,setmetatable({},{__index=_G}))()

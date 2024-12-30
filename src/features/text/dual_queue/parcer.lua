@@ -1,12 +1,12 @@
 local match,sub,type=ENV(__ENV_MATCH__,__ENV_SUB__,__ENV_TYPE__)
-local func=function(react_obj,t,j,i,po)
+local l_func=function(react_obj,queue,j,obj_type,posible_obj)
 	if"string"==type(react_obj)then Result[#Result+1]=react_obj
-	else react_obj=react_obj(C,po) end --MAIN ACTION
+	else react_obj=react_obj(C,posible_obj) end --MAIN ACTION
 	
 	if react_obj then -- default reaction to string (functions can have default reactions if they return anything(expected string!))
-		C[t]=sub(C[t],j+1)
+		C[queue]=sub(C[queue],j+1)
 		C.index=C.index+j
-		Core(i,react_obj)
+		Core(obj_type,react_obj)
 	end
 end
 Struct.final=function() --base handler for two sequences
@@ -15,11 +15,11 @@ Struct.final=function() --base handler for two sequences
 		for j=C.max_op_len,1,-1 do --split the operator_seq
 			posible_obj=sub(C.operator,1,j)
 			react_obj=Operators[posible_obj]
-			if react_obj or j<2 then func(react_obj or posible_obj,"operator",j,react_obj and __OPERATOR__ or __SYMBOL__,posible_obj)break end
+			if react_obj or j<2 then l_func(react_obj or posible_obj,"operator",j,react_obj and __OPERATOR__ or __SYMBOL__,posible_obj)break end
 		end
 	elseif#C.word>0 then--WORD PROCESSOR
 		posible_obj=match(C.word,"^%S+") --split the word_seq temp=#posible_object
 		react_obj=Words[posible_obj]or posible_obj
-		func(react_obj,"word",#posible_obj,__WORD__,posible_obj)
+		l_func(react_obj,"word",#posible_obj,__WORD__,posible_obj)
 	end
 end

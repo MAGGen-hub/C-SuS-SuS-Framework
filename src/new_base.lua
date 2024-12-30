@@ -7,41 +7,37 @@ end
 --TAB RUN helping function to execute all funcs in table
 local tab_run=function(Control,t,b)for k,v in pairs(Control[t])do if v(Control)and b then break end end end
 --LOCALS
-local Configs,_arg,load_lib,load_libs,clear,make,run,read_control_string,load_control_string=
-{cssc_basic="sys.err,cssc={NF,KS,LF,BO,CA}",--configs
- cssc_user="sys.err,cssc={NF,KS(sc_end),LF,DA,BO,CA,NC,IS,ncbf}",
- cssc_full="sys.err,cssc={NF,KS(sc_end,pl_cond),LF,DA,BO,CA,NC,IS,ncbf}"},
-{'arg'},--constrol_string_arg_accessor
-function(Control,path,...)--arg_check(Control)--LOAD_LIB function
-	local ld,arg,tp=Control.Loaded[">"..path],{}
-	if false~=ld then--__SINGLECALL__ -> default mode
-		Control.log("Load %s",">"..path)--log func loading
-		if ld and"function"==type(ld)then arg={ld(...)} remove(arg,1)return unpack(arg)end--__RECALLABLE__ mode
-		if ld and"table"==type(ld)then return unpack(ld)end--__RESULTABLE__ mode
+local _arg,load_lib,load_libs,clear,run,read_control_string,load_control_string={'arg'},--constrol_string_arg_accessor
+function(Control,l_path,...)--arg_check(Control)--LOAD_LIB function
+	local l_loaded,l_arg,rez_tp=Control.Loaded[">"..l_path],{}
+	if false~=l_loaded then--__SINGLECALL__ -> default mode
+		Control.log("Load %s",">"..l_path)--log func loading
+		if l_loaded and"function"==type(l_loaded)then l_arg={l_loaded(...)} remove(l_arg,1)return unpack(l_arg)end--__RECALLABLE__ mode
+		if l_loaded and"table"==type(l_loaded)then return unpack(l_loaded)end--__RESULTABLE__ mode
 		--FIRST LOAD or __RELOADABLE__ mode
-		local r,e=native_loadfile(base_path.."features/"..gsub(path,"%.","/")..".lua",nil,setmetatable({C=Control,Control=Control,ENV=env_load,_G=_G,_E=_ENV},{__index=Control}))
-		e=e and error("Lib ["..path.."]:"..e)
-		arg={r(...)}
-		tp=remove(arg,1)or false --if no return -> __SINGLECALL__ mode (only one launch allowed)
-		Control.Loaded[">"..path]=__RESULTABLE__==tp and arg or (tp==__RECALLABLE__) and r or tp--setup reaction to future call(deny_lib_load/recal/return_old_rez)
+		local r,e=native_loadfile(base_path.."features/"..gsub(l_path,"%.","/")..".lua",nil,setmetatable({C=Control,Control=Control,ENV=env_load,_G=_G,_E=_ENV},{__index=Control}))
+		e=e and error("Lib ["..l_path.."]:"..e)
+		l_arg={r(...)}
+		rez_tp=remove(l_arg,1)or false --if no return -> __SINGLECALL__ mode (only one launch allowed)
+		Control.Loaded[">"..l_path]=__RESULTABLE__==rez_tp and l_arg or (rez_tp==__RECALLABLE__) and r or rez_tp--setup reaction to future call(deny_lib_load/recal/return_old_rez)
 	end
-	return unpack(arg)--__FIRST LOAD return
+	return unpack(l_arg)--__FIRST LOAD return
 end
 do --advanced lib loader (cursed a litle, but useful)
-	local mt mt = {
+	local m m = {
 		__index=function(s,p)insert(s.p,p)return s end,--
-		__call=function(s,lib,...)
-			if s==mt then return setmetatable({r={},p={lib},C=...},mt) end--constructor
-			if type(lib)=="string"then insert(s.r,{load_lib(s.C,concat(s.p,".").."."..lib,...)}) return s end --loader
-			if type(lib)=="number" then local r,i = {},1
-				for _,v in pairs{lib,...}do for _,v1 in pairs(s.r[v]or{(v<0 and s)or(v<1 and s.r)or nil})do r[i]=v1 i=i+1 end end
+		__call=function(s,l,...)
+			if s==m then return setmetatable({r={},p={l},C=...},m) end--constructor
+			if type(l)=="string"then insert(s.r,{load_lib(s.C,concat(s.p,".").."."..l,...)}) return s end --loader
+			if type(l)=="number" then local r,i = {},1
+				for _,v in pairs{l,...}do for _,v1 in pairs(s.r[v]or{(v<0 and s)or(v<1 and s.r)or nil})do r[i]=v1 i=i+1 end end
 				return unpack(r) --return results 
 			end 
 			remove(s.p)
 			return s
 		end
 	}
-	load_libs=function(Control,path)local s=mt.__call(mt,path,Control) return s end
+	load_libs=function(Control,l_path)local s=m.__call(m,l_path,Control) return s end
 end
 
 clear=function(Obj)arg_check(Obj)tab_run(Obj.data,"Clear")end--clear
@@ -68,44 +64,10 @@ run=function(Obj,x,...)arg_check(Obj)
 	end
 end
 
---PROJECT MAKER
-make=function(ctrl_str)
-	if"string"~=type(ctrl_str)then error(format("Bad argument #2 (expected string, got %s)",type(ctrl_str)))end--ARG CHECK
 
-	--INITIALISE PREPROCESSOR OBJECT
-	local m,i,Control,Obj,r={__type="cssf_unit",__name="cssf_unit"},1
-	r={__call=function(S,s,...)
-		if#S>999 then remove(S,1)end
-		insert(S,format("%-16s : "..s,format("[%0.3d] [%s]",i,S._),...))
-		i=i+1
-	end}
-	--PROCESSING OBJECT
-	Control={
-		--MAIN FUNCTIONS
-		load_lib=load_lib,load_libs=load_libs,--clear=clear,continue=continue,ctrl=ctrl_str,
-		--MAIN OBJECTS TO WORK WITH
-		PostLoad={},PreRun={},PostRun={},Struct={},Loaded={},Clear={},Result={},
-		--SYSTEM PLACEHOLDERS
-		error=setmetatable({_=" Error "},r),--send error msg TODO:Rework
-		log=setmetatable({_="  Log  "},r),  --send log msg
-		warn=setmetatable({_="Warning"},r), --send warning msg
-		Core=placeholedr_func,
-		Iterator=native_load"return 1",
-		--META
-		--meta=m
-	}
-	--USER ACCESS OBJECT
-	Obj=setmetatable({data=Control,run=run,info="C SuS SuS Framework object"},m)
-	Control.User=Obj--link to user accessable object (Control Parent)
-	
-	load_control_string(Control,read_control_string(ctrl_str))--CONTROL STRING LOAD AND PARCE
-	--POST LOAD
-	tab_run(Control,"PostLoad")
-	return Obj
-end
 
 --CONTROL STRING READER
-read_control_string=function(s)--RECURSIVE FUNC: turn control string into table and load configs
+read_control_string=function(s,C)--RECURSIVE FUNC: turn control string into table and load configs
 	local c,t,l,e,m={"config",[_arg]={}}--config and arg marks!
 	m={__index=function(s,i)s=s==c and setmetatable({c[1],[_arg]={}},m)or s s[#s+1]=i return s end,
 		__call=function(s,...)
@@ -118,9 +80,9 @@ read_control_string=function(s)--RECURSIVE FUNC: turn control string into table 
 	l=e and error(format("Invalid control string: <%s> -> %s",s,e))or l()
 	s,l[c]=l[c]
 	t,e=pcall(concat,s)
-	e=Configs[t and e or s]
+	e=C[t and e or s]
 	t=1
-	for k,v in pairs(e and read_control_string(e)or{})do --read config
+	for k,v in pairs(e and read_control_string(e,C)or{})do --read config
 		if"number"==type(k)then insert(l,t,v) t=t+1 else l[k]=v end
 	end
 	return l,a
@@ -128,41 +90,81 @@ end
 
 
 --CONTROL STRING LOADER
-load_control_string=function(Control,main,subm,path,cur_sc)--RECURSIVE FUNC: load readed control string and fill Control table with contents of loaded modules
-	local prt,mod,e,sc --part of ctrl string; module func; error ; shotcuts/aliases 
-	if path then--LOAD MODULE
-		prt=remove(main,1)
-		path=path..((cur_sc or{})[prt] or prt)--apply aliases if exists 
+load_control_string=function(Control,main,subm,l_path,cur_aliases)--RECURSIVE FUNC: load readed control string and fill Control table with contents of loaded modules
+	local path_prt,l_mod,e,aliases --part of ctrl string; module func; error ; shotcuts/aliases 
+	if l_path then--LOAD MODULE
+		path_prt=remove(main,1)
+		l_path=l_path..((cur_aliases or{})[path_prt] or path_prt)--apply aliases if exists 
 		--try_load mofule from file
-		mod,e=native_loadfile(base_path.."modules/"..gsub(sub(path,2),"%.","/")..".lua",nil,setmetatable({C=Control,Control=Control,ENV=env_load,_G=_G,_E=_ENV},{__index=Control}))
-		e=e and error(format('Error loading module "%s": %s',path,e),4)
-		--try_run module from <mod>
-		Control.Loaded[path],e=pcall(function()
-			if Control.Loaded[path]then return end --prevent double load
-			Control.log("Load %s",path)
-			sc=(mod or placeholder_func)(path,main[_arg][prt])--run module initializer and push args if exists
+		l_mod,e=native_loadfile(base_path.."modules/"..gsub(sub(l_path,2),"%.","/")..".lua",nil,setmetatable({C=Control,Control=Control,ENV=env_load,_G=_G,_E=_ENV},{__index=Control}))
+		e=e and error(format('Error loading module "%s": %s',l_path,e),4)
+		--try_run module from <l_mod>
+		Control.Loaded[l_path],e=pcall(function()
+			if Control.Loaded[l_path]then return end --prevent double load
+			Control.log("Load %s",l_path)
+			aliases=(l_mod or placeholder_func)(l_path,main[_arg][path_prt])--run module initializer and push args if exists
 		end)
-		e=e and error(format('Error loading module "%s": %s',path,e),4)
+		e=e and error(format('Error loading module "%s": %s',l_path,e),4)
 
 	else --INIT LOADER
-		mod=__TRUE__
+		l_mod=__TRUE__
 		subm=main
 		main={}
 	end
 
 	--if core module exist
-	if mod and sc~=__TRUE__ then  --load sub_modules if exist
-		path=path and path.."."or"@"
-		if #main>0 then load_control_string(Control,main,subm,path,sc)
+	if l_mod and aliases~=__TRUE__ then  --load sub_modules if exist
+		l_path=l_path and l_path.."."or"@"
+		if #main>0 then load_control_string(Control,main,subm,l_path,aliases)
 		else for k,v in pairs(subm or{})do
 			e=e or"string"==type(v)--set correct loading mode (depends on ctrl string view)
 			v=e and{v}or v
 			v="number"==type(k)and{v}or{k,v}
-			load_control_string(Control,v[1],v[2],path,sc)
+			load_control_string(Control,v[1],v[2],l_path,aliases)
 		end end
 	end
 end
 
-__PROJECT_NAME__={make=make,Configs=Configs,creator="M.A.G.Gen.",version='__VERSION__'}
+__PROJECT_NAME__=setmetatable({Configs={
+cssc_basic="sys.err,cssc={NF,KS,LF,BO,CA}",--configs
+cssc_user="sys.err,cssc={NF,KS(sc_end),LF,DA,BO,CA,NC,IS,ncbf}",
+cssc_full="sys.err,cssc={NF,KS(sc_end,pl_cond),LF,DA,BO,CA,NC,IS,ncbf}"},
+creator="M.A.G.Gen.",version='__VERSION__'},
+{	--PROJECT MAKER
+	__call=function(S,l_ctrl_str)
+		if"string"~=type(l_ctrl_str)then error(format("Bad argument #2 (expected string, got %s)",type(l_ctrl_str)))end--ARG CHECK
+
+		--INITIALISE PREPROCESSOR OBJECT
+		local m,i,Control,Obj,r={__type="cssf_unit",__name="cssf_unit"},1
+		r={__call=function(S,s,...)
+			if#S>999 then remove(S,1)end
+			insert(S,format("%-16s : "..s,format("[%0.3d] [%s]",i,S._),...))
+			i=i+1
+		end}
+		--PROCESSING OBJECT
+		Control={
+			--MAIN FUNCTIONS
+			load_lib=load_lib,load_libs=load_libs,--clear=clear,continue=continue,ctrl=ctrl_str,
+			--MAIN OBJECTS TO WORK WITH
+			PostLoad={},PreRun={},PostRun={},Struct={},Loaded={},Clear={},Result={},
+			--SYSTEM PLACEHOLDERS
+			error=setmetatable({_=" Error "},r),--send error msg TODO:Rework
+			log=setmetatable({_="  Log  "},r),  --send log msg
+			warn=setmetatable({_="Warning"},r), --send warning msg
+			Core=placeholder_func,
+			Iterator=native_load"return 1",
+			--META
+			--meta=m
+		}
+		--USER ACCESS OBJECT
+		Obj=setmetatable({data=Control,run=run,info="C SuS SuS Framework object"},m)
+		Control.User=Obj--link to user accessable object (Control Parent)
+		
+		load_control_string(Control,read_control_string(l_ctrl_str,S.Configs))--CONTROL STRING LOAD AND PARCE
+		--POST LOAD
+		tab_run(Control,"PostLoad")
+		return Obj
+	end}
+)
 @@DEBUG _G.__PROJECT_NAME__=__PROJECT_NAME__
 return __PROJECT_NAME__

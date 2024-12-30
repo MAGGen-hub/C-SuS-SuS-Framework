@@ -213,21 +213,23 @@ if config.minify.locals_minify then
 	minify_dir(out_dir)--advanced local minify
 end
 if config.minify.basic_minify then
-	local comp1 = cssc_beta.make"minify"
+	local comp1 = cssc_beta"minify"
 	minifier= function(s)return comp1:run(s)end
 	minify_dir(out_dir)--basic space/comments minify
 end
 
 -- calculate SIZE
-local f_size = size_dir(out_dir,"features")
-local m_size = size_dir(out_dir,"modules")
-local size = (f_size + m_size) / 1024
-print(string.format ("Libs size: %3.3f Kbs - %1.3f%% of 2Mbs",size,size/(1024*2)*100))
+local f_size = size_dir(fs.combine(out_dir,"features"))/ 1024
+local m_size = size_dir(fs.combine(out_dir,"modules"))/ 1024
+print(string.format ("Features size: %6.3f Kbs - %1.3f%% of 2Mbs",f_size,f_size/(1024*2)*100))
+print(string.format ("Modules  size: %6.3f Kbs - %1.3f%% of 2Mbs",m_size,m_size/(1024*2)*100))
+print(string.format ("Mds+Fts  size: %6.3f Kbs - %1.3f%% of 2Mbs",f_size+m_size,(f_size+m_size)/(1024*2)*100))
+
 for code_name,enabled in pairs(config.compile) do
 	if enabled then
 		local name = table.concat({project_name,code_name,"original"},"__")..".lua"
 		local size = fs.getSize(fs.combine(out_dir,name))/1024
-		print(string.format ("%-35s size: %3.3f Kbs  - %1.3f%% of 2Mbs",name,size,size/(1024*2)*100))
+		print(string.format ("%-35s size: %3.3f Kbs - %1.3f%% of 2Mbs",name,size,size/(1024*2)*100))
 	end
 end
 shell.run("/cssc_final/out/cssc_beta__craft_os__original.lua")

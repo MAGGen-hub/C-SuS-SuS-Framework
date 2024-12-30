@@ -1,12 +1,11 @@
 local match,format,insert,concat,unpack,pairs,error,setmetatable,tostring = ENV(__ENV_MATCH__,__ENV_FORMAT__,__ENV_INSERT__,__ENV_CONCAT__,__ENV_UNPACK__,__ENV_PAIRS__,__ENV_ERROR__,__ENV_SETMETATABLE__,__ENV_TOSTRING__)
-local path,dt=...
+local P,d,p,clear_func=...
 --api to inject locals form Control table right into code
-local p,clr
-p={path=path or "____PROJECT_NAME____runtime", locals={}, modules={}, loc_names={},
-    data=dt or setmetatable({},{__call=function(self,...)
+p={path=P or "____PROJECT_NAME____runtime", locals={}, modules={}, loc_names={},
+    data=d or setmetatable({},{__call=function(s,...)
         local t={}
         for _,v in pairs{...}do
-            insert(t,self[v] or error(format("Unable to load '%s' run-time module!",v)))
+            insert(t,s[v] or error(format("Unable to load '%s' run-time module!",v)))
         end
         return unpack(t)
     end}),
@@ -16,17 +15,19 @@ p={path=path or "____PROJECT_NAME____runtime", locals={}, modules={}, loc_names=
         insert(p.locals,l_name)
         insert(p.modules,"'"..m_name.."'")
     end,
-    build=function(m_name,func)--TODO: REWORK!
-        if (not p.data[m_name] or Control.error("Attempt to rewrite runtime module '%s'! Choose other name or delete module first!",m_name)) then p.data[m_name]=func end
+    build=function(m_name,l_func)--TODO: REWORK!
+        if (not p.data[m_name] or C.error("Attempt to rewrite runtime module '%s'! Choose other name or delete module first!",m_name)) then 
+            p.data[m_name]=l_func 
+        end
     end,
     is_done=false,
-    mk_env=function(tb)
-        tb=tb or {}
+    mk_env=function(t)
+        t=t or {}
         if #p.locals>0 then
-            if tb[p.path] then Control.warn(" CSSC environment var '%s' already exist in '%s'. Override performed.",p.path,tostring(tb))end
-            tb[p.path]=p.data 
+            if t[p.path] then C.warn(" CSSC environment var '%s' already exist in '%s'. Override performed.",p.path,tostring(t))end
+            t[p.path]=p.data 
         end
-        return tb
+        return t
     end
 }
 insert(PostRun,function()
@@ -35,11 +36,11 @@ insert(PostRun,function()
     end
     p.is_done=true
 end)
-clr = function()
+clear_func = function()
     p.locals={}
     p.modules={}
     p.loc_names={}
     p.is_done=false
 end
 C.Runtime=p
-insert(Clear,clr)
+insert(Clear,clear_func)

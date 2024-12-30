@@ -1,6 +1,6 @@
-local Sm,Sg,Ti=ENV(2,5,7)Ti(Struct,function()local temp,space=#C.operator>0 and"operator"or"word"space,C[temp]=Sm(C[temp],"^(%s*)(.*)")if#space>0 then
-space,temp=Sg(space,"\n",{})C.line=C.line+temp
-C.index=C.index+#space
-Result[#Result+1]=space
-Core(5,space)end
+local Sm,Sg,Ti=ENV(2,5,7)Ti(Struct,function()local t,s=#C.operator>0 and"operator"or"word"s,C[t]=Sm(C[t],"^(%s*)(.*)")if#s>0 then
+s,t=Sg(s,"\n",{})C.line=C.line+t
+C.index=C.index+#s
+Result[#Result+1]=s
+Core(5,s)end
 end)

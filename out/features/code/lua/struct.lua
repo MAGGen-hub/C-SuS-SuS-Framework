@@ -1,47 +1,47 @@
-local Sm,SF,Sg,Ss,Ti,Tc,Tu=ENV(2,3,5,6,7,8,10)Text.get_num_prt=function(nd,f)local ex
-nd[#nd+1],ex,C.word=Sm(C.word,SF("^(%s*([%s]?%%d*))(.*)",Tu(f)))C.operator=""if#C.word>0 or#ex>1 then return 1 end
-if#ex>0 then
-Iterator()ex=Sm(C.operator or"","^[+-]$")if ex then
-nd[#nd+1]=ex
-nd[#nd+1],C.word=Sm(C.word,"^(%d*)(.*)")C.operator=""end
+local Sm,SF,Sg,Ss,Ti,Tc,Tu=ENV(2,3,5,6,7,8,10)Text.get_num_prt=function(n,D)local E
+n[#n+1],E,C.word=Sm(C.word,SF("^(%s*([%s]?%%d*))(.*)",Tu(D)))C.operator=""if#C.word>0 or#E>1 then return 1 end
+if#E>0 then
+Iterator()E=Sm(C.operator or"","^[+-]$")if E then
+n[#n+1]=E
+n[#n+1],C.word=Sm(C.word,"^(%d*)(.*)")C.operator=""end
 return 1
 end
 end
-local get_number,split_seq=function()local c,d=Sm(C.word,"^0([Xx])")d=C.operator=="."and not c
+local N,split_seq=function()local m,d=Sm(C.word,"^0([Xx])")d=C.operator=="."and not m
 if not Sm(C.word,"^%d")or not d and#C.operator>0 then return end
-local num_data,f=d and{"."}or{},c and{"0"..c.."%x","Pp"}or{"%d","Ee"}if Text.get_num_prt(num_data,f)or"."==num_data[1]then return num_data end
+local n,D=d and{"."}or{},m and{"0"..m.."%x","Pp"}or{"%d","Ee"}if Text.get_num_prt(n,D)or"."==n[1]then return n end
 Iterator()if C.operator=="."then
-num_data[#num_data+1]="."f[1]=Ss(f[1],-2)Text.get_num_prt(num_data,f)end
-return num_data
+n[#n+1]="."D[1]=Ss(D[1],-2)Text.get_num_prt(n,D)end
+return n
 end,Text.split_seq
-Ti(Struct,function()local com,rez,mode,lvl,str=#C.operator>0 and"operator"or"word"if#C.operator>0 then
-rez,com,lvl={},Sm(C.operator,"^(-?)%1%[(=*)%[")com=Sm(C.operator,"^-%-")str=Sm(C.operator,"^['\"]")if lvl then
-lvl="%]"..lvl.."()%]"repeat
-if split_seq(rez,Sm(C.operator,lvl))then mode=com and 11 or 7 break end
-Ti(rez,C.word)until Iterator()elseif str then
-split_seq(rez,1)str="(\\*()["..str.."\n])"while C.index do
-com,mode=Sm(C.operator,str)if split_seq(rez,mode)then
-mode=Sm(com,"\n$")lvl=lvl or mode
-if#com%2>0 then mode=not mode and 7 break end
+Ti(Struct,function()local c,r,m,l,s=#C.operator>0 and"operator"or"word"if#C.operator>0 then
+r,c,l={},Sm(C.operator,"^(-?)%1%[(=*)%[")c=Sm(C.operator,"^-%-")s=Sm(C.operator,"^['\"]")if l then
+l="%]"..l.."()%]"repeat
+if split_seq(r,Sm(C.operator,l))then m=c and 11 or 7 break end
+Ti(r,C.word)until Iterator()elseif s then
+split_seq(r,1)s="(\\*()["..s.."\n])"while C.index do
+c,m=Sm(C.operator,s)if split_seq(r,m)then
+m=Sm(c,"\n$")l=l or m
+if#c%2>0 then m=not m and 7 break end
 else
-if split_seq(rez,Sm(C.word,"()\n"),1)then break end
+if split_seq(r,Sm(C.word,"()\n"),1)then break end
 Iterator()end
 end
-elseif com then
+elseif c then
 repeat
-if split_seq(rez,Sm(C.operator,"()\n"))or split_seq(rez,Sm(C.word,"()\n"),1)then C.line=C.line+1 break end
-until Iterator()mode=11
+if split_seq(r,Sm(C.operator,"()\n"))or split_seq(r,Sm(C.word,"()\n"),1)then C.line=C.line+1 break end
+until Iterator()m=11
 else
-rez=get_number()mode=rez and 6
+r=N()m=r and 6
 end
 elseif#C.word>0 then
-rez=get_number()mode=rez and 6
+r=N()m=r and 6
 end
-if rez then
-rez=Tc(rez)if lvl then
-rez,com=Sg(rez,"\n",{})C.line=C.line+com
+if r then
+r=Tc(r)if l then
+r,c=Sg(r,"\n",{})C.line=C.line+c
 end
-Result[#Result+1]=rez
-Core(mode or 12,rez)return true
+Result[#Result+1]=r
+Core(m or 12,r)return true
 end
 end)

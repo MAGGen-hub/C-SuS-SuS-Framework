@@ -229,7 +229,7 @@ test = test_matrix[tonumber(arg[1])]
 print("Selected test: ",arg[1],"- ",test.test_name)
 print("SOURCE CODE  : \n", test.test_function)
 print("PREPROCESSED : ")
-comp1 = lua_mc.make(test.short_ctrl)
+comp1 = lua_mc(test.short_ctrl)
 local _,prep = pcall(comp1.run,comp1,test.test_function)
 print(prep)
 --if not _ then return end

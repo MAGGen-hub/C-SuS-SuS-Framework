@@ -1,1 +1,1 @@
-local pht,ltp,lmt={},ENV(12,17)return 2,function(obj)return(lmt(obj)or pht).__type or ltp(obj)end
+local p,L,l={},ENV(12,17)return 2,function(o)return(l(o)or p).__type or L(o)end

@@ -7,12 +7,12 @@ C.Words={}
 C.Result[1]=""
 C.max_op_len=3
 C.line=1
-C.Text={split_seq=function(data,i,seq)--split_seq:function to split operator/word quences
-	seq=seq and"word"or"operator"
+C.Text={split_seq=function(data,i,queue)--split_seq:function to split operator/word quences
+	queue=queue and"word"or"operator"
 	if data then
-		data[#data+1]=i and sub(C[seq],1,i)or C[seq]
+		data[#data+1]=i and sub(C[queue],1,i)or C[queue]
 	end
-	C[seq]=i and sub(C[seq],i+1)or""
+	C[queue]=i and sub(C[queue],i+1)or""
 	C.index=C.index+(i or 0)
 	return i
 end}

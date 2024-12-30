@@ -33,6 +33,19 @@ local base_module = {
     "read_control_string"   ,                   "CS",
     "tab_run"               ,                   "Cr",
     "Ge=GS"                 ,             "error=GS", --error object fix in new_base.lua
+    "l_ctrl_str"            ,                    "X",
+    "cur_aliases"           ,                    "A",
+    "l_loaded"              ,                    "L",
+    "path_prt"              ,                    "o",
+    "aliases"               ,                    "a",
+    "rez_tp"                ,                    "t",
+    "l_path"                ,                    "P",
+    "l_mod"                 ,                    "m",
+    "l_arg"                 ,                    "a",
+    "main"                  ,                    "M",
+    "subm"                  ,                    "S",
+    "_arg"                  ,                    "z",
+    "Obj"                   ,                    "O",
 }
 
 return {
@@ -76,6 +89,7 @@ return {
         ["cssc_beta__craft_os__original.lua"]=base_module,
         ["cssc_beta__lua51__original.lua"]=base_module,
         ["cssc_beta__lua52__original.lua"]=base_module,
+        --#region Modules
         ["modules/cssc/NC.lua"]={
             "runtime_dual_func","R",
             "runtime_dual_meta","M",
@@ -180,5 +194,142 @@ return {
             "full"          , "F",
             "nan"           , "n",
         },
+        ["modules/cssc.lua"]={
+            "local_cssc"    , "c",
+            "lib_loader"    , "L",
+            "meta_reg"      , "M",
+            "id_prew"       , "P",
+            "c_prew"        , "p",
+            "spifc"         , "s",
+            "index"         , "i",
+            "l_obj"         , "o",
+            "l_lvl"         , "l",
+            "l_opt"         , "O",
+            "l_tp"          , "t",
+            "mark"          , "m",
+            "temp"          , "T",
+            "kwrd"          , "K",
+        },
+        ["modules/minify.lua"]={
+            "l_make_react"  , "m",
+            "obj_tp"        , "t",
+            "prew2"         , "P",
+            "prew1"         , "p",
+            "arg"           , "a",
+            "obj"           , "o",
+        },
+        --#endregion Modules
+        
+        --#region Features
+        ["features/common/event.lua"]={
+            "clear_func"    , "c",
+            "del_marked"    , "d",
+            "is_global"     , "g",
+            "ev_func"       , "f",
+            "index"         , "i",
+            "list"          , "l",
+            "name"          , "n",
+        },
+        ["features/common/level.lua"]={
+            "clear_func"    , "c",
+            "no_close"      , "n",
+            "fin_obj"       , "F",
+            "l_ends"        , "e",
+            "is_fin"        , "f",
+            "Lvl"           , "L",
+            "obj"           , "o",
+        },
+        ["features/code/cdata.lua"]={
+            "priority_data" ,   "p",
+            "([^%.])index"  , "%1i",
+            "clear_func"    ,   "E",
+            "last_type"     ,   "L",
+            "type_tab"      ,   "T",
+            "lvl_obj"       ,   "l",
+            "obj_tp"        ,   "t",
+            "is_un"         ,   "u",
+            "unary"         ,   "u",
+            "check"         ,   "x",
+            "obj"           ,   "o",
+        },
+        ["features/code/syntax_loader.lua"]={
+            --already minified locals
+        },
+        ["features/code/cssc/op_stack.lua"]={
+            "skipper_tab"   , "t",
+            "start_pos"     , "p",
+            "priority"      , "P",
+            "is_unary"      , "U",
+            "now_end"       , "N",
+            "skip_fb"       , "S",
+            "pre_tab"       , "T",
+            "cdt_obj"       , "c",
+            "stack"         , "s",
+            "l_id"          , "i",
+            "Lvl"           , "l",
+        },
+        ["features/code/cssc/runtime.lua"]={
+            "clear_func", "c",
+            "l_name"    , "n",
+            "m_name"    , "m",
+            "l_func"    , "f",
+        },
+        ["features/code/cssc/typeof.lua"]={
+            --already minified locals
+        },
+        ["features/code/lua/base.lua"]={
+            "libruary_loader"   , "M",
+            "l_make_react"      , "m",
+            "lua51"             , "L",
+            "kwrd"              , "K",
+            "l_kw"              , "y",
+            "lvl"               , "l",
+            "opt"               , "x",
+        },
+        ["features/code/lua/meta_opt.lua"]={
+            "stat_end_prew" , "S",
+            "stat_end_nxt"  , "s",
+            "place_mark"    , "p",
+            "call_prew"     , "P",
+            "call_nxt"      , "N",
+            "spifc"         , "y",
+            "prew"          , "x",
+            "nxt"           , "n",
+        },
+        ["features/code/lua/struct.lua"]={
+            "get_number"    , "N",
+            "exponenta"     , "E",
+            "num_data"      , "n",
+            "comment"       , "c",
+            "str_obj"       , "s",
+            "m_data"        , "D",
+            "mode"          , "m",
+            "dot"           , "d",
+            "rez"           , "r",
+            "Lvl"           , "l",
+        },
+        ["features/text/dual_queue/base.lua"]={
+            "queue" , "s",
+            "data"  , "d",
+        },
+        ["features/text/dual_queue/iterator.lua"]={
+            "seq","S",
+        },
+        ["features/text/dual_queue/make_react.lua"]={
+            --already minified locals
+        },
+        ["features/text/dual_queue/parcer.lua"]={
+            "posible_obj"   , "p",
+            "react_obj"     , "r",
+            "obj_type"      , "t",
+            "l_func"        , "f",
+            "queue"         , "q",
+        },
+        ["features/text/dual_queue/space_handler.lua"]={
+            "space" , "s",
+            "temp"  , "t",
+        }
+        
+        --#endregion Features
     }
 }
