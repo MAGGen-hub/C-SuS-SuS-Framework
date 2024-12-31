@@ -40,26 +40,26 @@ Supported Lua versions:
   - `obj?{*tab*}` 
   - `obj?(*args*)`
    `"attempt to *action* 'nil' value"` error wil not happen if `obj==nil` here.
- - Lambda-functions:
+- Lambda-functions:
   - `*args*->` --> `function(*args*)return`  -  (must contain at least one argument)
   - `*args*=>` --> `function(*args*)` -  (must contain at least one argument)
   - `(*args*)->`  --> `function(*args*)return`
   - `(*args*)=>` --> `function(*args*)`\
     **P.S.** better to use it with keyword shortcuts: so `;` can be used instead of `end`
- - Keyword `is` (support custom types `{__type} - metamethod`):
+- Keyword `is` (support custom types `{__type} - metamethod`):
   - `obj is 'string'` --> checks if `type(object)==string`
   - `obj is {'string','number'}` --> checks if `type(obj)` is one from the table
- - Default args and strict arg types for function constructor (support custom types `{__type} - metamethod`):
+- Default args and strict arg types for function constructor (support custom types `{__type} - metamethod`):
   - `function(arg = def_arg)` --> defualt argument
   - `function(arg : string)` --> strict type
   - `function(arg : "type1,type2" = def_arg)` --> defualt argument & strict types
   - `function(arg : "string,number" = def_arg)` - default `arg` calculates at runtime and can be an expression with local/global values.
- - Number concatenation bug fix:\
+- Number concatenation bug fix:\
    Turn `*num*..*obj*` into `*num* ..*obj*`\
    So first dot of `operator` will not be recognised as number floating point.
- - Basic error detection for each feature:\
+- Basic error detection for each feature:\
    Unfortunately it stil can't detect every posible typos, but common mistakes and errors will be detected and with `sys.err` module compilation will be stopt after first found error.
- - Minification module:\
+- Minification module:\
    Simple module that removes all unnesesary spaces and commnets from your code,\
    so it can be uploaded directly to MCU flash memory, where every byte matters.
 ## Instalation
