@@ -1,15 +1,16 @@
-## C SuS SuS Framework
+# C SuS SuS Framework
 <img src="https://raw.githubusercontent.com/MAGGen-hub/C-SuS-SuS-Framework/refs/heads/master/C_SuS_SuS_logo.svg" style="width: 270px;height: 230px; overflow: hidden;">
 C SuS SuS Framework - data processing system made in lua.
+
 Currently it's main purpouse - expand default Lua functional and make coding in Lua a bit more comfy than it was before.
 
 Current version: 4.5-beta
 
-Supported versions:
+Supported Lua versions:
 - Lua 5.1
 - Lua 5.2 (no `goto` `:: label ::` support - requires more testing)
 - CraftOS (no `goto` `:: label ::` support - requires more testing)
-### Project Features
+## Project Features
 
 **At this moment project can provide next functional:**
 - New number formats: binary and octal (binnary exponenta supported)
@@ -21,7 +22,7 @@ Supported versions:
   `+=` `-=` `*=` `/=` `%=` `^=` `..=` `&&=` `||=`\
   `>>=` `<<=` `|=` `&=`\
   Operator `?=` (sets value to variable only if ti was `nil` before)\
-  P.S. Multy-assgnment is unsuported, so this `a,b,c += 1,2,3` is prohibited (for now).
+  **P.S.** Multy-assgnment is unsuported, so this `a,b,c += 1,2,3` is prohibited (for now).
 - Keywords shortcuts (probably the most cursed feature, that will be removed in future):
   -  `@` - `local`
   -  `$` - `return`
@@ -39,12 +40,12 @@ Supported versions:
   - `obj?{*tab*}` 
   - `obj?(*args*)`
    `"attempt to *action* 'nil' value"` error wil not happen if `obj==nil` here.
- - Lambda-functions 
+ - Lambda-functions:
   - `*args*->` --> `function(*args*)return`  -  (must contain at least one argument)
   - `*args*=>` --> `function(*args*)` -  (must contain at least one argument)
   - `(*args*)->`  --> `function(*args*)return`
   - `(*args*)=>` --> `function(*args*)`\
-    P.S. better to use it with keyword shortcuts: so `;` can be used instead of `end`
+    **P.S.** better to use it with keyword shortcuts: so `;` can be used instead of `end`
  - Keyword `is` (support custom types `{__type} - metamethod`):
   - `obj is 'string'` --> checks if `type(object)==string`
   - `obj is {'string','number'}` --> checks if `type(obj)` is one from the table
@@ -61,8 +62,8 @@ Supported versions:
  - Minification module:\
    Simple module that removes all unnesesary spaces and commnets from your code,\
    so it can be uploaded directly to MCU flash memory, where every byte matters.
-### Instalation
-**From src:**
+## Instalation
+### From src:
 1. Download next files/dirs to choosen `*dir*`
    - `/out/release/cssc__*lua_version*__original.lua` - main file
    - `/out/release/modules` - functional modules
@@ -79,7 +80,7 @@ Supported versions:
 4. Inject path to `*dir*` into `package.path`
 5. `cssc=require"cssc__*lua_version*__original"`
    
-**From releases:**
+### From releases:
 1. Download one of the archives:\
    Original src with comments:
    - c_sus_sus_framework_b45_original_craftos_release.zip
@@ -95,54 +96,64 @@ Supported versions:
    `lua ./set_path.lua absolute_path_to:*dir*/cssc.lua`
 4.  Inject path to `*dir*` into `package.path`
 5. `cssc=require"cssc"`
-### Usage
+## Usage
 1. Run `cssc=require"*cssc_module_name*"`
 2. Choose one of configuartions:
-  - **Basic configuartion:** `cssc_instance = cssc"config=cssc_basic"`\
-    Stable & compy, just a few new features, common for other programming languages.\
-    <`sys.err,cssc={NF,KS,BO,CA,ncbf}`>
+ - **Basic configuartion:** `cssc_instance = cssc"config=cssc_basic"`\
+    Stable & compy, just a few new features, common for other programming languages.
+   
+    **Build:** `sys.err,cssc={NF,KS,BO,CA,ncbf}`
     
-    Provides: 
-      - number formats 
-      - keyword shortcuts: `!` `||` `&&`
-      - backport operators 
-      - additional assignment
-      - number concatenation bug fix
+    **Provides:** 
+    - number formats 
+    - keyword shortcuts: `!` `||` `&&`
+    - backport operators 
+    - additional assignment
+    - number concatenation bug fix
   - **Recomended configuration:** `cssc_instance = cssc"config=cssc_user"`\
-    Still stable & comfy, contains more freatures, but can be a bit "tricky" to use.\
-    <`sys.err,cssc={NF,KS(sc_end),LF,DA,BO,CA,NC,IS,ncbf}`>
+    Still stable & comfy, contains more freatures, but can be a bit "tricky" to use.
     
-    Provides: 
-      - number formats 
-      - keyword shortcuts: `!` `||` `&&` `;` `\;`
-      - lambda functions
-      - default argumnets & strict typing
-      - backport operators 
-      - additional assignment
-      - `nil` checking operators
-      - `is` keyword
-      - number concatenation bug fix
+    **Build:** `sys.err,cssc={NF,KS(sc_end),LF,DA,BO,CA,NC,IS,ncbf}`
+    
+    **Provides:**
+    - number formats 
+    - keyword shortcuts: `!` `||` `&&` `;` `\;`
+    - lambda functions
+    - default argumnets & strict typing
+    - backport operators 
+    - additional assignment
+    - `nil` checking operators
+    - `is` keyword
+    - number concatenation bug fix
   - **Full configuration:** `cssc_instance = cssc"config=cssc_full"`\
-    All inclusive mode, experimental & cursed & unstable but very fun XD \
-    <`sys.err,cssc={NF,KS(sc_end),LF,DA,BO,CA,NC,IS,ncbf}`>
+    All inclusive mode, experimental & cursed & unstable but very fun XD
     
-    Provides: every existing feature avaliable (excluding minification)
-  - **Minify configuration:** `cssc_instance = cssc"minify"` - Minification module.
+    **Build:** `sys.err,cssc={NF,KS(ret,loc,sc_end,pl_cond),LF,DA,BO,CA,NC,IS,ncbf}`
+    
+    **Provides:** every existing feature avaliable (excluding minification)
+  - **Minify configuration:** `cssc_instance = cssc"minify"`\
+    Minification module to decrease code size, sacrificing code readability.
+    
+    **Build:** `cssc_instance = cssc"minify"`
+    
+    **Provides:** minification feature.
+    
 3. `local prep_code = cssc_instance:run(source_code)`
 4. `local func,err = cssc_instance.load(prep_code,chunk_name,nil,environment)`
 5. Run compilled `func`
-### Custom configuration
+## Custom configuration
  If all configuartions avaliable is not what you are searching for, you can create your own configuartion using project build system.\
-  Examples:
+  **Examples:**
+
+  
   - `cssc"cssc.BO"` - backport operators
   - `cssc"cssc.KS(sc_end)"` - keyword shortcuts `!` `||` `&&` `;` `\;`
   - `cssc"cssc.KS(loc,ret)"` -  keyword shortcuts `@` `$`
   - `cssc"cssc.KS(pl_cond)"` -   keyword shortcuts `/|` `?` `:|` `\|`
   - `cssc"cssc={BO,CA,KS(*arg*)}"` - multiple features
 
-  If all configuartions listed is not what you are searching for you can create your own configuartion using project build system.\
   \
-  Feature name aliases:
+  **Feature name aliases:**
   - backport_operators="BO"
   - back_opts="BO"
   - bitwizes="BO"
