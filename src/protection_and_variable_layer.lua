@@ -1,8 +1,9 @@
 -- PROTECTION LAYER
 -- This local var layer was created to prevent unpredicted behaviour of preprocessor if one of the functions in _G table was changed.
-local __PROJECT_NAME__,A,S,T,E,placeholder_func,base_path,E_ENV,_=
+local base_path=__BASE_PATH__
+local __PROJECT_NAME__,A,S,T,E,placeholder_func,E_ENV,_=
 {},assert,string,table,"__PROJECT_NAME__ load failed because of missing libruary method!",
-function()end,__BASE_PATH__
+function()end
 
 local gmatch,match,format,find,gsub,sub,insert,concat,remove,unpack,
 type,pairs,error,tostring,tonumber,getmetatable,setmetatable,pcall=
@@ -37,7 +38,7 @@ __NATIVE_LOAD_VERSION_MACRO__
 local t_copy,t_swap,env_load=
 function(s,o,f)o=o or{} for k,v in pairs(s)do o[k]=f and o[k]or v end return o end,
 function(t,o)o=o or {}for k,v in pairs(t)do o[v]=k end return o end,
-function(...)local r={}for k,v in pairs{...}do insert(r,E_ENV[v])end return unpack(r)end
+function(...)local r={}for k,v in pairs{...}do insert(r,E_ENV[v]or false)end return unpack(r)end
 
 --DO NOT CHANGE VARIABLE ORDER IN E_ENV TAB!
 E_ENV = {gmatch,match,format,find,gsub,sub, --string functions

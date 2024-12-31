@@ -1,3 +1,13 @@
+-- Message from M.A.G.Gen.
+--
+-- Implementation of cc.pretty module form CraftOS/ComputerCraft/CC:Tweaked
+-- Used for debug output in some tests I run in Lua-Cli.
+--
+-- If you want to use this module inside your Lua5.1 visit:
+-- https://discord.com/channels/477910221872824320/1020631550217433088/threads/1273574303253794948
+-- or download it straight from this git...
+
+
 -- SPDX-FileCopyrightText: 2020 The CC: Tweaked Developers
 --
 -- SPDX-License-Identifier: MPL-2.0

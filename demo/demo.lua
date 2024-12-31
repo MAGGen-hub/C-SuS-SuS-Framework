@@ -353,7 +353,7 @@ final_script = ""
 os.execute"clear"
 print(name)
 print("Строка контроля: '"..ctrl.."'")
-comp1 = lua_mc.make(ctrl)
+comp1 = lua_mc(ctrl)
 print("Лог загрузки:")
 pp(comp1.data.log)
 print(cont)

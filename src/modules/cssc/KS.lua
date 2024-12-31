@@ -4,23 +4,19 @@ local stx,_,arg = [[O
 || or
 && and
 ! not
-@ local
-$ return
 ]],...
 arg=t_swap(arg or{})
 
---for _,v in pairs(arg or{})do
-	if arg.sc_end then --include semicolon to end conversion basic ; can be placed with \;
-		stx=stx.."; end\n\\; ;\n"
-	end
-	if arg.pl_cond then --platform condition... the most cursed feature... so probably will be removed in future
-		stx=stx..[[? then
+stx=stx..
+(arg.loc and     "@ local\n"or"")..
+(arg.ret and     "$ return\n"or"")..
+(arg.sc_end and  "; end\n\\; ;\n"or"")..--include semicolon to end conversion basic ; can be placed with \;
+(arg.pl_cond and[[? then
 /| if
 :| elseif
 \| else
-]]
-	end
---end
+]]or"")--platform condition... the most cursed feature... so probably will be removed in future
+
 --specific make react with space addition
 local make_react=function(s,i,j) -- s -> replacer string, i - type of reaction, t - type of sequnece, j - local length
 	return function()

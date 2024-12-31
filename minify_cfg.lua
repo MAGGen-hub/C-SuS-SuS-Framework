@@ -86,9 +86,9 @@ return {
     },
     --this minifications are specific for each file in project
     for_each={
-        ["cssc_beta__craft_os__original.lua"]=base_module,
-        ["cssc_beta__lua51__original.lua"]=base_module,
-        ["cssc_beta__lua52__original.lua"]=base_module,
+        ["cssc__craft_os__original.lua"]=base_module,
+        ["cssc__lua51__original.lua"]=base_module,
+        ["cssc__lua52__original.lua"]=base_module,
         --#region Modules
         ["modules/cssc/NC.lua"]={
             "runtime_dual_func","R",
@@ -329,7 +329,6 @@ return {
             "space" , "s",
             "temp"  , "t",
         }
-        
         --#endregion Features
     }
 }

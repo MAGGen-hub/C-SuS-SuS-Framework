@@ -1,3 +1,42 @@
+--[==[BitOp.lua libruary
+
+Creator: AlberTajuelo
+
+Git:     https://github.com/AlberTajuelo/bitop-lua
+
+MIT License
+
+Copyright (c).  Licensed under the same terms as Lua (MIT).
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+]==]
+
+--[==[Message from M.A.G.Gen.
+
+This libruary is not used by C SuS SuS Framework, but required for `cssc.BO` module.
+It can be used as replcement for bit32/bit C/C++ libruaries in systems
+where user have no permission to add C/C++ binaries to LuaVM.
+
+P.S. Please keep in mind that C/C++ methods will ALWAYS be faster than their analogs made in Lua.
+Use this implementation of bit32/bit libruaries with C SuS SuS Framework ONLY if you have on other choice!!!
+]==]
+
 local M = {_TYPE='module', _NAME='bitop.funcs', _VERSION='1.0-0'}
 
 local floor = math.floor

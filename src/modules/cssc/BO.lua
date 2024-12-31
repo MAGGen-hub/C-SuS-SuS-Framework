@@ -1,6 +1,7 @@
 local l_opts,gsub,match,format,insert,floor,type,pairs,error,getmetatable,pcall,native_load,bit32,t_swap=
 Cdata.opts,ENV(__ENV_GSUB__,__ENV_MATCH__,__ENV_FORMAT__,__ENV_INSERT__,__ENV_MATH__,__ENV_TYPE__,__ENV_PAIRS__,__ENV_ERROR__,__ENV_GETMETATABLE__,__ENV_PCALL__,__ENV_LOAD__,__ENV_BIT_LIB__,__ENV_T_SWAP__)
 floor=floor.floor
+--_G.print(bit32)
 --bitwize operators (lua53 - backport feature) and idiv
 local make_err,func_part1,func_part2,direct = 
 function(i)return function(a,b) error("attempt to perform ariphmetic on a "..(type(a)~="number" and type(a) or type(b)).." value",i)end end,

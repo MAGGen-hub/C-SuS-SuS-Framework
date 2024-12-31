@@ -1,3 +1,8 @@
+-- Message from M.A.G.Gen.
+--
+-- CraftOS term implementation
+-- Some kind of a software crutch to force cc.pretty to work.
+-- Used for debug output in some tests.
 
 local width=92
 local heigth=24

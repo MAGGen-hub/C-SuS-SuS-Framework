@@ -1,3 +1,10 @@
+-- Message from M.A.G.Gen.
+--
+-- CraftOS expect implementation
+-- Some kind of a software crutch to force cc.pretty to work.
+-- Used for debug output in some tests.
+
+
 -- SPDX-FileCopyrightText: 2019 The CC: Tweaked Developers
 --
 -- SPDX-License-Identifier: MPL-2.0

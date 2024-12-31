@@ -125,10 +125,17 @@ load_control_string=function(Control,main,subm,l_path,cur_aliases)--RECURSIVE FU
 	end
 end
 
+-- Configs for C SuS SuS Programming Language.
+-- cssc_basic -> stable & compy, just a few new features, common for other programming languages.
+-- cssc_user  -> recomended configuration, still stable & comfy, contains more freatures, but can be a bit "tricky" to use.
+-- cssc_full  -> all inclusive mode, experimental & cursed & unstable but very fun XD.
+-- usage:
+--     requre("cssc_lib_name")"config=cssc_*type*"
+
 __PROJECT_NAME__=setmetatable({Configs={
-cssc_basic="sys.err,cssc={NF,KS,LF,BO,CA}",--configs
+cssc_basic="sys.err,cssc={NF,KS,BO,CA,ncbf}",--configs
 cssc_user="sys.err,cssc={NF,KS(sc_end),LF,DA,BO,CA,NC,IS,ncbf}",
-cssc_full="sys.err,cssc={NF,KS(sc_end,pl_cond),LF,DA,BO,CA,NC,IS,ncbf}"},
+cssc_full="sys.err,cssc={NF,KS(ret,loc,sc_end,pl_cond),LF,DA,BO,CA,NC,IS,ncbf}"},
 creator="M.A.G.Gen.",version='__VERSION__'},
 {	--PROJECT MAKER
 	__call=function(S,l_ctrl_str)

@@ -1,4 +1,5 @@
 
+package.path=package.path..";/home/maggen/.local/share/craftos-pc/computer/0/?.lua"--add previous directory to require check
 lzss_orig = [===[
     --[[----------------------------------------------------------------------------
     
@@ -245,6 +246,9 @@ return table.concat(output)
 end
 return M]===]
 
+--getpath
+test_path = "cssc_final/out/cssc__lua51__original"
+
 test_string_template="function function function test test test test test lzss lzss lzss lzss lzss 1-283-29018-2098-2"
 test_string = (test_string_template):rep(120000)
 lua53 = string.match(_VERSION,"5%.3")
@@ -272,9 +276,8 @@ else
     if larg.direct then print("Direct enabled... Backported operators will not suport metatables, but work faster!")end
     bit32=require"bit32"
     require"compat53"
-    package.path=package.path..";../../?.lua"--add previous directory to require check
-    lua_mc=require("out/cssc_beta__lua51__original")--load system
-    comp1=lua_mc.make"cssc.BO"
+    lua_mc=require(test_path)--load system
+    comp1=lua_mc"cssc.BO"
     tm=T()
     comp_lzss=comp1:run(lzss_src, larg.direct and "cssc.BO.direct" or"") -- cssc.BO.direct
     lzss = comp1.load(comp_lzss,"lzss",nil,setmetatable({},{__index=_G}))()

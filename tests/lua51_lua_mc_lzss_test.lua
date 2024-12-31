@@ -322,8 +322,10 @@ lzss_src_final=[===[
 --#endregion
 
 --prepare:
+package.path=package.path..";/home/maggen/.local/share/craftos-pc/computer/0/?.lua"
+test_path = "cssc_final/out/release/cssc__lua51__original"
 package.path=package.path..";../?.lua"--add previous directory to require check
-local lua_mc=require("out/cssc_beta__lua51__original")--load system
+local lua_mc=require(test_path)--load system
 
 local comp1 = lua_mc("sys.err,cssc={BO}")--basic compiller
 local compilled=comp1:run(lzss_src)--compile basic lzss
@@ -340,7 +342,7 @@ local decompressed_lzss_src=lzss_basic.decompress(compressed_lzss_src)
 assert(decompressed_lzss_src == lzss_src,"Error lzss compress/decompress output not equal to input!")
 print("Basic lzss test complete.")
 
-local comp2 = lua_mc("sys.err,cssc={KS,LF,BO,CA}")
+local comp2 = lua_mc("sys.err,cssc={KS(loc,ret),LF,BO,CA}")
 compilled=comp2:run(lzss_src_oprimised)--compile advanced lzss
 print(compilled)
 
@@ -354,7 +356,7 @@ assert(decompressed_lzss_src == lzss_src_oprimised,"Error lzss compress/decompre
 print("Advanced lzss test complete.")
 
 
-local comp3 = lua_mc("sys.err,cssc={KS(sc_end,pl_cond),LF,DA,BO,CA,NF}")
+local comp3 = lua_mc("sys.err,cssc={KS(loc,ret,sc_end,pl_cond),LF,DA,BO,CA,NF}")
 compilled=comp3:run(lzss_src_final)--compile advanced lzss
 print(compilled)
 

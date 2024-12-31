@@ -35,7 +35,7 @@ C:load_lib"code.syntax_loader"(stx,{O=function(...)
             if last[1]==__OPERATOR__ and last[2]==coma_prior then --TODO: Temporal solution! Rework!
                 C.error("Additional asignment do not support multiple additions in this version of __PROJECT_NAME__!")
             end
-            if last[1]==__OPERATOR__ and last[2]==0 and i-1>0 and Cdata[index-1][1]==__KEYWORD__ and match(Result[index-1],"^local")then
+            if last[1]==__OPERATOR__ and last[2]==0 and index-1>0 and Cdata[index-1][1]==__KEYWORD__ and match(Result[index-1],"^local")then
                 C.error("Attempt to perform additional asignment to local variable constructor!")
             end
 

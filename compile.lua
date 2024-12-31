@@ -2,9 +2,9 @@
 -- CSSC_LUA-MC_COMPILLER1.1 (L-make)
 -- Required System Parameters:
 --
--- LinuxOS 
+-- LinuxOS (ArchLinux)
 -- IntelCoreI3
--- RAM 4Gb
+-- RAM 2Gb
 -- -- or other with same or gather computing power
 -- 
 -- Required Libs (depends on version)
@@ -22,24 +22,28 @@
 -- os.execute-plugin --for craft os related tests
 --
 -- Required compilling/testing ENV/IDE: CraftOS-pc - latest
+--
+-- This script was created to compile C SuS SuS Framework using developer CraftOS _ENV and may work incorrectly in raw CraftOS...
+--
 -- #endregion
 
+
 --PROJECT DATA
-local project_name = "cssc_beta"
+local project_name = "cssc"
 local version	  = "4.5-beta"
-local version_num  = 4.5
+--local version_num  = 4.5
 
 --COMPILE DATA
-local work_dir	 = "/cssc_final"
-local src_dir	  = fs.combine(work_dir,"src")
-local out_dir	  = fs.combine(work_dir,"out")
+local work_dir     = "/cssc_final"
+local src_dir      = fs.combine(work_dir,"src")
+local out_dir      = fs.combine(work_dir,"out")--not final dir! (depends on cofiguration)
 local protect_src  = fs.combine(src_dir ,"protection_and_variable_layer.lua")
-local base_src	 = fs.combine(src_dir ,"new_base.lua")
+local base_src     = fs.combine(src_dir ,"new_base.lua")
 local features_src = fs.combine(src_dir ,"features")
 local modules_src  = fs.combine(src_dir ,"modules")
-local macro_src	= fs.combine(src_dir ,"common_macro.csv")
-local test_src	 = "tests/tests.lua"
-local lzss_src	 = "lzss_lib/lzss.lua"
+local macro_src    = fs.combine(src_dir ,"common_macro.csv")
+local test_src     = "tests/tests.lua"
+local lzss_src     = "lzss_lib/lzss.lua"
 local lzss_sep_src = "lzss_lib/sep_make.lua"
 local macro={
 	--Bit32/bit
@@ -59,12 +63,12 @@ local macro={
 local config ={
 	--minification function to decrase code size
 	minify={--WARNING!: temporaly unavaliable. 
-		locals_minify = true, --turns local variables and some other stuff into unredable mess but saves a lot of space
-		basic_minify  = true, --remove comments and unnesesary spaces
+		locals_minify = false, --turns local variables and some other stuff into unredable mess but saves a lot of space
+		basic_minify  = false, --remove comments and unnesesary spaces
 	},
 	--compilation function
 	compile = {
-		craft_os = true,  --default C SuS SuS for CraftOS
+		craft_os= true,  --default C SuS SuS for CraftOS (for compilation with basic minification must always be enabled)
 		lua51   = true, --optimised for specific Lua version use
 		lua52   = true, 
 		--[==[
@@ -72,7 +76,7 @@ local config ={
 		lua54   = false,
 		Lua_Jit  = false]==]
 	}, 
-	debug=true --if true then @@DEBUG macro will be compilled and inserted in code (required some times)
+	debug=false --if true then @@DEBUG macro will be compilled and inserted in code (required some times)
 }
 -- #region Undone Features
 --[===[ 
@@ -92,7 +96,7 @@ local run_tests = {--WARNING!: temporaly unavaliable. (other test system setup)
 	Lua_Jit  = false}]===]
 -- #endregion
 
---OUTPUT_FILE_NAME_DEFINE:  <__PROJECT_NAME__>_api<version_number>.<minification_type>.<compile_type>.<extension>
+
 
 -- #region COMPILATOR FUNCS
 local function get_src(src)
@@ -167,10 +171,19 @@ end
 
 --COMPILE:
 
+--OUTPUT Configure
+if config.debug then
+	out_dir = fs.combine(out_dir,"debug")
+else
+	out_dir = fs.combine(out_dir,"release")
+end
+
 --MAKE_FEATURES
 compile_dir(features_src,out_dir,"features")
 --MAKE_MODULES
 compile_dir(modules_src,out_dir,"modules")
+local craftos_path
+--OUTPUT_FILE_NAME_DEFINE:  <__PROJECT_NAME__>_api<version_number>.<minification_type>.<compile_type>.<extension>
 --COMPILE BASE
 for code_name,enabled in pairs(config.compile) do
 	if enabled then
@@ -184,14 +197,16 @@ for code_name,enabled in pairs(config.compile) do
 		else
 			code=code:gsub("@@DEBUG_START.-@@DEBUG_END",""):gsub("@@DEBUG.-\n","")
 		end
-		code=code:gsub("__BASE_PATH__",code_name=="craft_os" and"'/cssc_final/out/'" or "'/home/maggen/.local/share/craftos-pc/computer/0/cssc_final/out/'")
+		code=code:gsub("__BASE_PATH__",code_name=="craft_os" and"[["..out_dir.."/]]" or "[[/home/maggen/.local/share/craftos-pc/computer/0/cssc_final/out/"..(config.debug and "debug/"or"release/").."]]")
 		code=code:gsub("__VERSION__",version)
 		--SET OUT
-		set_out(fs.combine(out_dir,table.concat({project_name,code_name,"original"},"__")..".lua"),code)
+		local l_path = fs.combine(out_dir,table.concat({project_name,code_name,"original"},"__")..".lua")
+		set_out(l_path,code)
+		if code_name=="craft_os" then craftos_path=l_path end
 	end
 end
 
-shell.run("/cssc_final/out/cssc_beta__craft_os__original.lua")
+--shell.run("/cssc_final/out/cssc_beta__craft_os__original.lua")
 
 --MINIFY_DIR
 if config.minify.locals_minify then
@@ -213,7 +228,9 @@ if config.minify.locals_minify then
 	minify_dir(out_dir)--advanced local minify
 end
 if config.minify.basic_minify then
-	local comp1 = cssc_beta"minify"
+	package.path = package.path..";/?.lua"
+	local cssc=require(craftos_path:sub(1,-5))
+	local comp1 = cssc"minify"
 	minifier= function(s)return comp1:run(s)end
 	minify_dir(out_dir)--basic space/comments minify
 end
@@ -232,4 +249,7 @@ for code_name,enabled in pairs(config.compile) do
 		print(string.format ("%-35s size: %3.3f Kbs - %1.3f%% of 2Mbs",name,size,size/(1024*2)*100))
 	end
 end
-shell.run("/cssc_final/out/cssc_beta__craft_os__original.lua")
+--debug
+if craftos_path then
+	_G.cssc = loadfile(craftos_path,nil,setmetatable({},{__index=_ENV}))()--"/cssc_final/out/cssc_beta__craft_os__original.lua")
+end
