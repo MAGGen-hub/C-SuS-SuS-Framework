@@ -6,7 +6,7 @@ Currently it's main purpouse - expand default Lua functional and make coding in 
 
 Current version: 4.5-beta
 
-Legacy version (C SuS SuS esoteric pseudo coding language) can be found [here](https://github.com/MAGGen-hub/C_sus_sus).
+Legacy version (C SuS SuS esoteric pseudo coding language) can be found [here](https://github.com/MAGGen-hub/C_sus_sus_legacy).
 
 Supported Lua versions:
 - Lua 5.1
