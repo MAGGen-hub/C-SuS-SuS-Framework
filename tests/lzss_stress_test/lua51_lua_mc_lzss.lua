@@ -247,7 +247,7 @@ end
 return M]===]
 
 --getpath
-test_path = "cssc_final/out/cssc__lua51__original"
+test_path = "cssc_final/out/release/cssc__lua51__original"
 
 test_string_template="function function function test test test test test lzss lzss lzss lzss lzss 1-283-29018-2098-2"
 test_string = (test_string_template):rep(120000)
