@@ -4,6 +4,7 @@ local PrimeUI,PrimeUI_borderBox
 local license
 local cssf_repo = "https://raw.githubusercontent.com/MAGGen-hub/C-SuS-SuS-Framework/0b5c7b3fb37e50740dac0f96f0c543149fae7bf1/"
 local path,install_prog,st_path,is_minified
+
 --#region GitLoader
 local err_codes={[-2]="Broken URL",[-3]="No responce",[-4]="No result"}
 local try_get_git_file= function(url)
@@ -76,53 +77,60 @@ local install = function()
 		print("Downloading API...")
 		print(("Progress:[%d/%d]"):format(i-1,#files))
 		print("File:"..files[i])
-		code[fs.combine(path,files[i]=="cssf__craft_os.lua"and "cssf_prog.lua"or files[i])]=try_get_git_file(craftos_url..files[i])
+		code[fs.combine(path,files[i]=="cssf__craft_os.lua"and "cssf.lua"or files[i])]=try_get_git_file(craftos_url..files[i])
 	end
 	term.setCursorPos(x,y)
 	print("Downloading API - success!")
 	print(("Progress:[%d/%d]"):format(#files,#files))
+	print("Saving files...")
 	sleep(0.5)
 	term.setCursorPos(x,y)
 
 	local api_path =  fs.combine(path,"cssf.lua")
-	local prog_path = fs.combine(path,"cssf_prog.lua")
-	local prog_code
-
+	print()
+	--configure api path
+	code[api_path]=code[api_path]:gsub("(local base_path=%[%[)(.-)(%]%])",function(a,b,c) return a..path..c end)
+	
 	if install_prog then
-		local prog_code =
-		[==[local tArgs,cssf,prog={...},typeof(cssf)=="cssf"
-			cssf.prog = cssf.prog and cssf("config=cssc_user")
-			if #tArgs<1 then print"Usage: cssf <prog>"return end
-			prog=shell.resolveProgram(...) or error("Program `"..a[1].."` not found!")
-			local file,err = fs.open(p,"r")
-			local code=file and file.readAll():gsub("^#!cssc\n","",1) or error(err)
-			file.close()
-			cssf.prog.run(code)
-			local func,err = cssf.prog:load("@"..prog,nil,_ENV)
-			arg[0]=err and error(err) or table.remove(arg,1)
-			table.remove(tArgs,1)
-			return func(unpack(tArgs))]==]
-		print("Installing program...")
+		code[fs.combine(path,"cssc_prog.lua")] =
+		[==[local tArgs,cssf,prog={...},typeof(cssf)=="cssf" or error"C SuS SuS Framework not found!"
+cssf.prog = cssf.prog and cssf("config=cssc_user")
+if #tArgs<1 then print"Usage: cssf <prog>"return end
+prog=shell.resolveProgram(...) or error("Program `"..a[1].."` not found!")
+local file,err = fs.open(p,"r")
+local code=file and file.readAll():gsub("^#!cssc\n","",1) or error(err)
+file.close()
+cssf.prog.run(code)
+local func,err = cssf.prog:load("@"..prog,nil,_ENV)
+arg[0]=err and error(err) or table.remove(arg,1)
+table.remove(tArgs,1)
+return func(unpack(tArgs))]==]
+	end
 
-		print("Program installed.")
-		sleep(0.15)
-	end
-	
 	if st_path then
-		local startup_code =
-		[==[shell.run()
-		]==]
-		term.setCursorPos(x,y)
-		print("Downloading API - success!")
-		print(("Progress:[%d/%d]"):format(#files,#files))
-		print("Api instalation complete.")
-		local startup_code = try_get_git_file(craftos_url.."startup.lua")
-		sleep(0.15)
-	
+		code[st_path] =
+		[==[local C,p,c,d = require"cc.shell.completion","cssc_prog.lua","cssf.enable",__PATH__
+settings.define(c,{default=true,type="boolean"})
+if settings.get(c)then _G.cssf=loadfile(d.."cssf.lua",nil,_ENV)()end
+__PROG__]==]
+		code[st_path]=code[st_path]:gsub("__PATH__","[=["..path.."]=]")
+		if install_prog then
+			code[st_path]=code[st_path]:gsub("__PROG__",[[shell.setAlias("cssc",d..p)
+			shell.setCompletionFunction(d..p,C.build{C.programWithArgs,2,many=true})]])
+		else
+			code[st_path]=code[st_path]:gsub("__PROG__","")
+		end
 	end
+
+	for k,v in pairs(code) do 
+		local file = fs.open(k,"w")
+		file.write(v)
+		file.close()
+	end
+
 	print("Instalation complete.")
-	
 end
+
 --#region Animation API
 local blit_pic=function(pic,x,y,font,back)
 	font,back=font or function()end,back or function()end
@@ -560,7 +568,7 @@ repeat
 	_,act,cssf_folder=PrimeUI.run()--attempt to get the way
 	_,err=pcall(function() 
 		if cssf_folder then --create files if posible
-			if prev_folder~=cssf_folder and fs.isDir(cssf_folder) and (fs.exists(fs.combine(cssf_folder,"cssf.lua")) or fs.exists(fs.combine(cssf_folder,"cssf_prog.lua")))then
+			if prev_folder~=cssf_folder and fs.isDir(cssf_folder) and (fs.exists(fs.combine(cssf_folder,"cssf.lua")) or fs.exists(fs.combine(cssf_folder,"cssc_prog.lua")))then
 				prev_folder=cssf_folder
 				error("Warning! Files will be rewriten! Are you sure? [Enter]")
 			end
@@ -568,10 +576,10 @@ repeat
 			if base_modules["Program"] then
 				tmp1=not fs.isReadOnly(fs.combine(cssf_folder,"cssf.lua")) or error("File is read-only!")
 			end
-			local tmp2=not fs.isReadOnly(fs.combine(cssf_folder,"cssf_prog.lua")) or error("File is read-only!")
+			local tmp2=not fs.isReadOnly(fs.combine(cssf_folder,"cssc_prog.lua")) or error("File is read-only!")
 			
-			install_prog=tmp1 and fs.combine(cssf_folder,"cssf_prog.lua")-- fs.combine(cssf_folder,"cssf.lua")
-			path =tmp2 and cssf_folder -- fs.combine(cssf_folder,"cssf_prog.lua")
+			install_prog=tmp1 and fs.combine(cssf_folder,"cssc_prog.lua")-- fs.combine(cssf_folder,"cssf.lua")
+			path =tmp2 and cssf_folder -- fs.combine(cssf_folder,"cssc_prog.lua")
 		end
 	end)
 	histor[#histor+1]=cssf_folder~=histor[#histor] and cssf_folder or nil
@@ -614,12 +622,14 @@ if act=="exit" then on_cancel() return end
 --#region ProgressBar & Size calculation & Instalation Completion
 PrimeUI.clear()
 make_gui("INSTALL")
-term.setBackgroundColor(colors.black)
-term.clear()
+--term.setBackgroundColor(colors.black)
+--term.clear()
 --PrimeUI.textBox(main,3,5,max_x-x+4,max_y-y+4,"Ins\nIns\n",colors.blue,colors.lightBlue)
 PrimeUI.addTask(function()
 	local wnd = window.create(main,3,5,max_x-x+2,max_y-y,true)
 	term.redirect(wnd)
+	term.setBackgroundColor(colors.lightBlue)
+	term.setTextColor(colors.blue)
 	term.setCursorPos(1,1)
 	install()
 	term.redirect(main)
@@ -628,7 +638,17 @@ end)
 _,act=PrimeUI.run()
 if act=="exit" then on_cancel() return end
 --#endregion ProgressBar & Size calculation & Instalation Completion
-
+PrimeUI.clear()
+make_gui("FINAL")
+PrimeUI.label(main ,3,5,"Instalation complete. Press any key to exit.",colors.blue,colors.lightBlue)
+PrimeUI.label(main ,3,6,"Program will exit automaticly in 3 seconds.",colors.blue,colors.lightBlue)
+PrimeUI.addTask(function()while true do
+	local ev=os.pullEvent"key"
+	ev=ev and PrimeUI.resolve()
+	end
+end)
+PrimeUI.timeout(3,"timeout")
+_,act=PrimeUI.run()
 --#endregion PrimeUI GUI part
 
 exit_animation()

@@ -223,12 +223,13 @@ creator="M.A.G.Gen.",version='4.5-beta'},
 		if"string"~=type(l_ctrl_str)then error(format("Bad argument #2 (expected string, got %s)",type(l_ctrl_str)))end--ARG CHECK
 
 		--INITIALISE PREPROCESSOR OBJECT
-		local m,i,Control,Obj,r={__type="cssf_unit",__name="cssf_unit"},1
+		local i,Control,Obj,r=1
 		r={__call=function(S,s,...)
 			if#S>999 then remove(S,1)end
 			insert(S,format("%-16s : "..s,format("[%0.3d] [%s]",i,S._),...))
 			i=i+1
 		end}
+		
 		--PROCESSING OBJECT
 		Control={
 			--MAIN FUNCTIONS
@@ -240,12 +241,10 @@ creator="M.A.G.Gen.",version='4.5-beta'},
 			log=setmetatable({_="  Log  "},r),  --send log msg
 			warn=setmetatable({_="Warning"},r), --send warning msg
 			Core=placeholder_func,
-			Iterator=native_load"return 1",
-			--META
-			--meta=m
-		}
+			Iterator=native_load"return 1",}
+		
 		--USER ACCESS OBJECT
-		Obj=setmetatable({data=Control,run=run,info="C SuS SuS Framework object"},m)
+		Obj=setmetatable({run=run,info="C SuS SuS Framework object"},{__type="cssf_unit",__name="cssf_unit",__index={data=Control}})
 		Control.User=Obj--link to user accessable object (Control Parent)
 		
 		load_control_string(Control,read_control_string(l_ctrl_str,S.Configs))--CONTROL STRING LOAD AND PARCE
