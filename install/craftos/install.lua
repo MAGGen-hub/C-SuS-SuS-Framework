@@ -90,7 +90,7 @@ local install = function()
 
 	if install_prog then
 		local prog_code =
-		[==[local tArgs,cssc,prog={...},typeof(_G.cssc)
+		[==[local tArgs,cssc,prog={...},typeof(cssc)=="cssf"
 			cssc.prog = cssc.prog and cssc("config=cssc_user")
 			if #tArgs<1 then print"Usage: cssc <prog>"return end
 			prog=shell.resolveProgram(...) or error("Program `"..a[1].."` not found!")

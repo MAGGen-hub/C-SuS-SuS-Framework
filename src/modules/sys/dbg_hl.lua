@@ -37,7 +37,7 @@ local burn_blit=function(tp,len)
 end
 
 --load base lib
-C:load_libs"text.dual_queue""base""parcer""iterator""space_handler"
+C:load_libs"text.dual_queue""base""parser""iterator""space_handler"
 --lua syntax loading
 for _,v in pairs(arg or{})do
 	if v=="lua" then

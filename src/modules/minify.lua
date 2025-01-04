@@ -1,7 +1,7 @@
 -- C SuS SuS Framework - Minification module
 local l_make_react,sub,match,insert,remove,t_swap =
 C:load_libs"text.dual_queue"--code parceing system
-    "base""parcer""iterator""make_react""space_handler"()
+    "base""parser""iterator""make_react""space_handler"()
     "code.lua.struct"(4),ENV(__ENV_SUB__,__ENV_MATCH__,__ENV_INSERT__,__ENV_REMOVE__,__ENV_T_SWAP__)
 
 local prew2,prew1,_,arg,K,k,r=__SPACE__,__SPACE__,...

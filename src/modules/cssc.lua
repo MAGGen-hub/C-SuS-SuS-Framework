@@ -3,7 +3,7 @@ local match,insert,remove,unpack,type,native_load,placeholder_func = ENV(__ENV_M
 
 local l_lvl, l_opt, kwrd, lib_loader, local_cssc, meta_reg=C:load_libs"text.dual_queue" --invoke loader and open dirs "text.dual_queue" (as one 'dir')
 		"base"
-		"parcer"
+		"parser"
 		"iterator"
 		"space_handler"() -- empty call -> go back to main dir ""
 	.code
