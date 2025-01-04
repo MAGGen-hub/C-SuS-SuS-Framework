@@ -2,7 +2,8 @@
 
 local PrimeUI,PrimeUI_borderBox
 local license
-local path,install_prog,st_path
+local cssc_repo = "https://raw.githubusercontent.com/MAGGen-hub/C-SuS-SuS-Framework/0b5c7b3fb37e50740dac0f96f0c543149fae7bf1/"
+local path,install_prog,st_path,is_minified
 --#region GitLoader
 local err_codes={[-2]="Broken URL",[-3]="No responce",[-4]="No result"}
 local try_get_git_file= function(url)
@@ -17,8 +18,8 @@ end
 --#endregion GitLoader
 
 local install = function()
-	--#region C SuS SuS Files
 	local files = {
+	--#region C SuS SuS Files
 		"features/code/cssc/op_stack.lua",
 		"features/code/cssc/runtime.lua",
 		"features/code/cssc/typeof.lua",
@@ -58,14 +59,68 @@ local install = function()
 		"modules/sys.lua",
 
 
-		"cssc__craft_os__original.lua"
-	}
+		"cssc__craft_os.lua"
 	--#endregion C SuS SuS Files
-	local cssc_repo = "https://raw.githubusercontent.com/MAGGen-hub/C-SuS-SuS-Framework/refs/heads/master/"
-	local base = "out"
-	local minif = "minify"
-	local orig = "original"
-	local st_prog= "craftos"
+	}
+	local code = {}
+	local base_path = "out/release/"
+	local ver = is_minified and "minify/" or "original/"
+	local api_url = cssc_repo..base_path..ver
+	--download & install api
+	
+	--install prog & startup
+	local craftos_url = cssc_repo..base_path.."craftos/"..ver
+	local x,y = term.getCursorPos()
+	for i=1, #files do
+		term.setCursorPos(x,y)
+		print("Downloading API...")
+		print(("Progress:[%d/%d]"):format(i-1,#files))
+		print("File:"..files[i])
+		code[fs.combine(path,files[i]=="cssc__craft_os.lua"and "cssc_api.lua"or files[i])]=try_get_git_file(craftos_url..files[i])
+	end
+	term.setCursorPos(x,y)
+	print("Downloading API - success!")
+	print(("Progress:[%d/%d]"):format(#files,#files))
+	sleep(0.5)
+	term.setCursorPos(x,y)
+
+	local api_path =  fs.combine(path,"cssc_api.lua")
+	local prog_path = fs.combine(path,"cssc.lua")
+	local prog_code
+
+	if install_prog then
+		local prog_code =
+		[==[local tArgs,cssc,prog={...},typeof(_G.cssc)
+			cssc.prog = cssc.prog and cssc("config=cssc_user")
+			if #tArgs<1 then print"Usage: cssc <prog>"return end
+			prog=shell.resolveProgram(...) or error("Program `"..a[1].."` not found!")
+			local file,err = fs.open(p,"r")
+			local code=file and file.readAll():gsub("^#!cssc\n","",1) or error(err)
+			file.close()
+			cssc.prog.run(code)
+			local func,err = cssc.prog:load("@"..prog,nil,_ENV)
+			arg[0]=err and error(err) or table.remove(arg,1)
+			table.remove(tArgs,1)
+			return func(unpack(tArgs))]==]
+		print("Installing program...")
+
+		print("Program installed.")
+		sleep(0.15)
+	end
+	
+	if st_path then
+		local startup_code =
+		[==[shell.run()
+		]==]
+		term.setCursorPos(x,y)
+		print("Downloading API - success!")
+		print(("Progress:[%d/%d]"):format(#files,#files))
+		print("Api instalation complete.")
+		local startup_code = try_get_git_file(craftos_url.."startup.lua")
+		sleep(0.15)
+	
+	end
+	print("Instalation complete.")
 	
 end
 --#region Animation API
@@ -480,7 +535,7 @@ repeat
 			end)
 	_,act,key,value=PrimeUI.run()
 until act~="api"
-
+is_minified = base_modules["Minified"]
 if act=="exit" then on_cancel() return end
 --#endregion ChooseModules
 
@@ -507,7 +562,7 @@ repeat
 		if cssc_folder then --create files if posible
 			if prev_folder~=cssc_folder and fs.isDir(cssc_folder) and (fs.exists(fs.combine(cssc_folder,"cssc.lua")) or fs.exists(fs.combine(cssc_folder,"cssc_api.lua")))then
 				prev_folder=cssc_folder
-				error("Warning! Files 'cssc.lua' and 'cssc_api.lua' will be rewriten! Are you sure? [Enter]")
+				error("Warning! Files will be rewriten! Are you sure? [Enter]")
 			end
 			local tmp1,err1
 			if base_modules["Program"] then

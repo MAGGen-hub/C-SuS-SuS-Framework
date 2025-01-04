@@ -70,7 +70,7 @@ e=e or"string"==Gt(v)v=e and{v}or v
 v="number"==Gt(k)and{v}or{k,v}load_control_string(Control,v[1],v[2],l_path,aliases)end end
 end
 end
-cssc=GS({Configs={cssc_basic="sys.err,cssc={NF,KS,BO,CA,ncbf}",cssc_user="sys.err,cssc={NF,KS(sc_end),LF,DA,BO,CA,NC,IS,ncbf}",cssc_full="sys.err,cssc={NF,KS(ret,loc,sc_end,pl_cond),LF,DA,BO,CA,NC,IS,ncbf}"},creator="M.A.G.Gen.",version='4.5-beta'},{__call=function(S,l_ctrl_str)if"string"~=Gt(l_ctrl_str)then Ge(SF("Bad argument #2 (expected string, got %s)",Gt(l_ctrl_str)))end
+cssc=GS({Configs={cssc_basic="sys.err,cssc={NF,KS,BO,CA,ncbf}",cssc_user="sys.err,cssc={NF,KS(sc_end),LF,DA,BO,CA,NC,IS,ncbf}",cssc_full="sys.err,cssc={NF,KS(ret,loc,sc_end,pl_cond),LF,DA,BO,CA,NC,IS,ncbf}",lua_53="sys.err,cssc={BO,ncbf}"},creator="M.A.G.Gen.",version='4.5-beta'},{__type="cssf",__name="cssf",__call=function(S,l_ctrl_str)if"string"~=Gt(l_ctrl_str)then Ge(SF("Bad argument #2 (expected string, got %s)",Gt(l_ctrl_str)))end
 local m,i,Control,Obj,r={__type="cssf_unit",__name="cssf_unit"},1
 r={__call=function(S,s,...)if#S>999 then Tr(S,1)end
 Ti(S,SF("%-16s : "..s,SF("[%0.3d] [%s]",i,S._),...))i=i+1

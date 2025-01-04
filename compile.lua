@@ -60,11 +60,13 @@ local macro={
 }
 
 --COMPILE CONFIG
+local minif = true
+local dbg   = false
 local config ={
 	--minification function to decrase code size
 	minify={--WARNING!: temporaly unavaliable. 
-		locals_minify = false, --turns local variables and some other stuff into unredable mess but saves a lot of space
-		basic_minify  = false, --remove comments and unnesesary spaces
+		locals_minify = minif, --turns local variables and some other stuff into unredable mess but saves a lot of space
+		basic_minify  = minif, --remove comments and unnesesary spaces
 	},
 	--compilation function
 	compile = {
@@ -76,7 +78,7 @@ local config ={
 		lua54   = false,
 		Lua_Jit  = false]==]
 	}, 
-	debug=true --if true then @@DEBUG macro will be compilled and inserted in code (required some times)
+	debug=dbg --if true then @@DEBUG macro will be compilled and inserted in code (required some times)
 }
 -- #region Undone Features
 --[===[ 
@@ -169,91 +171,97 @@ size_dir = function(src_dir)
 end
 -- #endregion COMPILATOR FUNCS
 
---COMPILE:
 
---OUTPUT Configure
-if config.debug then
-	out_dir = fs.combine(out_dir,"debug")
-else
-	out_dir = fs.combine(out_dir,"release")
-end
-if config.minify.locals_minify or config.minify.basic_minify then
-	out_dir = fs.combine(out_dir,"minify")
-else
-	out_dir = fs.combine(out_dir,"original")
-end
-
---MAKE_FEATURES
-compile_dir(features_src,out_dir,"features")
---MAKE_MODULES
-compile_dir(modules_src,out_dir,"modules")
 local craftos_path
---OUTPUT_FILE_NAME_DEFINE:  <__PROJECT_NAME__>_api<version_number>.<minification_type>.<compile_type>.<extension>
---COMPILE BASE
-for code_name,enabled in pairs(config.compile) do
-	if enabled then
-		--GET CODE
-		local code = table.concat{get_src(protect_src),get_src(base_src)}--,get_src(cores_src),get_src(modules_src)}
+--COMPILE:
+local compile = function(out_dir,locals_minify,basic_minify,debug)
+	--OUTPUT Configure
+	if debug then
+		out_dir = fs.combine(out_dir,"debug")
+	else
+		out_dir = fs.combine(out_dir,"release")
+	end
+	if locals_minify or basic_minify then
+		out_dir = fs.combine(out_dir,"minify")
+	else
+		out_dir = fs.combine(out_dir,"original")
+	end
 
-		code=compile_macros(code_name,code)
-		--REMOVE DEBUG
-		if config.debug then
-			code=code:gsub("@@DEBUG_START",""):gsub("@@DEBUG_END",""):gsub("@@DEBUG","")
-		else
-			code=code:gsub("@@DEBUG_START.-@@DEBUG_END",""):gsub("@@DEBUG.-\n","")
+	--MAKE_FEATURES
+	compile_dir(features_src,out_dir,"features")
+	--MAKE_MODULES
+	compile_dir(modules_src,out_dir,"modules")
+	--OUTPUT_FILE_NAME_DEFINE:  <__PROJECT_NAME__>_api<version_number>.<minification_type>.<compile_type>.<extension>
+	--COMPILE BASE
+	for code_name,enabled in pairs(config.compile) do
+		if enabled then
+			--GET CODE
+			local code = table.concat{get_src(protect_src),get_src(base_src)}--,get_src(cores_src),get_src(modules_src)}
+
+			code=compile_macros(code_name,code)
+			--REMOVE DEBUG
+			if debug then
+				code=code:gsub("@@DEBUG_START",""):gsub("@@DEBUG_END",""):gsub("@@DEBUG","")
+			else
+				code=code:gsub("@@DEBUG_START.-@@DEBUG_END",""):gsub("@@DEBUG.-\n","")
+			end
+			code=code:gsub("__BASE_PATH__",code_name=="craft_os" and"[["..out_dir.."/]]" or "[[/home/maggen/.local/share/craftos-pc/computer/0/cssc_final/out/"..(debug and "debug/"or"release/").."]]")
+			code=code:gsub("__VERSION__",version)
+			--SET OUT
+			local l_path = fs.combine(out_dir,table.concat({project_name,code_name},"__")..".lua")
+			set_out(l_path,code)
+			if code_name=="craft_os" then craftos_path=l_path end
 		end
-		code=code:gsub("__BASE_PATH__",code_name=="craft_os" and"[["..out_dir.."/]]" or "[[/home/maggen/.local/share/craftos-pc/computer/0/cssc_final/out/"..(config.debug and "debug/"or"release/").."]]")
-		code=code:gsub("__VERSION__",version)
-		--SET OUT
-		local l_path = fs.combine(out_dir,table.concat({project_name,code_name},"__")..".lua")
-		set_out(l_path,code)
-		if code_name=="craft_os" then craftos_path=l_path end
+	end
+
+	--shell.run("/cssc_final/out/cssc_beta__craft_os__original.lua")
+
+	--MINIFY_DIR
+	if locals_minify then
+		local minify_cfg,e =load(get_src(fs.combine(work_dir,"minify_cfg.lua")))
+		--[[print(minify_cfg,e)]]
+		minify_cfg=minify_cfg()
+		local for_all,for_each = minify_cfg.for_all,minify_cfg.for_each
+		minifier=function(s,path)
+			for i=1,#for_all,2 do
+				s=s:gsub(for_all[i],for_all[i+1])
+			end
+			path=path:gsub("^"..out_dir.."/","")
+			path = for_each[path]or{}
+			for i=1,#path,2 do
+				s=s:gsub(path[i],path[i+1])
+			end
+			return s
+		end
+		minify_dir(out_dir)--advanced local minify
+	end
+	if basic_minify then
+		package.path = package.path..";/?.lua"
+		local cssc=require(craftos_path:sub(1,-5))
+		local comp1 = cssc"minify"
+		minifier= function(s)return comp1:run(s)end
+		minify_dir(out_dir)--basic space/comments minify
+	end
+
+	-- calculate SIZE
+	local f_size = size_dir(fs.combine(out_dir,"features"))/ 1024
+	local m_size = size_dir(fs.combine(out_dir,"modules"))/ 1024
+	print(string.format ("Features size: %6.3f Kbs - %1.3f%% of 2Mbs",f_size,f_size/(1024*2)*100))
+	print(string.format ("Modules  size: %6.3f Kbs - %1.3f%% of 2Mbs",m_size,m_size/(1024*2)*100))
+	print(string.format ("Mds+Fts  size: %6.3f Kbs - %1.3f%% of 2Mbs",f_size+m_size,(f_size+m_size)/(1024*2)*100))
+
+	for code_name,enabled in pairs(config.compile) do
+		if enabled then
+			local name = table.concat({project_name,code_name},"__")..".lua"
+			local size = fs.getSize(fs.combine(out_dir,name))/1024
+			print(string.format ("%-35s size: %3.3f Kbs - %1.3f%% of 2Mbs",name,size,size/(1024*2)*100))
+		end
 	end
 end
-
---shell.run("/cssc_final/out/cssc_beta__craft_os__original.lua")
-
---MINIFY_DIR
-if config.minify.locals_minify then
-	local minify_cfg,e =load(get_src(fs.combine(work_dir,"minify_cfg.lua")))
-	--[[print(minify_cfg,e)]]
-	minify_cfg=minify_cfg()
-	local for_all,for_each = minify_cfg.for_all,minify_cfg.for_each
-	minifier=function(s,path)
-		for i=1,#for_all,2 do
-			s=s:gsub(for_all[i],for_all[i+1])
-		end
-		path=path:gsub("^"..out_dir.."/","")
-		path = for_each[path]or{}
-		for i=1,#path,2 do
-			s=s:gsub(path[i],path[i+1])
-		end
-		return s
-	end
-	minify_dir(out_dir)--advanced local minify
-end
-if config.minify.basic_minify then
-	package.path = package.path..";/?.lua"
-	local cssc=require(craftos_path:sub(1,-5))
-	local comp1 = cssc"minify"
-	minifier= function(s)return comp1:run(s)end
-	minify_dir(out_dir)--basic space/comments minify
-end
-
--- calculate SIZE
-local f_size = size_dir(fs.combine(out_dir,"features"))/ 1024
-local m_size = size_dir(fs.combine(out_dir,"modules"))/ 1024
-print(string.format ("Features size: %6.3f Kbs - %1.3f%% of 2Mbs",f_size,f_size/(1024*2)*100))
-print(string.format ("Modules  size: %6.3f Kbs - %1.3f%% of 2Mbs",m_size,m_size/(1024*2)*100))
-print(string.format ("Mds+Fts  size: %6.3f Kbs - %1.3f%% of 2Mbs",f_size+m_size,(f_size+m_size)/(1024*2)*100))
-
-for code_name,enabled in pairs(config.compile) do
-	if enabled then
-		local name = table.concat({project_name,code_name},"__")..".lua"
-		local size = fs.getSize(fs.combine(out_dir,name))/1024
-		print(string.format ("%-35s size: %3.3f Kbs - %1.3f%% of 2Mbs",name,size,size/(1024*2)*100))
-	end
-end
+print("Relsease Original")
+compile(out_dir)
+print("\nRelesase Minified")
+compile(out_dir,true,true)
 --debug
 if craftos_path then
 	_G.cssc = loadfile(craftos_path,nil,setmetatable({},{__index=_ENV}))()--"/cssc_final/out/cssc_beta__craft_os__original.lua")

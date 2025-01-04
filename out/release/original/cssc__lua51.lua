@@ -213,9 +213,12 @@ end
 cssc=setmetatable({Configs={
 cssc_basic="sys.err,cssc={NF,KS,BO,CA,ncbf}",--configs
 cssc_user="sys.err,cssc={NF,KS(sc_end),LF,DA,BO,CA,NC,IS,ncbf}",
-cssc_full="sys.err,cssc={NF,KS(ret,loc,sc_end,pl_cond),LF,DA,BO,CA,NC,IS,ncbf}"},
+cssc_full="sys.err,cssc={NF,KS(ret,loc,sc_end,pl_cond),LF,DA,BO,CA,NC,IS,ncbf}",
+lua_53="sys.err,cssc={BO,ncbf}"},
 creator="M.A.G.Gen.",version='4.5-beta'},
 {	--PROJECT MAKER
+	__type="cssf",
+	__name="cssf",
 	__call=function(S,l_ctrl_str)
 		if"string"~=type(l_ctrl_str)then error(format("Bad argument #2 (expected string, got %s)",type(l_ctrl_str)))end--ARG CHECK
 
