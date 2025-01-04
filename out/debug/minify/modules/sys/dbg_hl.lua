@@ -5,7 +5,7 @@ C.error("Attempt to load debug hilighting module outside of CraftOS environment!
 end
 local rep,blit=string.rep,colors.toBlit
 local blit_ctrl={space={blit(colors.white)," "},[3]={blit(colors.white)," "},[4]={blit(colors.yellow)," "},[2]={blit(colors.lightBlue)," "},[1]={blit(colors.lightBlue)," "},[11]={blit(colors.green)," "},[8]={blit(colors.cyan)," "},[9]={blit(colors.magenta)," "},[10]={blit(colors.magenta)," "},[6]={blit(colors.lime)," "},[7]={blit(colors.red)," "},[12]={blit(colors.purple)," "},}C.BlitBack={}C.BlitFront={}local burn_blit=function(tp,len)tp=blit_ctrl[tp]or{" "," "}len=len or#C.Result[#C.Result]C.BlitFront[#C.BlitFront+1]=rep(tp[1],len)C.BlitBack[#C.BlitBack+1]=rep(tp[2],len)end
-C:load_libs"text.dual_queue""base""parcer""iterator""space_handler"for _,v in Gp(arg or{})do
+C:load_libs"text.dual_queue""base""parser""iterator""space_handler"for _,v in Gp(arg or{})do
 if v=="lua"then
 C:load_libs"code.lua"("base",C.Operators,C.Words)"struct"end
 end

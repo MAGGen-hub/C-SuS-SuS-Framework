@@ -1,5 +1,5 @@
 
-local m,Ss,Sm,Ti,Tr,TS=C:load_libs"text.dual_queue""base""parcer""iterator""make_react""space_handler"()"code.lua.struct"(4),ENV(6,2,7,9,23)local P,p,_,a,K,k,r=5,5,...
+local m,Ss,Sm,Ti,Tr,TS=C:load_libs"text.dual_queue""base""parser""iterator""make_react""space_handler"()"code.lua.struct"(4),ENV(6,2,7,9,23)local P,p,_,a,K,k,r=5,5,...
 Operators[".."]=m("..",1)Operators["..."]=m("...",6)a=TS(a or{})K,k=a.keep_comms,a.keep_lines
 C.Core=function(t,o)if t==11 then
 if K then t=1

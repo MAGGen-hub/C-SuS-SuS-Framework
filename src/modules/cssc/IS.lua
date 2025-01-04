@@ -18,8 +18,8 @@ end)
 Words["is"]=function()
     Runtime.reg("__cssc__kw_is","kwrd.is")
 
-    local id,data=Cdata.tb_while(skipper_tab)
-    if check[data[1]] then C.error("Unexpected 'is' after '%s'!",Result[id])end--error check before
+    local id,l_data=Cdata.tb_while(skipper_tab)
+    if check[l_data[1]] then C.error("Unexpected 'is' after '%s'!",Result[id])end--error check before
 
     Cssc.inject(",",__OPERATOR__,Cdata.opts["^"][1])
     Text.split_seq(nil,2,__TRUE__)

@@ -9,7 +9,7 @@ local L,c,I,D,i,l=Level[#Level],Cdata.opts[","][1],#Cdata
 if P[L.type]or#(L.OP_st or"")>0 then
 C.error("Attempt to use additional asignment in prohibited area!")end
 Cssc.inject("=",2,Cdata.opts["="][1])Text.split_seq(nil,#v+1)Event.run(2,v.."=",2,1)Event.run("all",v.."=",2,1)i,l=Cssc.op_conf(nil,c+1,false,1,false,#Cdata-1)if l[1]==2 and l[2]==c then
-C.error("Additional asignment do not support multiple additions in this version of cssc!")end
+C.error("Additional asignment do not support multiple additions in this version of cssf!")end
 if l[1]==2 and l[2]==0 and i-1>0 and Cdata[i-1][1]==4 and Sm(Result[i-1],"^local")then
 C.error("Attempt to perform additional asignment to local variable constructor!")end
 if R then

@@ -29,16 +29,16 @@
 
 
 --PROJECT DATA
-local project_name = "cssc"
+local project_name = "cssf"
 local version	  = "4.5-beta"
 --local version_num  = 4.5
 
 --COMPILE DATA
-local work_dir     = "/cssc_final"
+local work_dir     = "/cssf_final"
 local src_dir      = fs.combine(work_dir,"src")
 local out_dir      = fs.combine(work_dir,"out")--not final dir! (depends on cofiguration)
 local protect_src  = fs.combine(src_dir ,"protection_and_variable_layer.lua")
-local base_src     = fs.combine(src_dir ,"new_base.lua")
+local base_src     = fs.combine(src_dir ,"base.lua")
 local features_src = fs.combine(src_dir ,"features")
 local modules_src  = fs.combine(src_dir ,"modules")
 local macro_src    = fs.combine(src_dir ,"common_macro.csv")
@@ -205,7 +205,7 @@ local compile = function(out_dir,locals_minify,basic_minify,debug)
 			else
 				code=code:gsub("@@DEBUG_START.-@@DEBUG_END",""):gsub("@@DEBUG.-\n","")
 			end
-			code=code:gsub("__BASE_PATH__",code_name=="craft_os" and"[["..out_dir.."/]]" or "[[/home/maggen/.local/share/craftos-pc/computer/0/cssc_final/out/"..(debug and "debug/"or"release/").."]]")
+			code=code:gsub("__BASE_PATH__",code_name=="craft_os" and"[["..out_dir.."/]]" or "[[/home/maggen/.local/share/craftos-pc/computer/0/cssf_final/out/"..(debug and "debug/"or"release/").."]]")
 			code=code:gsub("__VERSION__",version)
 			--SET OUT
 			local l_path = fs.combine(out_dir,table.concat({project_name,code_name},"__")..".lua")
@@ -214,7 +214,7 @@ local compile = function(out_dir,locals_minify,basic_minify,debug)
 		end
 	end
 
-	--shell.run("/cssc_final/out/cssc_beta__craft_os__original.lua")
+	--shell.run("/cssf_final/out/cssc_beta__craft_os__original.lua")
 
 	--MINIFY_DIR
 	if locals_minify then
@@ -258,11 +258,15 @@ local compile = function(out_dir,locals_minify,basic_minify,debug)
 		end
 	end
 end
+print("Debug Original")
+compile(out_dir,nil,nil,true)
+print("\nDebug Minified")
+compile(out_dir,true,true,true)
 print("Relsease Original")
 compile(out_dir)
 print("\nRelesase Minified")
 compile(out_dir,true,true)
 --debug
 if craftos_path then
-	_G.cssc = loadfile(craftos_path,nil,setmetatable({},{__index=_ENV}))()--"/cssc_final/out/cssc_beta__craft_os__original.lua")
+	_G.cssc = loadfile(craftos_path,nil,setmetatable({},{__index=_ENV}))()--"/cssf_final/out/cssc_beta__craft_os__original.lua")
 end

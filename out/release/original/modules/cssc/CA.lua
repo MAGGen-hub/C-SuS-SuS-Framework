@@ -33,7 +33,7 @@ C:load_lib"code.syntax_loader"(stx,{O=function(...)
             index,last=Cssc.op_conf(nil,coma_prior+1,false,1,false,#Cdata-1)--add ")" to fin on, or stat end
             
             if last[1]==2 and last[2]==coma_prior then --TODO: Temporal solution! Rework!
-                C.error("Additional asignment do not support multiple additions in this version of cssc!")
+                C.error("Additional asignment do not support multiple additions in this version of cssf!")
             end
             if last[1]==2 and last[2]==0 and index-1>0 and Cdata[index-1][1]==4 and match(Result[index-1],"^local")then
                 C.error("Attempt to perform additional asignment to local variable constructor!")

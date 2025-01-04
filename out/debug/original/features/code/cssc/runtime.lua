@@ -1,7 +1,7 @@
 local match,format,insert,concat,unpack,pairs,error,setmetatable,tostring = ENV(2,3,7,8,10,13,14,18,15)
 local P,d,p,clear_func=...
 --api to inject locals form Control table right into code
-p={path=P or "__cssc__runtime", locals={}, modules={}, loc_names={},
+p={path=P or "__cssf__runtime", locals={}, modules={}, loc_names={},
     data=d or setmetatable({},{__call=function(s,...)
         local t={}
         for _,v in pairs{...}do

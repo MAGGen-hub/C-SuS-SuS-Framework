@@ -2,7 +2,7 @@
 
 local PrimeUI,PrimeUI_borderBox
 local license
-local cssc_repo = "https://raw.githubusercontent.com/MAGGen-hub/C-SuS-SuS-Framework/0b5c7b3fb37e50740dac0f96f0c543149fae7bf1/"
+local cssf_repo = "https://raw.githubusercontent.com/MAGGen-hub/C-SuS-SuS-Framework/0b5c7b3fb37e50740dac0f96f0c543149fae7bf1/"
 local path,install_prog,st_path,is_minified
 --#region GitLoader
 local err_codes={[-2]="Broken URL",[-3]="No responce",[-4]="No result"}
@@ -59,24 +59,24 @@ local install = function()
 		"modules/sys.lua",
 
 
-		"cssc__craft_os.lua"
+		"cssf__craft_os.lua"
 	--#endregion C SuS SuS Files
 	}
 	local code = {}
 	local base_path = "out/release/"
 	local ver = is_minified and "minify/" or "original/"
-	local api_url = cssc_repo..base_path..ver
+	local api_url = cssf_repo..base_path..ver
 	--download & install api
 	
 	--install prog & startup
-	local craftos_url = cssc_repo..base_path.."craftos/"..ver
+	local craftos_url = cssf_repo..base_path.."craftos/"..ver
 	local x,y = term.getCursorPos()
 	for i=1, #files do
 		term.setCursorPos(x,y)
 		print("Downloading API...")
 		print(("Progress:[%d/%d]"):format(i-1,#files))
 		print("File:"..files[i])
-		code[fs.combine(path,files[i]=="cssc__craft_os.lua"and "cssc_api.lua"or files[i])]=try_get_git_file(craftos_url..files[i])
+		code[fs.combine(path,files[i]=="cssf__craft_os.lua"and "cssf_prog.lua"or files[i])]=try_get_git_file(craftos_url..files[i])
 	end
 	term.setCursorPos(x,y)
 	print("Downloading API - success!")
@@ -84,21 +84,21 @@ local install = function()
 	sleep(0.5)
 	term.setCursorPos(x,y)
 
-	local api_path =  fs.combine(path,"cssc_api.lua")
-	local prog_path = fs.combine(path,"cssc.lua")
+	local api_path =  fs.combine(path,"cssf.lua")
+	local prog_path = fs.combine(path,"cssf_prog.lua")
 	local prog_code
 
 	if install_prog then
 		local prog_code =
-		[==[local tArgs,cssc,prog={...},typeof(cssc)=="cssf"
-			cssc.prog = cssc.prog and cssc("config=cssc_user")
-			if #tArgs<1 then print"Usage: cssc <prog>"return end
+		[==[local tArgs,cssf,prog={...},typeof(cssf)=="cssf"
+			cssf.prog = cssf.prog and cssf("config=cssc_user")
+			if #tArgs<1 then print"Usage: cssf <prog>"return end
 			prog=shell.resolveProgram(...) or error("Program `"..a[1].."` not found!")
 			local file,err = fs.open(p,"r")
 			local code=file and file.readAll():gsub("^#!cssc\n","",1) or error(err)
 			file.close()
-			cssc.prog.run(code)
-			local func,err = cssc.prog:load("@"..prog,nil,_ENV)
+			cssf.prog.run(code)
+			local func,err = cssf.prog:load("@"..prog,nil,_ENV)
 			arg[0]=err and error(err) or table.remove(arg,1)
 			table.remove(tArgs,1)
 			return func(unpack(tArgs))]==]
@@ -264,7 +264,7 @@ local make_git_require = function(repo_url,display_name,log)
     return f
 end
 local Download_PrimeUI = function()
-	license = try_get_git_file(cssc_repo.."LICENSE")
+	license = try_get_git_file(cssf_repo.."LICENSE")
 	local expect = require"cc.expect".expect
 	PrimeUI_borderBox = function(win, x, y, width, height, fgColor, bgColor)
 		expect(1, win, "table")
@@ -489,8 +489,8 @@ local base_modules={["Original"]=false, ["Minified"]=true, ["Startup"]= true, ["
 local desc={
 	["Original"]="Original C SuS SuS package.",
 	["Minified"]="Minified C SuS SuS package.",
-	["Startup"] ="Startup module. CSSC API auto-load.",
-	["Program"] ="Program to launch CSSC programs from shell. Recomended to install."}
+	["Startup"] ="Startup module. CSSF API auto-load.",
+	["Program"] ="Program to launch CSSF programs from shell. Recomended to install."}
 setmetatable(base_modules,{__pairs=function(a)
 	return function(t,i)
 		local order={"Original",["Original"]="Minified",["Minified"]="Startup",["Startup"]="Program"}--["Program"]=nil}
@@ -540,11 +540,11 @@ if act=="exit" then on_cancel() return end
 --#endregion ChooseModules
 
 --#region ChoosePath
---Path to cssc directory 
-local cssc_folder,prev_folder,err 
-local histor={"/","/progs/cssc","/programs/cssc","/disk/cssc","/lib/cssc","/apis/cssc","/cssc"}-- posible names for directory
+--Path to cssf directory 
+local cssf_folder,prev_folder,err 
+local histor={"/","/progs/cssf","/programs/cssf","/disk/cssf","/lib/cssf","/apis/cssf","/cssf"}-- posible names for directory
 repeat
-	cssc_folder=nil
+	cssf_folder=nil
 	PrimeUI.clear()
 	make_gui("PATH")
 	PrimeUI.button(main,2,max_y-1,"Continue",function()os.queueEvent("key",28)end,colors.orange,colors.blue,colors.cyan)
@@ -557,24 +557,24 @@ repeat
 	term.setTextColor(colors.yellow)
 	term.setCursorBlink(true)
 	term.setCursorPos(5+5,7)
-	_,act,cssc_folder=PrimeUI.run()--attempt to get the way
+	_,act,cssf_folder=PrimeUI.run()--attempt to get the way
 	_,err=pcall(function() 
-		if cssc_folder then --create files if posible
-			if prev_folder~=cssc_folder and fs.isDir(cssc_folder) and (fs.exists(fs.combine(cssc_folder,"cssc.lua")) or fs.exists(fs.combine(cssc_folder,"cssc_api.lua")))then
-				prev_folder=cssc_folder
+		if cssf_folder then --create files if posible
+			if prev_folder~=cssf_folder and fs.isDir(cssf_folder) and (fs.exists(fs.combine(cssf_folder,"cssf.lua")) or fs.exists(fs.combine(cssf_folder,"cssf_prog.lua")))then
+				prev_folder=cssf_folder
 				error("Warning! Files will be rewriten! Are you sure? [Enter]")
 			end
 			local tmp1,err1
 			if base_modules["Program"] then
-				tmp1=not fs.isReadOnly(fs.combine(cssc_folder,"cssc.lua")) or error("File is read-only!")
+				tmp1=not fs.isReadOnly(fs.combine(cssf_folder,"cssf.lua")) or error("File is read-only!")
 			end
-			local tmp2=not fs.isReadOnly(fs.combine(cssc_folder,"cssc_api.lua")) or error("File is read-only!")
+			local tmp2=not fs.isReadOnly(fs.combine(cssf_folder,"cssf_prog.lua")) or error("File is read-only!")
 			
-			install_prog=tmp1 and cssc_folder-- fs.combine(cssc_folder,"cssc.lua")
-			path =tmp2 and cssc_folder -- fs.combine(cssc_folder,"cssc_api.lua")
+			install_prog=tmp1 and fs.combine(cssf_folder,"cssf_prog.lua")-- fs.combine(cssf_folder,"cssf.lua")
+			path =tmp2 and cssf_folder -- fs.combine(cssf_folder,"cssf_prog.lua")
 		end
 	end)
-	histor[#histor+1]=cssc_folder~=histor[#histor] and cssc_folder or nil
+	histor[#histor+1]=cssf_folder~=histor[#histor] and cssf_folder or nil
 until path or act=="exit"
 if act=="exit" then on_cancel() return end
 --#endregion ChoosePath
@@ -584,7 +584,7 @@ err=nil
 local st_path_tmp,prev_st_path
 --Startup path
 if base_modules["Startup"] then
-	local histor={"/startup.lua","/disk/startup.lua","/disk/startup/00_cssc.lua","/startup/cssc.lua","/startup/02_cssc.lua","/startup/01_cssc.lua"}
+	local histor={"/startup.lua","/disk/startup.lua","/disk/startup/00_cssf.lua","/startup/cssf.lua","/startup/02_cssf.lua","/startup/01_cssf.lua"}
 	repeat
 		PrimeUI.clear()
 		make_gui("STARTUP")

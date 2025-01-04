@@ -112,7 +112,7 @@ return {
             "obj_tp"     , "t",
             "rez"        , "r",
             "id"         , "i",
-            "data"       , "d",
+            "l_data"       , "d",
         },
         ["modules/cssc/DA.lua"]={
             "placeholder_table" ,  "p",

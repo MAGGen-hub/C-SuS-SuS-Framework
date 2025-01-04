@@ -1,5 +1,5 @@
 local Sm,SF,Ti,Tc,Tu,Gp,Ge,GS,Gs=ENV(2,3,7,8,10,13,14,18,15)local P,d,p,c=...
-p={path=P or"__cssc__runtime",locals={},modules={},loc_names={},data=d or GS({},{__call=function(s,...)local t={}for _,v in Gp{...}do
+p={path=P or"__cssf__runtime",locals={},modules={},loc_names={},data=d or GS({},{__call=function(s,...)local t={}for _,v in Gp{...}do
 Ti(t,s[v]or Ge(SF("Unable to load '%s' run-time module!",v)))end
 return Tu(t)end}),reg=function(n,m)if p.loc_names[n]then return end
 p.loc_names[n]=1
