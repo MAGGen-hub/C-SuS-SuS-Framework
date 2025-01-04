@@ -62,6 +62,11 @@ local install = function()
 	}
 	--#endregion C SuS SuS Files
 	local cssc_repo = "https://raw.githubusercontent.com/MAGGen-hub/C-SuS-SuS-Framework/refs/heads/master/"
+	local base = "out"
+	local minif = "minify"
+	local orig = "original"
+	local st_prog= "craftos"
+	
 end
 --#region Animation API
 local blit_pic=function(pic,x,y,font,back)
