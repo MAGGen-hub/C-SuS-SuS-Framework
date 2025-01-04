@@ -1,6 +1,6 @@
 -- PROTECTION LAYER
 -- This local var layer was created to prevent unpredicted behaviour of preprocessor if one of the functions in _G table was changed.
-local base_path=[[cssc_final/out/release/]]
+local base_path=[[/home/maggen/.local/share/craftos-pc/computer/0/cssc_final/out/debug/]]
 local cssc,A,S,T,E,placeholder_func,E_ENV,_=
 {},assert,string,table,"cssc load failed because of missing libruary method!",
 function()end
@@ -19,7 +19,7 @@ type,pairs,error,tostring,tonumber,getmetatable,setmetatable,pcall=
     A(T.insert,E),
     A(T.concat,E),
     A(T.remove,E),
-    A(T.unpack or unpack,E),
+    A(table.unpack,E),
 
     -- generic.lib
     A(type,E),
@@ -36,7 +36,7 @@ local bit32 = pcall(require,"bit")and require"bit" --attempt to get bitop.dll (b
 or pcall(require,"bit32")and require"bit32" --attempt to get bit32.dll as replacement
 or pcall(require,"bitop")and (require"bitop".bit or require"bitop".bit32) --emergency solution: bitop.lua
 or print and print"Warning! Bit32/bitop libruary not found! Bitwize operators module disabled!"and nil --loading alarm
-if bit32 then --reconfigure lib
+if bit32 then
     local b = {}
     for k,v in pairs(bit32)do b[k]=v end
     b.shl=b.lshift
@@ -239,4 +239,5 @@ creator="M.A.G.Gen.",version='4.5-beta'},
 		return Obj
 	end}
 )
+ _G.cssc=cssc
 return cssc

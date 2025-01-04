@@ -1,8 +1,8 @@
 
-local cssc_repo = "https://raw.githubusercontent.com/MAGGen-hub/C-SuS-SuS-Framework/refs/heads/master/"
-local PrimeUI,PrimeUI_button
+
+local PrimeUI,PrimeUI_borderBox
 local license
-local path1,path2,st_path
+local path,install_prog,st_path
 --#region GitLoader
 local err_codes={[-2]="Broken URL",[-3]="No responce",[-4]="No result"}
 local try_get_git_file= function(url)
@@ -61,7 +61,7 @@ local install = function()
 		"cssc__craft_os__original.lua"
 	}
 	--#endregion C SuS SuS Files
-
+	local cssc_repo = "https://raw.githubusercontent.com/MAGGen-hub/C-SuS-SuS-Framework/refs/heads/master/"
 end
 --#region Animation API
 local blit_pic=function(pic,x,y,font,back)
@@ -205,59 +205,46 @@ local make_git_require = function(repo_url,display_name,log)
 end
 local Download_PrimeUI = function()
 	license = try_get_git_file(cssc_repo.."LICENSE")
-	--#region Button with activator
-	--used for licensce... But guess it's useless.
-	--[===[
-	local expect = require "cc.expect".expect
-	PrimeUI_button=function(win, x, y, text, action, fgColor, bgColor, clickedColor,is_active)
+	local expect = require"cc.expect".expect
+	PrimeUI_borderBox = function(win, x, y, width, height, fgColor, bgColor)
 		expect(1, win, "table")
 		expect(2, x, "number")
 		expect(3, y, "number")
-		expect(4, text, "string")
-		expect(5, action, "function", "string")
+		expect(4, width, "number")
+		expect(5, height, "number")
 		fgColor = expect(6, fgColor, "number", "nil") or colors.white
-		bgColor = expect(7, bgColor, "number", "nil") or colors.gray
-		clickedColor = expect(8, clickedColor, "number", "nil") or colors.lightGray
-		-- Draw the initial button.
-		win.setCursorPos(x, y)
+		bgColor = expect(7, bgColor, "number", "nil") or colors.black
+		-- Draw the top-left corner & top border.
 		win.setBackgroundColor(bgColor)
 		win.setTextColor(fgColor)
-		win.write(" " .. text .. " ")
-		-- Get the screen position and add a click handler.
-		PrimeUI.addTask(function()
-			local buttonDown = false
-			while true do
-				local event, button, clickX, clickY = os.pullEvent()
-				local screenX, screenY = PrimeUI.getWindowPos(win, x, y)
-				local work=not is_active and true or is_active.active
-				if work then
-				if event == "mouse_click" and button == 1 and clickX >= screenX and clickX < screenX + #text + 2 and clickY == screenY then
-					-- Initiate a click action (but don't trigger until mouse up).
-					buttonDown = true
-					-- Redraw the button with the clicked background color.
-					win.setCursorPos(x, y)
-					win.setBackgroundColor(clickedColor)
-					win.setTextColor(fgColor)
-					win.write(" " .. text .. " ")
-				elseif event == "mouse_up" and button == 1 and buttonDown then
-					-- Finish a click event.
-					if clickX >= screenX and clickX < screenX + #text + 2 and clickY == screenY then
-						-- Trigger the action.
-						if type(action) == "string" then PrimeUI.resolve("button", action)
-						else action() end
-					end
-					-- Redraw the original button state.
-					win.setCursorPos(x, y)
-					win.setBackgroundColor(bgColor)
-					win.setTextColor(fgColor)
-					win.write(" " .. text .. " ")
-				end
-				end
-			end
-		end)
-	end]===]
-	--#endregion Button with activator
-	
+		win.setCursorPos(x - 1, y - 1)
+		win.write("\x9F" .. ("\x8F"):rep(width))
+		-- Draw the top-right corner.
+		win.setBackgroundColor(fgColor)
+		win.setTextColor(bgColor)
+		win.write("\x90")
+		-- Draw the right border.
+		for i = 1, height do
+			win.setCursorPos(win.getCursorPos() - 1, y + i - 1)
+			win.write("\x95")
+		end
+		-- Draw the left border.
+		win.setBackgroundColor(bgColor)
+		win.setTextColor(fgColor)
+		for i = 1, height do
+			win.setCursorPos(x - 1, y + i - 1)
+			win.write("\x95")
+		end
+		-- Draw the bottom border and corners.
+
+		win.setBackgroundColor(fgColor)
+		win.setTextColor(bgColor )
+		win.setCursorPos(x - 1, y + height)
+		win.write("\x82" .. ("\x83"):rep(width) .. "\x81")
+
+		win.setBackgroundColor(bgColor)
+		win.setTextColor(fgColor)
+	end
 	if not _G.PrimeUI then
 		--Get PrimeUI-218b28d version (21 Oct 2024 - commit by MCJack123) [stable] - for this project
 		local PrimeUI_repo,i = "https://raw.githubusercontent.com/MCJack123/PrimeUI/218b28d4185ddc3ad15594910877eb5f0e858cfd/",1
@@ -310,39 +297,39 @@ function make_gui(tm)
 	term.setTextColor(colors.blue)
 	write(" Framework V4.5-beta Installer. ")
 
-	-- Name Handler
-	term.setCursorPos(4+8,3) 
-	term.blit("\x9F"..("\x8F"):rep(2+#tm).."\x90",("3"):rep(3+#tm).."b",("b"):rep(3+#tm).."3")
-	
 	-- PrimeUI CC0 "copyright"
 	local p_msg ="PrimeUI-218b28d by MCJack123 "
-	term.setCursorPos(math.max(14+9,max_x-#p_msg-1),max_y-1)
+	term.setCursorPos(math.max(14+9,max_x-#p_msg+1),max_y-1)
 	write(p_msg)
 
-	-- Name & Box
-	term.setBackgroundColor(colors.blue)
-	term.setTextColor(colors.orange)
-	term.setCursorPos(4+9,4) print("["..tm.."]")
-	paintutils.drawBox(2,4,max_x-1,max_y-3,colors.blue,colors.lightBlue)
-	term.setBackgroundColor(colors.lightBlue)
+	-- Box 
+	local clr = (tm=="LICENSE"or tm=="DESCRIPTION")and colors.white or colors.lightBlue
+	PrimeUI_borderBox(main,3,5,max_x-x+2,max_y-y,colors.blue,clr)--paintutils.drawBox(2,4,max_x-1,max_y-3,colors.blue)
 
+	-- Name
+	clr=colors.toBlit(clr)
+	term.setCursorPos(4+8,3) term.blit("\x9F"..("\x8F"):rep(2+#tm).."\x90",("3"):rep(3+#tm).."b",("b"):rep(3+#tm).."3")
+	term.setCursorPos(3+9,4) term.blit("\x90["..tm.."]\x9F",clr..("1"):rep(#tm+2)..'b','b'..("b"):rep(#tm+2)..clr)
 
-
-	-- Create box
-	--PrimeUI.borderBox(main,4,5,max_x-x,max_y-y,colors.blue,colors.lightBlue)
-	-- Ctrl+C exit
-	PrimeUI.keyCombo(keys.c,true,false,false,"exit")
-	-- Buttons
-	if tm== "License" then
-		PrimeUI.button(main,13,max_y-1,"Cancel" ,"exit",colors.orange,colors.blue,colors.cyan)
-	elseif tm=="print"then
+	-- Buttons & Keys
+	PrimeUI.keyCombo(keys.c,true,false,false,"exit") -- Ctrl+C exit
+	if tm=="INSTALL" then 
 		PrimeUI.label(main,2,max_y-1," Continue ",colors.lightGray,colors.blue)
+		PrimeUI.label(main,2+11,max_y-1," Cancel ",colors.lightGray,colors.blue)
+	elseif tm== "LICENSE" then
+		PrimeUI.button(main,13,max_y-1,"Cancel" ,"exit",colors.orange,colors.blue,colors.cyan)
+		PrimeUI.keyAction(keys.enter,"done")
+	elseif tm=="PATH" or tm=="STARTUP"then
+		--PrimeUI.label(main,2,max_y-1," Continue ",colors.lightGray,colors.blue)
 		PrimeUI.button(main,13,max_y-1,"Cancel" ,"exit",colors.orange,colors.blue,colors.cyan)
 	else
 		PrimeUI.keyAction(keys.enter,"done")
 		PrimeUI.button(main,2,max_y-1,"Continue","done",colors.orange,colors.blue,colors.cyan)
 		PrimeUI.button(main,13,max_y-1,"Cancel" ,"exit",colors.orange,colors.blue,colors.cyan)
 	end
+
+	-- Return Normal Color
+	term.setBackgroundColor(colors.lightBlue)
 end
 --#endregion GUI_base func
 
@@ -371,10 +358,9 @@ end
 PrimeUI.clear()
 make_gui("DESCRIPTION")
 paintutils.drawFilledBox(3,5,max_x-x+4,max_y-y+4,colors.white)
-scroll_box=PrimeUI.scrollBox(main,4,5,max_x-x+1, max_y-y,999,true,true,colors.blue,colors.white)
+scroll_box=PrimeUI.scrollBox(main,3,5,max_x-x+2, max_y-y,999,true,true,colors.blue,colors.white)
 PrimeUI.drawText(scroll_box,
-[[ 
-Enter->Continue Ctrl+c->Cancel Space->Select
+[[Enter->Continue Ctrl+c->Cancel Space->Select
 Version="4.5-beta" creator="M.A.G.Gen."}
 
 C SuS SuS Framework (Very Suspisious C++)
@@ -425,34 +411,19 @@ if act=="exit" then on_cancel() return end
 --#region LICENSE (with timer)
 PrimeUI.clear()
 local time=skip_timer and 0 or 3--time to accept
-make_gui("License")
+make_gui("LICENSE")
 paintutils.drawFilledBox(3,5,max_x-x+4,max_y-y+4,colors.white)
 local is_active={active=false}
-scroll_box=PrimeUI.scrollBox(main,4,5,max_x-x+1, max_y-y,999,true,true,colors.blue,colors.white)
+scroll_box=PrimeUI.scrollBox(main,3,5,max_x-x+2, max_y-y,999,true,true,colors.blue,colors.white)
 PrimeUI.drawText(scroll_box,license,true,colors.brown,colors.white) 
 PrimeUI.button(main,3,max_y-1,"Accept","done",colors.orange,colors.blue,colors.cyan)
 PrimeUI.keyAction(keys.enter,function()if time<1 then PrimeUI.resolve(nil,"done")end end)
---[[
-PrimeUI.addTask(function()
-	local sz=11
-	while time>0 do
-		term.setCursorPos(3,max_y-1)
-		term.blit(" Accept["..time.."] ",colors.toBlit(colors.lightGray):rep(sz),colors.toBlit(colors.blue):rep(sz))
-		time=time-1
-		sleep(1)
-	end
-	term.setCursorPos(3,max_y-1)
-	term.blit(" Accept    ", colors.toBlit(colors.orange):rep(sz),colors.toBlit(colors.blue):rep(sz-3)..colors.toBlit(colors.lightBlue):rep(3))
-	is_active.active=true
-	while true do sleep(1)end
-end)]]
 _,act = PrimeUI.run()
-
 if act=="exit" then on_cancel() return end
 --#endregion LICENCE
 
 --#region ChooseModules
-local wnd=window.create(term.current(),5,7,max_x-x-1,7)--API chooser window
+local wnd=window.create(term.current(),3,7,max_x-x+2,4)--API chooser window
 local base_modules={["Original"]=false, ["Minified"]=true, ["Startup"]= true, ["Program"]= true}
 --Module Descriptions
 local desc={
@@ -468,15 +439,15 @@ setmetatable(base_modules,{__pairs=function(a)
 	end,desc
 end})
 local sel_desk=desc["Minified"]--defalut
-local redr_func=function()PrimeUI.textBox(main,4,15,max_x-x,1,sel_desk or "",colors.blue,colors.lightBlue)end
+local redr_func=function()PrimeUI.textBox(main,3,12,max_x-x+2,1,sel_desk or "",colors.blue,colors.lightBlue)end
 
 local selc="Original"
 repeat
 	PrimeUI.clear()
-	make_gui("Install")
-	PrimeUI.label(main,4,5,"Select API and modules to install:",colors.blue,colors.lightBlue)
+	make_gui("MODULES")
+	PrimeUI.label(main,3,5,"Select API and modules to install:",colors.blue,colors.lightBlue)
 	redr_func()--PrimeUI.textBox(main,4,15,max_x-x,1,sel_desk,colors.blue,colors.lightBlue)
-	PrimeUI.checkSelectionBox(wnd,1, 1,max_x-x,8,base_modules,
+	PrimeUI.checkSelectionBox(wnd,1, 1,max_x-x+2,8,base_modules,
 		function(k)
 			local i = 0
 			for kk in pairs(base_modules)do
@@ -515,10 +486,11 @@ local histor={"/","/progs/cssc","/programs/cssc","/disk/cssc","/lib/cssc","/apis
 repeat
 	cssc_folder=nil
 	PrimeUI.clear()
-	make_gui("print",true)
-	PrimeUI.label(main,4,5,"Choose instalation folder (use \x12):",colors.blue,colors.lightBlue)
-	paintutils.drawLine(4,7,max_x-x+3,8,colors.lightGray)
-	PrimeUI.inputBox(main,5,7,max_x-x-2,"done",colors.white,colors.lightGray,nil,histor,
+	make_gui("PATH")
+	PrimeUI.button(main,2,max_y-1,"Continue",function()os.queueEvent("key",28)end,colors.orange,colors.blue,colors.cyan)
+	PrimeUI.label(main,3,5,"Choose instalation folder (use \x12):",colors.blue,colors.lightBlue)
+	paintutils.drawLine(3,7,max_x-x+3,10,colors.lightGray)
+	PrimeUI.inputBox(main,4,7,max_x-x+1,"done",colors.white,colors.lightGray,nil,histor,
 		function(sLine) if #sLine>0 then return comp.dir(shell,sLine)end end,histor[#histor])
 	
 	PrimeUI.textBox(main,4,8,max_x-x,3,err or"",colors.red,colors.lightBlue)
@@ -538,12 +510,12 @@ repeat
 			end
 			local tmp2=not fs.isReadOnly(fs.combine(cssc_folder,"cssc_api.lua")) or error("File is read-only!")
 			
-			path1=tmp1 and fs.combine(cssc_folder,"cssc.lua")
-			path2=tmp2 and fs.combine(cssc_folder,"cssc_api.lua")
+			install_prog=tmp1 and cssc_folder-- fs.combine(cssc_folder,"cssc.lua")
+			path =tmp2 and cssc_folder -- fs.combine(cssc_folder,"cssc_api.lua")
 		end
 	end)
 	histor[#histor+1]=cssc_folder~=histor[#histor] and cssc_folder or nil
-until path2 or act=="exit"
+until path or act=="exit"
 if act=="exit" then on_cancel() return end
 --#endregion ChoosePath
 
@@ -555,10 +527,11 @@ if base_modules["Startup"] then
 	local histor={"/startup.lua","/disk/startup.lua","/disk/startup/00_cssc.lua","/startup/cssc.lua","/startup/02_cssc.lua","/startup/01_cssc.lua"}
 	repeat
 		PrimeUI.clear()
-		make_gui("print",true)
-		PrimeUI.label(main,4,5,"Enter startup (use \x12):",colors.blue,colors.lightBlue)
-		paintutils.drawLine(4,7,max_x-x+3,8,colors.lightGray)
-		PrimeUI.inputBox(main,5,7,max_x-x-2,"done",colors.white,colors.lightGray,nil,histor,
+		make_gui("STARTUP")
+		PrimeUI.button(main,2,max_y-1,"Continue",function()os.queueEvent("key",28)end,colors.orange,colors.blue,colors.cyan)
+		PrimeUI.label(main,3,5,"Enter startup (use \x12):",colors.blue,colors.lightBlue)
+		paintutils.drawLine(3,7,max_x-x+4,7,colors.lightGray)
+		PrimeUI.inputBox(main,3,7,max_x-x+2,"done",colors.white,colors.lightGray,nil,histor,
 			function(sLine) if #sLine>0 then return comp.dirOrFile(shell,sLine)end end, histor[#histor])
 		PrimeUI.textBox(main,4,8,max_x-x,3,err or"",colors.red,colors.lightBlue)
 		_,act,st_path_tmp=PrimeUI.run()
@@ -579,7 +552,21 @@ if act=="exit" then on_cancel() return end
 --#endregion ChooseStartup
 
 --#region ProgressBar & Size calculation & Instalation Completion
-
+PrimeUI.clear()
+make_gui("INSTALL")
+term.setBackgroundColor(colors.black)
+term.clear()
+--PrimeUI.textBox(main,3,5,max_x-x+4,max_y-y+4,"Ins\nIns\n",colors.blue,colors.lightBlue)
+PrimeUI.addTask(function()
+	local wnd = window.create(main,3,5,max_x-x+2,max_y-y,true)
+	term.redirect(wnd)
+	term.setCursorPos(1,1)
+	install()
+	term.redirect(main)
+	PrimeUI.resolve("install","done")
+end)
+_,act=PrimeUI.run()
+if act=="exit" then on_cancel() return end
 --#endregion ProgressBar & Size calculation & Instalation Completion
 
 --#endregion PrimeUI GUI part

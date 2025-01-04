@@ -76,7 +76,7 @@ local config ={
 		lua54   = false,
 		Lua_Jit  = false]==]
 	}, 
-	debug=false --if true then @@DEBUG macro will be compilled and inserted in code (required some times)
+	debug=true --if true then @@DEBUG macro will be compilled and inserted in code (required some times)
 }
 -- #region Undone Features
 --[===[ 
@@ -177,6 +177,11 @@ if config.debug then
 else
 	out_dir = fs.combine(out_dir,"release")
 end
+if config.minify.locals_minify or config.minify.basic_minify then
+	out_dir = fs.combine(out_dir,"minify")
+else
+	out_dir = fs.combine(out_dir,"original")
+end
 
 --MAKE_FEATURES
 compile_dir(features_src,out_dir,"features")
@@ -200,7 +205,7 @@ for code_name,enabled in pairs(config.compile) do
 		code=code:gsub("__BASE_PATH__",code_name=="craft_os" and"[["..out_dir.."/]]" or "[[/home/maggen/.local/share/craftos-pc/computer/0/cssc_final/out/"..(config.debug and "debug/"or"release/").."]]")
 		code=code:gsub("__VERSION__",version)
 		--SET OUT
-		local l_path = fs.combine(out_dir,table.concat({project_name,code_name,"original"},"__")..".lua")
+		local l_path = fs.combine(out_dir,table.concat({project_name,code_name},"__")..".lua")
 		set_out(l_path,code)
 		if code_name=="craft_os" then craftos_path=l_path end
 	end
@@ -244,7 +249,7 @@ print(string.format ("Mds+Fts  size: %6.3f Kbs - %1.3f%% of 2Mbs",f_size+m_size,
 
 for code_name,enabled in pairs(config.compile) do
 	if enabled then
-		local name = table.concat({project_name,code_name,"original"},"__")..".lua"
+		local name = table.concat({project_name,code_name},"__")..".lua"
 		local size = fs.getSize(fs.combine(out_dir,name))/1024
 		print(string.format ("%-35s size: %3.3f Kbs - %1.3f%% of 2Mbs",name,size,size/(1024*2)*100))
 	end

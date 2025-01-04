@@ -1,6 +1,6 @@
 -- PROTECTION LAYER
 -- This local var layer was created to prevent unpredicted behaviour of preprocessor if one of the functions in _G table was changed.
-local base_path=[[cssc_final/out/release/]]
+local base_path=[[/home/maggen/.local/share/craftos-pc/computer/0/cssc_final/out/debug/]]
 local cssc,A,S,T,E,placeholder_func,E_ENV,_=
 {},assert,string,table,"cssc load failed because of missing libruary method!",
 function()end
@@ -19,7 +19,7 @@ type,pairs,error,tostring,tonumber,getmetatable,setmetatable,pcall=
     A(T.insert,E),
     A(T.concat,E),
     A(T.remove,E),
-    A(T.unpack or unpack,E),
+    A(unpack,E),
 
     -- generic.lib
     A(type,E),
@@ -36,7 +36,7 @@ local bit32 = pcall(require,"bit")and require"bit" --attempt to get bitop.dll (b
 or pcall(require,"bit32")and require"bit32" --attempt to get bit32.dll as replacement
 or pcall(require,"bitop")and (require"bitop".bit or require"bitop".bit32) --emergency solution: bitop.lua
 or print and print"Warning! Bit32/bitop libruary not found! Bitwize operators module disabled!"and nil --loading alarm
-if bit32 then --reconfigure lib
+if bit32 then
     local b = {}
     for k,v in pairs(bit32)do b[k]=v end
     b.shl=b.lshift
@@ -46,8 +46,20 @@ if bit32 then --reconfigure lib
 end
 
 -- Lua5.2 load mimicry
-local native_load = A(load,E)
-local native_loadfile = A(loadfile,E)
+local native_load,native_loadfile
+do
+local loadstring,load,setfenv,loadfile=A(loadstring,E),A(load,E),A(setfenv,E),A(loadfile,E)
+    native_load = function(x,name,mode,env)
+        local r,e=(type(x)=="string"and loadstring or load)(x,name)
+        if env and r then setfenv(r,env)end
+        return r,e
+    end
+    native_loadfile=function(filename,mode,env)
+        local r,e=loadfile(filename)
+        if env and r then setfenv(r,env)end
+        return r,e
+    end
+end
 
 local t_copy,t_swap,env_load=
 function(s,o,f)o=o or{} for k,v in pairs(s)do o[k]=f and o[k]or v end return o end,
@@ -239,4 +251,5 @@ creator="M.A.G.Gen.",version='4.5-beta'},
 		return Obj
 	end}
 )
+ _G.cssc=cssc
 return cssc
