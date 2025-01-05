@@ -2,7 +2,7 @@
 --#region Locals
 local PrimeUI,PrimeUI_borderBox
 local license
-local cssf_repo = "https://raw.githubusercontent.com/MAGGen-hub/C-SuS-SuS-Framework/9912caf7f4ae26aa7ca26c1748e20598c89f4d93/"
+local cssf_repo = "https://raw.githubusercontent.com/MAGGen-hub/C-SuS-SuS-Framework/42f3685d697d727853cd71983b6600e1770fbb42/"
 local path,install_prog,st_path,is_minified
 local tArgs={...}
 is_minified=true
@@ -80,7 +80,7 @@ local install = function()
 	local x,y = term.getCursorPos()
 	y=y-3
 	term.setCursorPos(x,y)
-	sleep(1)
+	sleep(1.5)
 	term.setCursorPos(x,y+1) term.clearLine()
 	term.setCursorPos(x,y) term.clearLine()
 	for i=1, #files do
@@ -111,29 +111,31 @@ local install = function()
 	if install_prog then
 		code[fs.combine(path,"cssc_prog.lua")] =
 		[==[local tArgs,cssf,prog={...},cssf or error"C SuS SuS Framework not found!"
-cssf.prog = cssf.prog or cssf("config=cssc_user")
+if not cssf.default then cssf.default=cssf"config=cssc_user" end
 if #tArgs<1 then print"Usage: cssf <prog>"return end
 prog=shell.resolveProgram(...) or error("Program `"..a[1].."` not found!")
 local file,err = fs.open(prog,"r")
 local code=file and file.readAll():gsub("^#!cssc\n","",1) or error(err)
 file.close()
-cssf.prog.run(code)
-local func,err = cssf.prog:load("@"..prog,nil,_ENV)
+local func,err = cssf.default.load(code,"@"..prog,nil,_ENV)
 arg[0]=err and error(err) or table.remove(arg,1)
 table.remove(tArgs,1)
 return func(unpack(tArgs))]==]
 	end
 
 	if st_path then
+		--settings.define("cssf.enable",{default=true,type="boolean"})
+		--settings.get("cssf.enable")
 		code[st_path] =
-		[==[local C,p,c,d = require"cc.shell.completion","cssc_prog.lua","cssf.enable",__PATH__
-settings.define(c,{default=true,type="boolean"})
-if settings.get(c)then _G.cssf=loadfile(d.."cssf.lua",nil,_ENV)()end
+		[==[local C,p,d = require"cc.shell.completion","cssc_prog.lua",__PATH__
+_G.cssf=loadfile(d.."cssf.lua",nil,_ENV)()
+cssf.default=cssf"config=cssc_user" 
+_G.typeof=cssf.default.typeof
 __PROG__]==]
 		code[st_path]=code[st_path]:gsub("__PATH__","[=["..path:gsub("([^/])$","%1/").."]=]")
 		if install_prog then
 			code[st_path]=code[st_path]:gsub("__PROG__",[[shell.setAlias("cssc",d..p)
-shell.setCompletionFunction(d..p,C.build{C.programWithArgs,2,many=true})]])
+shell.setCompletionFunction(fs.combine(d..p),C.build{C.programWithArgs,2,many=true})]])
 		else
 			code[st_path]=code[st_path]:gsub("__PROG__","")
 		end
@@ -155,6 +157,7 @@ shell.setCompletionFunction(d..p,C.build{C.programWithArgs,2,many=true})]])
 	end
 	print()
 	print("Instalation complete.")
+	sleep(0.5)
 end
 --#endregion Install
 
@@ -164,7 +167,7 @@ if #tArgs>0 then
 		if v=="--help" or v=="-H" then
 			print("Usage:\n"..
 				"  -H  --help --Show this message and exit\n"..
-				"  -P=*path* --path=*path*\n"..
+				"  -D=*path* --dir=*path*\n"..
 				"        --Set path to installation folder\n"..
 				"  -S=*path* --startup=*path*\n"..
 				"        --Enable startup and set it's name\n"..
@@ -178,7 +181,7 @@ if #tArgs>0 then
 		end
 		install_prog=install_prog or v=="-P" or v=="--prog"
 		st_path=st_path or v:match("^%-S=(.+)") or v:match("^-%-startup=(.+)")
-		path=path or v:match("^%-P=(.+)") or v:match("^-%-path=(.+)")
+		path=path or v:match("^%-D=(.+)") or v:match("^-%-dir=(.+)")
 		if v=="-O" or v=="--original" then is_minified= false end
 		if v=="-M" or v=="--minified"then is_minified= true end
 	end
@@ -397,7 +400,7 @@ parallel.waitForAny(
 				c,x,y=term.getTextColor(),term.getCursorPos()
 				term.setTextColor(colors.orange)
 				term.setCursorPos(1,Y-1)
-				print("PrimeUI downloading... Please wait...")
+				print(" PrimeUI downloading... Please wait...")
 				term.setCursorPos(x,y)
 				term.setTextColor(c)
 			end
@@ -551,7 +554,7 @@ paintutils.drawFilledBox(3,5,max_x-x+4,max_y-y+4,colors.white)
 local is_active={active=false}
 scroll_box=PrimeUI.scrollBox(main,3,5,max_x-x+2, max_y-y,999,true,true,colors.blue,colors.white)
 PrimeUI.drawText(scroll_box,license,true,colors.brown,colors.white) 
-PrimeUI.button(main,3,max_y-1,"Accept","done",colors.orange,colors.blue,colors.cyan)
+PrimeUI.button(main,2,max_y-1," Accept ","done",colors.orange,colors.blue,colors.cyan)
 PrimeUI.keyAction(keys.enter,function()if time<1 then PrimeUI.resolve(nil,"done")end end)
 _,act = PrimeUI.run()
 if act=="exit" then on_cancel() return end
@@ -562,8 +565,8 @@ local wnd=window.create(term.current(),3,7,max_x-x+2,4)--API chooser window
 local base_modules={["Original"]=false, ["Minified"]=true, ["Startup"]= true, ["Program"]= true}
 --Module Descriptions
 local desc={
-	["Original"]="Original C SuS SuS package.",
-	["Minified"]="Minified C SuS SuS package.",
+	["Original"]="Original C SuS SuS package - 57.68 KBs",
+	["Minified"]="Minified C SuS SuS package - 28.35 KBs",
 	["Startup"] ="Startup module. CSSF API auto-load.",
 	["Program"] ="Program to launch CSSF programs from shell. Recomended to install."}
 setmetatable(base_modules,{__pairs=function(a)

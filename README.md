@@ -2,7 +2,7 @@
 <img src="https://raw.githubusercontent.com/MAGGen-hub/C-SuS-SuS-Framework/refs/heads/master/C_SuS_SuS_logo.svg" style="width: 36%; overflow: hidden;" align="right">\
 C SuS SuS Framework ( Very Suspicious C++ or Cඞඞ ) - Modular data processing system made in lua.
 
-Currently it's main purpouse - expand default Lua functional and make coding in Lua a bit more comfy than it was before.
+Currently it's main purpose - expand default Lua functional and make coding in Lua a bit more comfy than it was before.
 
 Current version: 4.6-beta
 
