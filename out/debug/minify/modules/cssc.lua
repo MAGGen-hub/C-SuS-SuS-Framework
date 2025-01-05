@@ -5,7 +5,8 @@ M=C:load_lib("code.lua.meta_opt",function(m,T)T=Tr(Result)c.inject("",2,m>0 and 
 Ti(PostRun,function()c.inject("",2,0)Event.run(2,"",2)Event.run("all","",2)Level.fin()end)User.info="C SuS SuS Compiller"User.version="4.2-beta"run,User.run=User.run
 User.compile=function(...)return run(User,...)end
 User.load=function(x,name,mode,env)if x==User then x=Return()elseif not Sm(x,"^\x1B\x4C")and mode~="c"then
-local r r,x=GP(run,User,x)r=not r and Ge(x,2)end
+local r r,x=GP(run,User,x)if not r then return nil,x end
+end
 mode=mode~="c"and mode or nil
 env=Runtime and Runtime.mk_env(env)or env
 return Gl(x,name,mode,env)end

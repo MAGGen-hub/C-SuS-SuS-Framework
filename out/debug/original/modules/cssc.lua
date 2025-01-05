@@ -84,7 +84,7 @@ User.load=function(x,name,mode,env)
 	if x==User then x=Return()
 	elseif not match(x,"^\x1B\x4C") and mode~="c" then --not bytecode and not compilled before -> compilling
 		local r r,x=pcall(run,User,x) --compile and redirect compilation errors
-		r=not r and error(x,2)--quick err-check
+		if not r then return nil,x end --r=not r and error(x,2)--quick err-check
 	end
 	mode=mode~="c" and mode or nil
 	env=Runtime and Runtime.mk_env(env) or env --Runtime Env support

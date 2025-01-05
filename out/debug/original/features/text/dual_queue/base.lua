@@ -18,4 +18,4 @@ C.Text={split_seq=function(data,i,queue)--split_seq:function to split operator/w
 end}
 
 C.Return=function() return concat(C.Result)end --C.Result : C - required, because concat can't pull Result from _ENV in lua5.1 for some reason
-insert(Clear,function()C.Result={""}C.operator=""C.word=""end)
+insert(Clear,function()C.Result={""}C.operator=""C.word="" C.line=1 end)
