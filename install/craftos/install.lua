@@ -97,7 +97,7 @@ local install = function()
 	term.write("Downloading API - success!")
 	term.setCursorPos(x,y+1)
 	term.write(("Progress:[%d/%d]"):format(#files,#files))
-	term.setCursorPos(x,y+2)
+	term.setCursorPos(x,y+2)s
 	term.clearLine()
 	term.write("Saving files...")
 	sleep(0.5)
@@ -113,7 +113,7 @@ local install = function()
 		[==[local tArgs,cssf,prog={...},cssf or error"C SuS SuS Framework not found!"
 if not cssf.default then cssf.default=cssf"config=cssc_user" end
 if #tArgs<1 then print"Usage: cssf <prog>"return end
-prog=shell.resolveProgram(...) or error("Program `"..a[1].."` not found!")
+prog=shell.resolveProgram(...) or error("Program `"..tArgs[1].."` not found!")
 local file,err = fs.open(prog,"r")
 local code=file and file.readAll():gsub("^#!cssc\n","",1) or error(err)
 file.close()
