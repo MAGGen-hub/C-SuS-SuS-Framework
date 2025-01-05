@@ -623,7 +623,7 @@ repeat
 	cssf_folder=nil
 	PrimeUI.clear()
 	make_gui("PATH")
-	PrimeUI.button(main,2,max_y-1,"Continue",function()os.queueEvent("key",28)end,colors.orange,colors.blue,colors.cyan)
+	PrimeUI.button(main,2,max_y-1,"Continue",function()os.queueEvent("key",keys.enter)end,colors.orange,colors.blue,colors.cyan)
 	PrimeUI.label(main,3,5,"Choose instalation folder (use \x12):",colors.blue,colors.lightBlue)
 	paintutils.drawLine(3,7,max_x-x+3,10,colors.lightGray)
 	PrimeUI.inputBox(main,4,7,max_x-x+1,"done",colors.white,colors.lightGray,nil,histor,
@@ -664,7 +664,7 @@ if base_modules["Startup"] then
 	repeat
 		PrimeUI.clear()
 		make_gui("STARTUP")
-		PrimeUI.button(main,2,max_y-1,"Continue",function()os.queueEvent("key",28)end,colors.orange,colors.blue,colors.cyan)
+		PrimeUI.button(main,2,max_y-1,"Continue",function()os.queueEvent("key",keys.enter)end,colors.orange,colors.blue,colors.cyan)
 		PrimeUI.label(main,3,5,"Enter startup (use \x12):",colors.blue,colors.lightBlue)
 		paintutils.drawLine(3,7,max_x-x+4,7,colors.lightGray)
 		PrimeUI.inputBox(main,3,7,max_x-x+2,"done",colors.white,colors.lightGray,nil,histor,
