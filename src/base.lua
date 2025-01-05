@@ -151,7 +151,7 @@ creator="M.A.G.Gen.",version='__VERSION__'},
 			insert(S,format("%-16s : "..s,format("[%0.3d] [%s]",i,S._),...))
 			i=i+1
 		end}
-		
+
 		--PROCESSING OBJECT
 		Control={
 			--MAIN FUNCTIONS
@@ -166,7 +166,7 @@ creator="M.A.G.Gen.",version='__VERSION__'},
 			Iterator=native_load"return 1",}
 		
 		--USER ACCESS OBJECT
-		Obj=setmetatable({run=run,info="C SuS SuS Framework object"},{__type="cssf_unit",__name="cssf_unit",__index={data=Control}})
+		Obj=setmetatable({run=run,info="C SuS SuS Framework"},{__type="cssf_unit",__name="cssf_unit",__index={data=Control}})
 		Control.User=Obj--link to user accessable object (Control Parent)
 		
 		load_control_string(Control,read_control_string(l_ctrl_str,S.Configs))--CONTROL STRING LOAD AND PARCE

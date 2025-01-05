@@ -7,7 +7,7 @@ Ti(p.locals,n)Ti(p.modules,"'"..m.."'")end,build=function(m,f)if(not p.data[m]or
 p.data[m]=f
 end
 end,is_done=false,mk_env=function(t)t=t or{}if#p.locals>0 then
-if t[p.path]then C.warn(" CSSC environment var '%s' already exist in '%s'. Override performed.",p.path,Gs(t))end
+if t[p.path]then C.warn(" CSSC environment var '%s' already exist in '%s'. Override performed!",p.path,Gs(t))end
 t[p.path]=p.data
 end
 return t
@@ -16,5 +16,6 @@ Ti(Result,1,"local "..Tc(p.locals,",").."="..p.path.."("..Tc(p.modules,",")..");
 p.is_done=true
 end)c=function()p.locals={}p.modules={}p.loc_names={}p.is_done=false
 end
+User.make_env=p.mk_env
 C.Runtime=p
 Ti(Clear,c)

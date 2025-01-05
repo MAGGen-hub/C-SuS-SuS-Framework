@@ -70,11 +70,11 @@ e=e or"string"==Gt(v)v=e and{v}or v
 v="number"==Gt(k)and{v}or{k,v}load_control_string(Control,v[1],v[2],l_path,aliases)end end
 end
 end
-cssf=GS({Configs={cssc_basic="sys.err,cssc={NF,KS,BO,CA,ncbf}",cssc_user="sys.err,cssc={NF,KS(sc_end),LF,DA,BO,CA,NC,IS,ncbf}",cssc_full="sys.err,cssc={NF,KS(ret,loc,sc_end,pl_cond),LF,DA,BO,CA,NC,IS,ncbf}",lua_53="sys.err,cssc={BO,ncbf}"},creator="M.A.G.Gen.",version='4.5-beta'},{__type="cssf",__name="cssf",__call=function(S,l_ctrl_str)if"string"~=Gt(l_ctrl_str)then Ge(SF("Bad argument #2 (expected string, got %s)",Gt(l_ctrl_str)))end
+cssf=GS({Configs={cssc_basic="sys.err,cssc={NF,KS,BO,CA,ncbf}",cssc_user="sys.err,cssc={NF,KS(sc_end),LF,DA,BO,CA,NC,IS,ncbf}",cssc_full="sys.err,cssc={NF,KS(ret,loc,sc_end,pl_cond),LF,DA,BO,CA,NC,IS,ncbf}",lua_53="sys.err,cssc={BO,ncbf}"},creator="M.A.G.Gen.",version='4.6-beta'},{__type="cssf",__name="cssf",__call=function(S,l_ctrl_str)if"string"~=Gt(l_ctrl_str)then Ge(SF("Bad argument #2 (expected string, got %s)",Gt(l_ctrl_str)))end
 local i,Control,Obj,r=1
 r={__call=function(S,s,...)if#S>999 then Tr(S,1)end
 Ti(S,SF("%-16s : "..s,SF("[%0.3d] [%s]",i,S._),...))i=i+1
-end}Control={load_lib=load_lib,load_libs=load_libs,PostLoad={},PreRun={},PostRun={},Struct={},Loaded={},Clear={},Result={},Ge=GS({_=" Error "},r),log=GS({_="  Log  "},r),warn=GS({_="Warning"},r),Core=Cp,Iterator=Gl"return 1",}Obj=GS({run=run,info="C SuS SuS Framework object"},{__type="cssf_unit",__name="cssf_unit",__index={data=Control}})Control.User=Obj
+end}Control={load_lib=load_lib,load_libs=load_libs,PostLoad={},PreRun={},PostRun={},Struct={},Loaded={},Clear={},Result={},Ge=GS({_=" Error "},r),log=GS({_="  Log  "},r),warn=GS({_="Warning"},r),Core=Cp,Iterator=Gl"return 1",}Obj=GS({run=run,info="C SuS SuS Framework"},{__type="cssf_unit",__name="cssf_unit",__index={data=Control}})Control.User=Obj
 load_control_string(Control,read_control_string(l_ctrl_str,S.Configs))tab_run(Control,"PostLoad")return Obj
 end})_G.cssf=cssf
 return cssf

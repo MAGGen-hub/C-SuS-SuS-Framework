@@ -1,5 +1,5 @@
 # C SuS SuS Framework
-<img src="https://raw.githubusercontent.com/MAGGen-hub/C-SuS-SuS-Framework/refs/heads/master/C_SuS_SuS_logo.svg" style="width: 270px;height: 230px; overflow: hidden;">
+<img src="https://raw.githubusercontent.com/MAGGen-hub/C-SuS-SuS-Framework/refs/heads/master/C_SuS_SuS_logo.svg" style="width: 270px;height: 230px; overflow: hidden;">\
 C SuS SuS Framework ( Very Suspicious C++ or Cඞඞ ) - Data processing system made in lua.
 
 Currently it's main purpouse - expand default Lua functional and make coding in Lua a bit more comfy than it was before.
@@ -69,9 +69,11 @@ Supported Lua versions:
 ## Instalation
 ### From src:
 1. Download next files/dirs to choosen `*dir*`
-   - `/out/release/cssc__*lua_version*__original.lua` - main file
-   - `/out/release/modules` - functional modules
-   - `/out/release/features` - project libruaries
+   - `/out/release/*version*/cssf__*lua_version*.lua` - main file
+   - `/out/release/*version*/modules` - functional modules
+   - `/out/release/*version*/features` - project libruaries
+
+   **P.S.** `*version*` -> original or minified code
 2. Install one of 'bit' libruaryes to your Lua version\
    (required for `Backport operators` feature, but project can run without it):
 	- bit-lua5.1 (recomended)
@@ -80,9 +82,9 @@ Supported Lua versions:
    	  https://github.com/AlberTajuelo/bitop-lua/blob/master/src/bitop/funcs.lua \
 	  (Command:`package.path['bitop']=loadfile"funcs.lua"`)
 3. Copy `/set_path.lua` to `*dir*` and run:\
-   `lua ./set_path.lua absolute_path_to:cssc__*lua_version*__original.lua`
+   `lua ./set_path.lua absolute_path_to:cssf__*lua_version*.lua`
 4. Inject path to `*dir*` into `package.path`
-5. `cssc=require"cssc__*lua_version*__original"`
+5. `cssf=require"cssf__*lua_version*"`
    
 ### From releases:
 1. Download one of the archives:\
@@ -97,13 +99,13 @@ Supported Lua versions:
    - c_sus_sus_framework_b45_minified_lua52_release.zip
 2. Unpack into choosen `*dir*`
 3. Run `*dir*/set_path.lua`:\
-   `lua ./set_path.lua absolute_path_to:*dir*/cssc.lua`
+   `lua ./set_path.lua absolute_path_to:*dir*/cssf.lua`
 4.  Inject path to `*dir*` into `package.path`
-5. `cssc=require"cssc"`
+5. `cssf=require"cssf"`
 ## Usage
-1. Run `cssc=require"*cssc_module_name*"`
+1. Run `cssf=require"*cssf_module_name*"`
 2. Choose one of configuartions:
- - **Basic configuartion:** `cssc_instance = cssc"config=cssc_basic"`\
+ - **Basic configuartion:** `cssf_instance = cssf"config=cssc_basic"`\
     Stable & compy, just a few new features, common for other programming languages.
    
     **Build:** `sys.err,cssc={NF,KS,BO,CA,ncbf}`
@@ -114,7 +116,7 @@ Supported Lua versions:
     - backport operators 
     - additional assignment
     - number concatenation bug fix
-  - **Recomended configuration:** `cssc_instance = cssc"config=cssc_user"`\
+  - **Recomended configuration:** `cssf_instance = cssf"config=cssc_user"`\
     Still stable & comfy, contains more freatures, but can be a bit "tricky" to use.
     
     **Build:** `sys.err,cssc={NF,KS(sc_end),LF,DA,BO,CA,NC,IS,ncbf}`
@@ -129,32 +131,39 @@ Supported Lua versions:
     - `nil` checking operators
     - `is` keyword
     - number concatenation bug fix
-  - **Full configuration:** `cssc_instance = cssc"config=cssc_full"`\
+  - **Full configuration:** `cssf_instance = cssf"config=cssc_full"`\
     All inclusive mode, experimental & cursed & unstable but very fun XD
     
     **Build:** `sys.err,cssc={NF,KS(ret,loc,sc_end,pl_cond),LF,DA,BO,CA,NC,IS,ncbf}`
     
     **Provides:** every existing feature avaliable (excluding minification)
-  - **Minify configuration:** `cssc_instance = cssc"minify"`\
+  - **Minify configuration:** `cssf_instance = cssf"minify"`\
     Minification module to decrease code size, sacrificing code readability.
     
-    **Build:** `cssc_instance = cssc"minify"`
+    **Build:** `cssf_instance = cssf"minify"`
     
     **Provides:** minification feature.
     
-3. `local prep_code = cssc_instance:run(source_code)`
-4. `local func,err = cssc_instance.load(prep_code,chunk_name,nil,environment)`
+3. `local prep_code = cssf_instance:compile(source_code)`
+4. `local func,err = cssf_instance.load(prep_code,chunk_name,'c',environment)`
 5. Run compilled `func`
+
+**P.S.** by default `cssf_instance` has `run` function in it, but `cssc` (C SuS SuS Compiller) module\
+replaces it with `compile` and `load`. Calling `compile` to load code is not required actualy.\
+In this example `cssf_instance.load` called with `'c'` mode, which tells `load` that code was already compilled.\
+Without `mode=='c'` - load will try to compile code automaticaly\
+(if it's not in bytecode form, which also means that code was compilled). 
 ## Custom configuration
  If all configuartions avaliable is not what you are searching for, you can create your own configuartion using project build system.\
   **Examples:**
 
   
-  - `cssc"cssc.BO"` - backport operators
-  - `cssc"cssc.KS(sc_end)"` - keyword shortcuts `!` `||` `&&` `;` `\;`
-  - `cssc"cssc.KS(loc,ret)"` -  keyword shortcuts `@` `$`
-  - `cssc"cssc.KS(pl_cond)"` -   keyword shortcuts `/|` `?` `:|` `\|`
-  - `cssc"cssc={BO,CA,KS(*arg*)}"` - multiple features
+  - `cssf"cssc.BO"` - backport operators
+  - `cssf"cssc.KS` - keyword shortcuts `!` `||` `&&`
+  - `cssf"cssc.KS(sc_end)"` - keyword shortcuts `!` `||` `&&` `;` `\;`
+  - `cssf"cssc.KS(loc,ret)"` -  keyword shortcuts `!` `||` `&&` `@` `$`
+  - `cssf"cssc.KS(pl_cond)"` -   keyword shortcuts `!` `||` `&&` `/|` `?` `:|` `\|`
+  - `cssf"cssc={BO,CA,KS(*arg*)}"` - multiple features
 
   \
   **Feature name aliases:**

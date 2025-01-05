@@ -20,4 +20,4 @@ end
 P=p
 p=t
 end
-Ti(PostRun,function()if p==5 then Tr(Result)end end)Ti(Clear,function()p=5 P=5 end)
+User.info="C SuS SuS Basic minify"User.version="1.4-beta"Ti(PostRun,function()if p==5 then Tr(Result)end end)Ti(Clear,function()p=5 P=5 end)

@@ -20,6 +20,7 @@
 -- libcompat51 --for tests
 -- libcompat52
 -- os.execute-plugin --for craft os related tests
+-- zip-archiver
 --
 -- Required compilling/testing ENV/IDE: CraftOS-pc - latest
 --
@@ -30,7 +31,7 @@
 
 --PROJECT DATA
 local project_name = "cssf"
-local version	  = "4.5-beta"
+local version	  = "4.6-beta"
 --local version_num  = 4.5
 
 --COMPILE DATA
@@ -257,6 +258,16 @@ local compile = function(out_dir,locals_minify,basic_minify,debug)
 			print(string.format ("%-35s size: %3.3f Kbs - %1.3f%% of 2Mbs",name,size,size/(1024*2)*100))
 		end
 	end
+	--zip release
+	if not debug then
+		local tp = (locals_minify or basic_minify) and "minified" or "original"
+		for code_name,enabled in pairs(config.compile) do
+			local com = string.format([==[cd %s; zip -r ./../%s ./modules ./features ./%s]==],
+				"/home/maggen/.local/share/craftos-pc/computer/0/"..out_dir,("c_sus_sus_framework_b46_"..tp.."_"..code_name.."_release.zip"),table.concat({project_name,code_name},"__")..".lua")
+			print(com)
+			os.execute(com)
+		end
+	end
 end
 print("Debug Original")
 compile(out_dir,nil,nil,true)
@@ -268,5 +279,5 @@ print("\nRelesase Minified")
 compile(out_dir,true,true)
 --debug
 if craftos_path then
-	_G.cssc = loadfile(craftos_path,nil,setmetatable({},{__index=_ENV}))()--"/cssf_final/out/cssc_beta__craft_os__original.lua")
+	_G.cssf_test = loadfile(craftos_path,nil,setmetatable({},{__index=_ENV}))()--"/cssf_final/out/cssc_beta__craft_os__original.lua")
 end

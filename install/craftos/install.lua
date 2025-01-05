@@ -2,7 +2,7 @@
 
 local PrimeUI,PrimeUI_borderBox
 local license
-local cssf_repo = "https://raw.githubusercontent.com/MAGGen-hub/C-SuS-SuS-Framework/0b5c7b3fb37e50740dac0f96f0c543149fae7bf1/"
+local cssf_repo = "https://raw.githubusercontent.com/MAGGen-hub/C-SuS-SuS-Framework/9912caf7f4ae26aa7ca26c1748e20598c89f4d93/"
 local path,install_prog,st_path,is_minified
 
 --#region GitLoader
@@ -38,7 +38,7 @@ local install = function()
 		"features/text/dual_queue/base.lua",
 		"features/text/dual_queue/iterator.lua",
 		"features/text/dual_queue/make_react.lua",
-		"features/text/dual_queue/parcer.lua",
+		"features/text/dual_queue/parser.lua",
 		"features/text/dual_queue/space_handler.lua",
 
 
@@ -68,20 +68,27 @@ local install = function()
 	local ver = is_minified and "minify/" or "original/"
 	local api_url = cssf_repo..base_path..ver
 	--download & install api
-	
 	--install prog & startup
-	local craftos_url = cssf_repo..base_path.."craftos/"..ver
+	--local craftos_url = cssf_repo..base_path.."craftos_url"..ver
 	local x,y = term.getCursorPos()
+	term.setCursorPos(x,y)
+	print("Path:",path)
+	write("Startup: "..st_path)
+	sleep(1)
+	term.setCursorPos(x,y+1) term.clearLine()
+	term.setCursorPos(x,y) term.clearLine()
 	for i=1, #files do
 		term.setCursorPos(x,y)
 		print("Downloading API...")
 		print(("Progress:[%d/%d]"):format(i-1,#files))
+		term.clearLine()
 		print("File:"..files[i])
-		code[fs.combine(path,files[i]=="cssf__craft_os.lua"and "cssf.lua"or files[i])]=try_get_git_file(craftos_url..files[i])
+		code[fs.combine(path,files[i]=="cssf__craft_os.lua"and "cssf.lua"or files[i])]=try_get_git_file(api_url..files[i])
 	end
 	term.setCursorPos(x,y)
 	print("Downloading API - success!")
 	print(("Progress:[%d/%d]"):format(#files,#files))
+	term.clearLine()
 	print("Saving files...")
 	sleep(0.5)
 	term.setCursorPos(x,y)
@@ -89,11 +96,11 @@ local install = function()
 	local api_path =  fs.combine(path,"cssf.lua")
 	print()
 	--configure api path
-	code[api_path]=code[api_path]:gsub("(local base_path=%[%[)(.-)(%]%])",function(a,b,c) return a..path..c end)
+	code[api_path]=code[api_path]:gsub("(local base_path=%[%[)(.-)(%]%])",function(a,b,c) return a..path:gsub("([^/])$","%1/")..c end)
 	
 	if install_prog then
 		code[fs.combine(path,"cssc_prog.lua")] =
-		[==[local tArgs,cssf,prog={...},typeof(cssf)=="cssf" or error"C SuS SuS Framework not found!"
+		[==[local tArgs,cssf,prog={...},cssf or error"C SuS SuS Framework not found!"
 cssf.prog = cssf.prog and cssf("config=cssc_user")
 if #tArgs<1 then print"Usage: cssf <prog>"return end
 prog=shell.resolveProgram(...) or error("Program `"..a[1].."` not found!")
@@ -113,10 +120,10 @@ return func(unpack(tArgs))]==]
 settings.define(c,{default=true,type="boolean"})
 if settings.get(c)then _G.cssf=loadfile(d.."cssf.lua",nil,_ENV)()end
 __PROG__]==]
-		code[st_path]=code[st_path]:gsub("__PATH__","[=["..path.."]=]")
+		code[st_path]=code[st_path]:gsub("__PATH__","[=["..path:gsub("([^/])$","%1/").."]=]")
 		if install_prog then
 			code[st_path]=code[st_path]:gsub("__PROG__",[[shell.setAlias("cssc",d..p)
-			shell.setCompletionFunction(d..p,C.build{C.programWithArgs,2,many=true})]])
+shell.setCompletionFunction(d..p,C.build{C.programWithArgs,2,many=true})]])
 		else
 			code[st_path]=code[st_path]:gsub("__PROG__","")
 		end
@@ -630,6 +637,7 @@ PrimeUI.addTask(function()
 	term.redirect(wnd)
 	term.setBackgroundColor(colors.lightBlue)
 	term.setTextColor(colors.blue)
+	term.clear()
 	term.setCursorPos(1,1)
 	install()
 	term.redirect(main)

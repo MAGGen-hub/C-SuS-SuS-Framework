@@ -24,7 +24,7 @@ p={path=P or "____PROJECT_NAME____runtime", locals={}, modules={}, loc_names={},
     mk_env=function(t)
         t=t or {}
         if #p.locals>0 then
-            if t[p.path] then C.warn(" CSSC environment var '%s' already exist in '%s'. Override performed.",p.path,tostring(t))end
+            if t[p.path] then C.warn(" CSSC environment var '%s' already exist in '%s'. Override performed!",p.path,tostring(t))end
             t[p.path]=p.data 
         end
         return t
@@ -42,5 +42,6 @@ clear_func = function()
     p.loc_names={}
     p.is_done=false
 end
+User.make_env=p.mk_env
 C.Runtime=p
 insert(Clear,clear_func)

@@ -1,7 +1,7 @@
-local match,insert,remove,unpack,type,native_load,placeholder_func = ENV(2,7,9,10,12,20,22)
+local match,insert,remove,unpack,type,native_load,placeholder_func,pcall,error = ENV(2,7,9,10,12,20,22,19,14)
 --code parceing system
 
-local l_lvl, l_opt, kwrd, lib_loader, local_cssc, meta_reg=C:load_libs"text.dual_queue" --invoke loader and open dirs "text.dual_queue" (as one 'dir')
+local l_lvl, l_opt, kwrd, lib_loader, local_cssc, meta_reg, run=C:load_libs"text.dual_queue" --invoke loader and open dirs "text.dual_queue" (as one 'dir')
 		"base"
 		"parser"
 		"iterator"
@@ -38,7 +38,7 @@ local_cssc={inject = function(index,l_obj,l_tp,...)
 C.Cssc=local_cssc
 
 --important lua code markers
-local meta_reg = C:load_lib("code.lua.meta_opt",
+meta_reg = C:load_lib("code.lua.meta_opt",
 	function(mark,temp)--temporaly remove last text element
 		temp = remove(Result)
 		--insert markers
@@ -75,9 +75,18 @@ insert(PostRun,function()
 	Level.fin()
 end)--fin level
 
-User.info="C SuS SuS Compiller object"
+--override user object functions
+User.info="C SuS SuS Compiller"
+User.version="4.2-beta"
+run,User.run=User.run --replace run with compile
+User.compile = function(...)return run(User,...)end
 User.load=function(x,name,mode,env)
-	x=x==User and Return()or x
+	if x==User then x=Return()
+	elseif not match(x,"^\x1B\x4C") and mode~="c" then --not bytecode and not compilled before -> compilling
+		local r r,x=pcall(run,User,x) --compile and redirect compilation errors
+		r=not r and error(x,2)--quick err-check
+	end
+	mode=mode~="c" and mode or nil
 	env=Runtime and Runtime.mk_env(env) or env --Runtime Env support
 	return native_load(x,name,mode,env)
 end

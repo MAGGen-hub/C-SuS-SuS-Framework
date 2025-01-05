@@ -39,6 +39,8 @@ C.Core=function(obj_tp,obj)
     prew2=prew1--save two previous values
     prew1=obj_tp
 end
+User.info="C SuS SuS Basic minify"
+User.version="1.4-beta"
 --remove last space
 insert(PostRun,function()if prew1==5 then remove(Result)end end)
 insert(Clear,function()prew1=5 prew2=5 end)

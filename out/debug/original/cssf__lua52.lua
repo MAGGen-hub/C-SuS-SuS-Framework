@@ -203,7 +203,7 @@ cssc_basic="sys.err,cssc={NF,KS,BO,CA,ncbf}",--configs
 cssc_user="sys.err,cssc={NF,KS(sc_end),LF,DA,BO,CA,NC,IS,ncbf}",
 cssc_full="sys.err,cssc={NF,KS(ret,loc,sc_end,pl_cond),LF,DA,BO,CA,NC,IS,ncbf}",
 lua_53="sys.err,cssc={BO,ncbf}"},
-creator="M.A.G.Gen.",version='4.5-beta'},
+creator="M.A.G.Gen.",version='4.6-beta'},
 {	--PROJECT MAKER
 	__type="cssf",
 	__name="cssf",
@@ -217,7 +217,7 @@ creator="M.A.G.Gen.",version='4.5-beta'},
 			insert(S,format("%-16s : "..s,format("[%0.3d] [%s]",i,S._),...))
 			i=i+1
 		end}
-		
+
 		--PROCESSING OBJECT
 		Control={
 			--MAIN FUNCTIONS
@@ -232,7 +232,7 @@ creator="M.A.G.Gen.",version='4.5-beta'},
 			Iterator=native_load"return 1",}
 		
 		--USER ACCESS OBJECT
-		Obj=setmetatable({run=run,info="C SuS SuS Framework object"},{__type="cssf_unit",__name="cssf_unit",__index={data=Control}})
+		Obj=setmetatable({run=run,info="C SuS SuS Framework"},{__type="cssf_unit",__name="cssf_unit",__index={data=Control}})
 		Control.User=Obj--link to user accessable object (Control Parent)
 		
 		load_control_string(Control,read_control_string(l_ctrl_str,S.Configs))--CONTROL STRING LOAD AND PARCE
