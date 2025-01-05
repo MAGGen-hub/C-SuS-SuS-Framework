@@ -1,10 +1,10 @@
 # C SuS SuS Framework
 <img src="https://raw.githubusercontent.com/MAGGen-hub/C-SuS-SuS-Framework/refs/heads/master/C_SuS_SuS_logo.svg" style="width: 270px;height: 230px; overflow: hidden;">\
-C SuS SuS Framework ( Very Suspicious C++ or Cඞඞ ) - Data processing system made in lua.
+C SuS SuS Framework ( Very Suspicious C++ or Cඞඞ ) - Modular data processing system made in lua.
 
 Currently it's main purpouse - expand default Lua functional and make coding in Lua a bit more comfy than it was before.
 
-Current version: 4.5-beta
+Current version: 4.6-beta
 
 Legacy version (C SuS SuS esoteric pseudo coding language) can be found [here](https://github.com/MAGGen-hub/C_sus_sus_legacy).
 
@@ -86,7 +86,7 @@ Supported Lua versions:
 4. Inject path to `*dir*` into `package.path`
 5. `cssf=require"cssf__*lua_version*"`
    
-### From releases:
+### From releases (recomended):
 1. Download one of the archives:\
    Original src with comments:
    - c_sus_sus_framework_b45_original_craftos_release.zip
@@ -98,10 +98,12 @@ Supported Lua versions:
    - c_sus_sus_framework_b45_minified_lua51_release.zip
    - c_sus_sus_framework_b45_minified_lua52_release.zip
 2. Unpack into choosen `*dir*`
-3. Run `*dir*/set_path.lua`:\
-   `lua ./set_path.lua absolute_path_to:*dir*/cssf.lua`
-4.  Inject path to `*dir*` into `package.path`
-5. `cssf=require"cssf"`
+3. Download `set_path.lua`.
+4. Run `set_path.lua`:\
+   `lua ./set_path.lua absolute_path_to:*dir*/cssf.lua`\
+   **P.S.** Or you can set `local base_path` in `cssf.lua` manualy (located at the start)
+5.  Inject path to `*dir*` into `package.path`
+6. `cssf=require"cssf"`
 ## Usage
 1. Run `cssf=require"*cssf_module_name*"`
 2. Choose one of configuartions:

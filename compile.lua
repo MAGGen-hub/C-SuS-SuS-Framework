@@ -262,7 +262,7 @@ local compile = function(out_dir,locals_minify,basic_minify,debug)
 	if not debug then
 		local tp = (locals_minify or basic_minify) and "minified" or "original"
 		for code_name,enabled in pairs(config.compile) do
-			local com = string.format([==[cd %s; zip -r ./../%s ./modules ./features ./%s]==],
+			local com = string.format([==[cd %s; zip -r ./../%s ./modules ./features ./%s ./../../../set_path.lua]==],
 				"/home/maggen/.local/share/craftos-pc/computer/0/"..out_dir,("c_sus_sus_framework_b46_"..tp.."_"..code_name.."_release.zip"),table.concat({project_name,code_name},"__")..".lua")
 			print(com)
 			os.execute(com)

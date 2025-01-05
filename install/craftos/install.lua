@@ -1,9 +1,12 @@
 
-
+--#region Locals
 local PrimeUI,PrimeUI_borderBox
 local license
 local cssf_repo = "https://raw.githubusercontent.com/MAGGen-hub/C-SuS-SuS-Framework/9912caf7f4ae26aa7ca26c1748e20598c89f4d93/"
 local path,install_prog,st_path,is_minified
+local tArgs={...}
+is_minified=true
+--#endregion Locals
 
 --#region GitLoader
 local err_codes={[-2]="Broken URL",[-3]="No responce",[-4]="No result"}
@@ -18,6 +21,7 @@ local try_get_git_file= function(url)
 end
 --#endregion GitLoader
 
+--#region Install
 local install = function()
 	local files = {
 	--#region C SuS SuS Files
@@ -130,13 +134,56 @@ shell.setCompletionFunction(d..p,C.build{C.programWithArgs,2,many=true})]])
 	end
 
 	for k,v in pairs(code) do 
-		local file = fs.open(k,"w")
+		local file,err = fs.open(k,"w")
+		if err then
+			local clr= term.getTextColor()
+			term.setTextColor(color.red)
+			print("Instalation error!")
+			print(err)
+			print("Press any key to exit...")
+			os.pullEvent("key")
+			term.setTextColor(clr)
+		end
 		file.write(v)
 		file.close()
 	end
 
 	print("Instalation complete.")
 end
+--#endregion Install
+
+--#region CLI mode (if any args was detected)
+if #tArgs>0 then
+	for k,v in pairs(tArgs)do
+		if v=="--help" or v=="-H" then
+			print("Usage:\n"..
+				"  -H  --help --Show this message and exit\n"..
+				"  -P=*path* --path=*path*\n"..
+				"        --Set path to installation folder\n"..
+				"  -S=*path* --startup=*path*\n"..
+				"        --Enable startup and set it's name\n"..
+				"  -P  --prog\n"..
+				"        --Enable launching CSSC from shell\n"..
+				"  -M  --minified (default)\n"..
+				"        --Set API version to minified\n"..
+				"  -O  --original\n"..
+				"        --Set API version to original\n")
+			return
+		end
+		install_prog=install_prog or v=="-P" or v=="--prog"
+		st_path=st_path or v:match("^%-S=(.+)") or v:match("^-%-startup=(.+)")
+		path=path or v:match("^%-P=(.+)") or v:match("^-%-path=(.+)")
+		if v=="-O" or v=="--original" then is_minified= false end
+		if v=="-M" or v=="--minified"then is_minified= true end
+	end
+	path=path or error("Instalation directory not set!")
+	print("CSSF>startup: "..(st_path or"disabled"))
+	print("CSSF>path: "..(path))
+	print("CSSF>prog: "..(install_prog and "enabled" or "disabled"))
+	install()
+	return
+end
+--#endregion CLI mode
 
 --#region Animation API
 local blit_pic=function(pic,x,y,font,back)
@@ -354,11 +401,13 @@ pal_ctrl(pal) --recover palette
 
 --#endregion Download_PrimeUI & ShowSplash
 
---#region PrimeUI GUI part
+--PrimeUI GUI
+--#region PrimeUI Locals
 local comp=require"cc.shell.completion"
 local main=term.current()
 local x,y=6,8
 local act,_,scroll_box="done"
+--#endregion PrimeUI Locals
 
 --#region GUI_base func
 function make_gui(tm)
@@ -428,7 +477,6 @@ end
 --#endregion CancelInstalation
 
 -- GUI START
-
 --#region ShowDescription
 PrimeUI.clear()
 make_gui("DESCRIPTION")
@@ -646,6 +694,8 @@ end)
 _,act=PrimeUI.run()
 if act=="exit" then on_cancel() return end
 --#endregion ProgressBar & Size calculation & Instalation Completion
+
+--#region Final
 PrimeUI.clear()
 make_gui("FINAL")
 PrimeUI.label(main ,3,5,"Instalation complete. Press any key to exit.",colors.blue,colors.lightBlue)
@@ -657,6 +707,5 @@ PrimeUI.addTask(function()while true do
 end)
 PrimeUI.timeout(3,"timeout")
 _,act=PrimeUI.run()
---#endregion PrimeUI GUI part
-
 exit_animation()
+--#endregion Final
