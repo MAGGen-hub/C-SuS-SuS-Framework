@@ -4,8 +4,9 @@ Small rework and improvements.
 ### Added
 - CHANGELOG.md
 - Version fields to `cssc` and `minify` modules.
-- Alpha version of CraftOS CSSF linstaller. GUI & CLI avaliable. (still need more testing)
+- Beta version of CraftOS CSSF linstaller. GUI & CLI avaliable. (still need more testing)
 ### Changed
+- Project Logo.
 - A few things in compile system.
 - `make_env` function from runtime lib, now accessable from `cssf_instance` if lib loaded.
 - `os.execute-plugin` now used to automatize release archives creation.
@@ -13,10 +14,13 @@ Small rework and improvements.
 - `cssf_instance.run` replaced by `compile` function when `cssc` module used
 - `cssf_instance.load` now compiles scripts automaticaly (if script is not bytecode).
 - `cssf_instance.load` : if `mode=='c'` - function will recognise `x` as already compilled script.
+- moved all Lua version related macros into `macro` folder
 ### Fixed
 - Minified `IS` module bug
+- Pattern matching class error in some LuaVM's (Java based)
 - Typo in `parcer` lib name -> `parser`
 - `cssc` typo. Was replaced with `cssf` where it means `C SuS SuS Framework`.
+- Some other typos...
 
 # cssf-4.5-beta
 **C SuS SuS Framework** - Initial release & Beta test.
