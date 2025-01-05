@@ -2,7 +2,7 @@
 --#region Locals
 local PrimeUI,PrimeUI_borderBox
 local license
-local cssf_repo = "https://raw.githubusercontent.com/MAGGen-hub/C-SuS-SuS-Framework/42f3685d697d727853cd71983b6600e1770fbb42/"
+local cssf_repo = "https://raw.githubusercontent.com/MAGGen-hub/C-SuS-SuS-Framework/1b5873cca41394d66f20e2b2713272b12b4376cb/"
 local path,install_prog,st_path,is_minified
 local tArgs={...}
 is_minified=true
@@ -97,7 +97,7 @@ local install = function()
 	term.write("Downloading API - success!")
 	term.setCursorPos(x,y+1)
 	term.write(("Progress:[%d/%d]"):format(#files,#files))
-	term.setCursorPos(x,y+2)s
+	term.setCursorPos(x,y+2)
 	term.clearLine()
 	term.write("Saving files...")
 	sleep(0.5)
