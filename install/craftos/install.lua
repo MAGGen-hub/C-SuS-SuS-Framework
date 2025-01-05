@@ -429,7 +429,7 @@ function make_gui(tm)
 				"\x82\x83 \x81\x81 \x81\x81","bb ee ee","        "},4,2,function(a)return a:gsub("*","3") end,function(a)return a:gsub(" ","3") end)
 	term.setCursorPos(4+8,2)
 	term.setTextColor(colors.blue)
-	write(" Framework V4.5-beta Installer. ")
+	write(" Framework V4.6-beta Installer. ")
 
 	-- PrimeUI CC0 "copyright"
 	local p_msg ="PrimeUI-218b28d by MCJack123 "
@@ -493,11 +493,9 @@ make_gui("DESCRIPTION")
 paintutils.drawFilledBox(3,5,max_x-x+4,max_y-y+4,colors.white)
 scroll_box=PrimeUI.scrollBox(main,3,5,max_x-x+2, max_y-y,999,true,true,colors.blue,colors.white)
 PrimeUI.drawText(scroll_box,
-[[
-C SuS SuS Framework (Very Suspisious C++)
-Version="4.6-beta", creator="M.A.G.Gen."
-Use `-H` to get info about CLI mode.
+[[Use `-H` to get info about CLI mode.
 
+C SuS SuS Framework (Very Suspisious C++)
 Modular data parsing system.
 Currently, it's main purpose - extending 
 base Lua functional by adding new syntax.
