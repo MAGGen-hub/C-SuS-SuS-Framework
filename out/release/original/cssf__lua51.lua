@@ -1,6 +1,6 @@
 -- PROTECTION LAYER
 -- This local var layer was created to prevent unpredicted behaviour of preprocessor if one of the functions in _G table was changed.
-local base_path=[[/home/maggen/.local/share/craftos-pc/computer/0/cssf_final/out/release/]]
+local base_path=[[/home/maggen/.local/share/craftos-pc/computer/0/cssf_final/out/release/original/]]
 local cssf,A,S,T,E,placeholder_func,E_ENV,_=
 {},assert,string,table,"cssf load failed because of missing libruary method!",
 function()end

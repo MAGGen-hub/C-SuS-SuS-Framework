@@ -206,7 +206,7 @@ local compile = function(out_dir,locals_minify,basic_minify,debug)
 			else
 				code=code:gsub("@@DEBUG_START.-@@DEBUG_END",""):gsub("@@DEBUG.-\n","")
 			end
-			code=code:gsub("__BASE_PATH__",code_name=="craft_os" and"[["..out_dir.."/]]" or "[[/home/maggen/.local/share/craftos-pc/computer/0/cssf_final/out/"..(debug and "debug/"or"release/").."]]")
+			code=code:gsub("__BASE_PATH__",code_name=="craft_os" and"[["..out_dir.."/]]" or "[[/home/maggen/.local/share/craftos-pc/computer/0/cssf_final/out/"..(debug and "debug/"or"release/")..((locals_minify or basic_minify) and "minify/" or "original/").."]]")
 			code=code:gsub("__VERSION__",version)
 			--SET OUT
 			local l_path = fs.combine(out_dir,table.concat({project_name,code_name},"__")..".lua")
@@ -262,7 +262,7 @@ local compile = function(out_dir,locals_minify,basic_minify,debug)
 	if not debug then
 		local tp = (locals_minify or basic_minify) and "minified" or "original"
 		for code_name,enabled in pairs(config.compile) do
-			local com = string.format([==[cd %s; zip -r ./../%s ./modules ./features ./%s ./../../../set_path.lua]==],
+			local com = string.format([==[cd %s; zip -r ./../%s ./modules ./features ./%s]==],
 				"/home/maggen/.local/share/craftos-pc/computer/0/"..out_dir,("c_sus_sus_framework_b46_"..tp.."_"..code_name.."_release.zip"),table.concat({project_name,code_name},"__")..".lua")
 			print(com)
 			os.execute(com)

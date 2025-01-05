@@ -323,17 +323,17 @@ lzss_src_final=[===[
 
 --prepare:
 package.path=package.path..";/home/maggen/.local/share/craftos-pc/computer/0/?.lua"
-test_path = "cssc_final/out/release/cssc__lua51__original"
+test_path = "cssf_final/out/release/minify/cssf__lua51"
 package.path=package.path..";../?.lua"--add previous directory to require check
 local lua_mc=require(test_path)--load system
 
 local comp1 = lua_mc("sys.err,cssc={BO}")--basic compiller
-local compilled=comp1:run(lzss_src)--compile basic lzss
+local compilled=comp1.compile(lzss_src)--compile basic lzss
 print(compilled)
 
 require("compat53")--for lzss load string.pack/unpack methods (lua-mc not uses them)
-print("DATA",comp1:load("basic_lzss",nil,setmetatable({},{__index=_G})))
-local lzss_basic = comp1:load("basic_lzss",nil,setmetatable({},{__index=_G}))()--specific _ENV with _G protected
+print("DATA",comp1:load("basic_lzss",'c',setmetatable({},{__index=_G})))
+local lzss_basic = comp1:load("basic_lzss",'c',setmetatable({},{__index=_G}))()--specific _ENV with _G protected
 
 assert(lzss_basic,"Unable to compile lzss src")
 
@@ -343,10 +343,10 @@ assert(decompressed_lzss_src == lzss_src,"Error lzss compress/decompress output 
 print("Basic lzss test complete.")
 
 local comp2 = lua_mc("sys.err,cssc={KS(loc,ret),LF,BO,CA}")
-compilled=comp2:run(lzss_src_oprimised)--compile advanced lzss
+compilled=comp2.compile(lzss_src_oprimised)--compile advanced lzss
 print(compilled)
 
-local lzss_advanced = comp2:load("advanced_lzss",nil,setmetatable({},{__index=_G}))()--specific _ENV with _G protected
+local lzss_advanced = comp2:load("advanced_lzss",'c',setmetatable({},{__index=_G}))()--specific _ENV with _G protected
 
 assert(lzss_advanced,"Unable to compile advanced lzss src")
 
@@ -357,10 +357,10 @@ print("Advanced lzss test complete.")
 
 
 local comp3 = lua_mc("sys.err,cssc={KS(loc,ret,sc_end,pl_cond),LF,DA,BO,CA,NF}")
-compilled=comp3:run(lzss_src_final)--compile advanced lzss
+compilled=comp3.compile(lzss_src_final)--compile advanced lzss
 print(compilled)
 
-local lzss_final = comp3:load("final_lzss",nil,setmetatable({},{__index=_G}))()--specific _ENV with _G protected
+local lzss_final = comp3:load("final_lzss",'c',setmetatable({},{__index=_G}))()--specific _ENV with _G protected
 --[[
 if e then print(e)end
 print("lc")
