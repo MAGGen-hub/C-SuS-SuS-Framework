@@ -2,10 +2,10 @@
 --#region Locals
 local PrimeUI,PrimeUI_borderBox
 local license
-local cssf_repo = "https://raw.githubusercontent.com/MAGGen-hub/C-SuS-SuS-Framework/1b5873cca41394d66f20e2b2713272b12b4376cb/"
+local cssf_repo = "https://raw.githubusercontent.com/MAGGen-hub/C-SuS-SuS-Framework/7757577e5f673f734e12c70f02be1a8c098f55aa/"
 local path,install_prog,st_path,is_minified
 local tArgs={...}
-is_minified=true
+is_minified=true 
 --#endregion Locals
 
 --#region GitLoader
