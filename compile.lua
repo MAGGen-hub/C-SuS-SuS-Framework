@@ -104,6 +104,7 @@ local run_tests = {--WARNING!: temporaly unavaliable. (other test system setup)
 -- #region COMPILATOR FUNCS
 local function get_src(src)
 	local file = fs.open(src,"r")
+	--print(src)
 	local str = file.readAll()
 	file.close()
 	return str
@@ -118,7 +119,7 @@ local compile_macros=function(code_name,code)
 	--COMPILE MACROS
 	if code_name then
 		for k,v in pairs(macro)do
-			code=code:gsub(v,get_src(fs.combine(src_dir,code_name,v..".lua")))
+			code=code:gsub(v,get_src(fs.combine(src_dir,"macro",code_name,v..".lua")))
 		end
 	end
 	get_src(macro_src):sub(16):gsub("\n+(.-),(.-),.-",function(name,value)code=code:gsub(name,value)end)
@@ -262,9 +263,9 @@ local compile = function(out_dir,locals_minify,basic_minify,debug)
 	if not debug then
 		local tp = (locals_minify or basic_minify) and "minified" or "original"
 		for code_name,enabled in pairs(config.compile) do
-			local com = string.format([==[cd %s; zip -r ./../%s ./modules ./features ./%s]==],
+			local com = string.format([==[cd %s; zip -r ./../../../../releases_cssf/%s ./modules ./features ./%s]==],
 				"/home/maggen/.local/share/craftos-pc/computer/0/"..out_dir,("c_sus_sus_framework_b46_"..tp.."_"..code_name.."_release.zip"),table.concat({project_name,code_name},"__")..".lua")
-			print(com)
+			--print(com)
 			os.execute(com)
 		end
 	end
@@ -273,7 +274,7 @@ print("Debug Original")
 compile(out_dir,nil,nil,true)
 print("\nDebug Minified")
 compile(out_dir,true,true,true)
-print("Relsease Original")
+print("\nRelsease Original")
 compile(out_dir)
 print("\nRelesase Minified")
 compile(out_dir,true,true)

@@ -74,26 +74,32 @@ local install = function()
 	--download & install api
 	--install prog & startup
 	--local craftos_url = cssf_repo..base_path.."craftos_url"..ver
-	local x,y = term.getCursorPos()
-	term.setCursorPos(x,y)
 	print("Path:",path)
-	write("Startup: "..st_path)
+	print("Startup: "..st_path)
+	print()
+	local x,y = term.getCursorPos()
+	y=y-3
+	term.setCursorPos(x,y)
 	sleep(1)
 	term.setCursorPos(x,y+1) term.clearLine()
 	term.setCursorPos(x,y) term.clearLine()
 	for i=1, #files do
 		term.setCursorPos(x,y)
-		print("Downloading API...")
-		print(("Progress:[%d/%d]"):format(i-1,#files))
+		term.write("Downloading API...")
+		term.setCursorPos(x,y+1)
+		term.write(("Progress:[%d/%d]"):format(i-1,#files))
+		term.setCursorPos(x,y+2)
 		term.clearLine()
-		print("File:"..files[i])
+		term.write("File:"..files[i])
 		code[fs.combine(path,files[i]=="cssf__craft_os.lua"and "cssf.lua"or files[i])]=try_get_git_file(api_url..files[i])
 	end
 	term.setCursorPos(x,y)
-	print("Downloading API - success!")
-	print(("Progress:[%d/%d]"):format(#files,#files))
+	term.write("Downloading API - success!")
+	term.setCursorPos(x,y+1)
+	term.write(("Progress:[%d/%d]"):format(#files,#files))
+	term.setCursorPos(x,y+2)
 	term.clearLine()
-	print("Saving files...")
+	term.write("Saving files...")
 	sleep(0.5)
 	term.setCursorPos(x,y)
 
@@ -105,10 +111,10 @@ local install = function()
 	if install_prog then
 		code[fs.combine(path,"cssc_prog.lua")] =
 		[==[local tArgs,cssf,prog={...},cssf or error"C SuS SuS Framework not found!"
-cssf.prog = cssf.prog and cssf("config=cssc_user")
+cssf.prog = cssf.prog or cssf("config=cssc_user")
 if #tArgs<1 then print"Usage: cssf <prog>"return end
 prog=shell.resolveProgram(...) or error("Program `"..a[1].."` not found!")
-local file,err = fs.open(p,"r")
+local file,err = fs.open(prog,"r")
 local code=file and file.readAll():gsub("^#!cssc\n","",1) or error(err)
 file.close()
 cssf.prog.run(code)
@@ -147,7 +153,7 @@ shell.setCompletionFunction(d..p,C.build{C.programWithArgs,2,many=true})]])
 		file.write(v)
 		file.close()
 	end
-
+	print()
 	print("Instalation complete.")
 end
 --#endregion Install
@@ -180,6 +186,7 @@ if #tArgs>0 then
 	print("CSSF>startup: "..(st_path or"disabled"))
 	print("CSSF>path: "..(path))
 	print("CSSF>prog: "..(install_prog and "enabled" or "disabled"))
+	print()
 	install()
 	return
 end
@@ -390,7 +397,7 @@ parallel.waitForAny(
 				c,x,y=term.getTextColor(),term.getCursorPos()
 				term.setTextColor(colors.orange)
 				term.setCursorPos(1,Y-1)
-				print("PrimeUI downloading... Please wait...",PrimeUI and 1,license and 1)
+				print("PrimeUI downloading... Please wait...")
 				term.setCursorPos(x,y)
 				term.setTextColor(c)
 			end
@@ -483,42 +490,47 @@ make_gui("DESCRIPTION")
 paintutils.drawFilledBox(3,5,max_x-x+4,max_y-y+4,colors.white)
 scroll_box=PrimeUI.scrollBox(main,3,5,max_x-x+2, max_y-y,999,true,true,colors.blue,colors.white)
 PrimeUI.drawText(scroll_box,
-[[Enter->Continue Ctrl+c->Cancel Space->Select
-Version="4.5-beta" creator="M.A.G.Gen."}
-
+[[
 C SuS SuS Framework (Very Suspisious C++)
-Modular data processing system.
-C SuS SuS Compiller (CSSC) has no own parcer and 
-act like preproccessor that turns C SuS SuS code into Lua5.1 code.
-    
-What C SuS SuS provides?
-1. Full support of Lua5.3 operators
-    Such as ">>" "//" "&"
-2. Keywords shortcuts 
-    (and -> "&&", or -> "||", local ->"@", return -> "$", ...)
-3. Assignment operators
-    ("+=", "-=", "*=", "^=" ...)
-4. IS keyword 
-    (variable is "string")
-    with {__type="your_type"} metamethod support
-5. Nil forgiving operators
-    (object?.method()) error will not be emited if "method" is nil.
-6. Lambdas 
-    "(*args*)=>" will be turned into "function(args)"
-7. Defautl  arguments for functions
-    function demo(A := *default_value*) *code* end
-8. More custom features...
-    
-To know more about C SuS SuS features,
-how to use them and how to works with them,
-please visit official github
-and read or download the documentation [in development].
+Version="4.6-beta", creator="M.A.G.Gen."
+Use `-H` to get info about CLI mode.
 
-This package has quiet install mode.
-Use `-H` or `--help` option for more information.
+Modular data parsing system.
+Currently, it's main purpose - extending 
+base Lua functional by adding new syntax.
 
-For more information visit project git:
-https://github.com/MAGGen-hub/C-SuS-SuS-Framework
+Project features:
+1. Fully configurable instances!
+ All syntax additions are independend, and
+ can be easily enabled/disabled.
+
+2. Full support of bitwize and `//` opts from
+ Lua5.3, including their metamethods.
+
+3. Default arguments and strict types:
+ Tired of `require'cc.expect'.expect`?
+ Use: `function(*arg*: *type*=*default*)`!
+
+4. Custom types for your objects.
+ `typeof` function and `is` keyword.
+
+5. Octal and binary number formats.
+ 0o71, 0b101 - both support binary exponenta
+ and floating point.
+
+6. Lambda function operators: `->` `=>`
+ For realy short funcs.
+
+7. Additional assignment: `a X= 1`
+ Including opts like this: `>>=`
+
+8. Weird keyword shortcuts and
+ number concatenation bug fix.
+
+9. Experimental code minification module.
+
+For more information visit:
+github.com/MAGGen-hub/C-SuS-SuS-Framework
 ]],true,colors.brown,colors.white)
 
 term.setBackgroundColor(colors.lightBlue)
